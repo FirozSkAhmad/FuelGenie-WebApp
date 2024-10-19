@@ -1,0 +1,4 @@
+a {
+  color: inherit; /* This will inherit the text color from its parent */
+  text-decoration: none; /* Remove underline */
+}
