@@ -25,12 +25,17 @@ import {
   Comment, // Icon for Quote Product List
   History, // Icon for Price History
   Photo, // Icon for Banner
+  Business,
+  Payment,
+  RequestQuote,
+  AlarmOn,
+  Notifications,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 
 const drawerWidth = 240;
-
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -39,21 +44,24 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   justifyContent: "flex-end",
 }));
 
-const handleLogout = () => {
-  // Perform logout logic here (e.g., clear tokens, update state, etc.)
-};
-
 function Sidebar({ open, toggleDrawer }) {
   const theme = useTheme();
   const location = useLocation(); // Get the current location
+  const navigate = useNavigate();
 
   const isActive = (path) => location.pathname === path; // Function to check if the current path is active
   const [openProducts, setOpenProducts] = useState(false); // State for dropdown
-
+  const [openSales, setOpenSales] = useState(false);
   const handleProductsToggle = () => {
     setOpenProducts(!openProducts); // Toggle the dropdown
   };
-
+  const handleSalesToggle = () => {
+    setOpenSales(!openSales);
+  };
+  const handleLogout = () => {
+    // Perform logout logic here (e.g., clear tokens, update state, etc.)
+    navigate("/");
+  };
   return (
     <Drawer
       variant="permanent"
@@ -96,42 +104,6 @@ function Sidebar({ open, toggleDrawer }) {
             <Home />
           </ListItemIcon>
           {open && <ListItemText primary="Dashboard" />}
-        </ListItem>
-        <ListItem
-          button
-          component={Link}
-          to="/profile"
-          sx={{
-            backgroundColor: isActive("/profile")
-              ? theme.palette.action.selected
-              : "transparent",
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
-          <ListItemIcon>
-            <Person />
-          </ListItemIcon>
-          {open && <ListItemText primary="Profile" />}
-        </ListItem>
-        <ListItem
-          button
-          component={Link}
-          to="/settings"
-          sx={{
-            backgroundColor: isActive("/settings")
-              ? theme.palette.action.selected
-              : "transparent",
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
-          <ListItemIcon>
-            <Settings />
-          </ListItemIcon>
-          {open && <ListItemText primary="Settings" />}
         </ListItem>
 
         {/* Products Dropdown */}
@@ -221,6 +193,156 @@ function Sidebar({ open, toggleDrawer }) {
             </ListItem>
           </List>
         </Collapse>
+        {/* Sales Dropdown */}
+        <ListItem button onClick={handleSalesToggle}>
+          <ListItemIcon>
+            <AttachMoneyIcon /> {/* Icon for Sales */}
+          </ListItemIcon>
+          {open && <ListItemText primary="Sales" />}
+        </ListItem>
+        <Collapse in={openSales} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItem
+              button
+              component={Link}
+              to="/sales/orders"
+              sx={{
+                pl: 4, // Indent sub-items
+                backgroundColor: isActive("/sales/orders")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <ListAlt /> {/* Orders Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Orders" />}
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/sales/approval"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/sales/approval")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Comment /> {/* Approval Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Approval" />}
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/sales/business-profile"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/sales/business-profile")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Business /> {/* Business Profile Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Business Profile" />}
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/sales/transactions"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/sales/transactions")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Payment /> {/* Transactions Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Transactions" />}
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/sales/get-a-quote"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/sales/get-a-quote")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <RequestQuote /> {/* Get a Quote Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Get a Quote" />}
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/sales/overdue"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/sales/overdue")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <AlarmOn /> {/* Overdue Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Overdue" />}
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/sales/notify"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/sales/notify")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Notifications /> {/* Notify Icon */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Notify Me" />}
+            </ListItem>
+          </List>
+        </Collapse>
 
         <ListItem
           button
@@ -293,6 +415,42 @@ function Sidebar({ open, toggleDrawer }) {
             <BusinessCenter />
           </ListItemIcon>
           {open && <ListItemText primary="Management" />}
+        </ListItem>
+        <ListItem
+          button
+          component={Link}
+          to="/profile"
+          sx={{
+            backgroundColor: isActive("/profile")
+              ? theme.palette.action.selected
+              : "transparent",
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+            },
+          }}
+        >
+          <ListItemIcon>
+            <Person />
+          </ListItemIcon>
+          {open && <ListItemText primary="Profile" />}
+        </ListItem>
+        <ListItem
+          button
+          component={Link}
+          to="/settings"
+          sx={{
+            backgroundColor: isActive("/settings")
+              ? theme.palette.action.selected
+              : "transparent",
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+            },
+          }}
+        >
+          <ListItemIcon>
+            <Settings />
+          </ListItemIcon>
+          {open && <ListItemText primary="Settings" />}
         </ListItem>
         <ListItem button onClick={handleLogout}>
           <ListItemIcon>

@@ -11,8 +11,8 @@ import {
   TextField,
   Pagination,
 } from "@mui/material";
-import CreateZoneModal from "../components/zonecreation/CreateZoneModal";
-import AddProductModal from "../components/addProduct/AddProductModal";
+import CreateZoneModal from "../../components/zonecreation/CreateZoneModal";
+import AddProductModal from "../../components/addProduct/AddProductModal";
 const initialProducts = [
   { productName: "Diesel", price: "₹ 98.67" },
   { productName: "LDO", price: "₹ 98.67" },

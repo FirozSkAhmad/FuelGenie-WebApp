@@ -9,15 +9,23 @@ import Admin from "../pages/admin";
 import Management from "../pages/Management";
 import VendorManagement from "../pages/Vendor-Management";
 import NotFoundPage from "../pages/NotFound";
-import ProductsList from "../pages/ProductsList";
+import ProductsList from "../pages/Products/ProductsList";
+import Login from "../Auth/Login";
+import PriceHistory from "../pages/Products/PriceHistory";
+import Banner from "../pages/Products/Banner";
+import Order from "../pages/Sales/Order";
 
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/products/product-list" element={<ProductsList />} />
+      <Route path="/products/price-history" element={<PriceHistory />} />
+      <Route path="/products/banner" element={<Banner />} />
+      <Route path="/sales/orders" element={<Order />} />
       <Route path="/operations" element={<Operations />} />
       <Route path="/vendor-management" element={<VendorManagement />} />
       <Route path="/admin" element={<Admin />} />
