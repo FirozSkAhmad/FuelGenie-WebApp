@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogActions,
@@ -6,17 +6,23 @@ import {
   DialogTitle,
   Button,
   TextField,
-  Tabs,
-  Tab,
+  Typography,
   Box,
   Select,
   MenuItem,
-  InputLabel,
   FormControl,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
   IconButton,
+  Tabs,
+  Tab,
+  Paper,
+  Divider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
 // Sample data for customers and products
 const customers = [
@@ -39,61 +45,97 @@ const productsList = [
   { name: "MTO", price: 200 },
   { name: "Fuel Oil", price: 150 },
 ];
-
+const timeSlots = [
+  "9:00 AM - 12:00 PM",
+  "12:00 PM - 3:00 PM",
+  "3:00 PM - 6:00 PM",
+  "6:00 PM - 9:00 PM",
+  "9:00 PM - 9:00 AM",
+];
 const CreateOrderModal = ({ open, handleClose }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [isNewCustomer, setIsNewCustomer] = useState(false); // For toggling new/existing customer
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [customerDetails, setCustomerDetails] = useState({
     name: "",
     email: "",
     phone: "",
   });
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [newAddress, setNewAddress] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [paymentStatus, setPaymentStatus] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState("");
+  const [showAddressInput, setShowAddressInput] = useState(false);
 
+  const [newAddress, setNewAddress] = useState("");
   useEffect(() => {
     calculateTotal();
   }, [selectedProducts]);
 
-  // Handle tab navigation
-  const handleNext = () => setActiveTab((prev) => prev + 1);
-  const handleBack = () => setActiveTab((prev) => prev - 1);
-
-  // Customer search & selection logic
-  const handleCustomerSelect = (customer) => {
-    setSelectedCustomer(customer);
-    setCustomerDetails(customer);
-    if (customer.addresses.length > 0) {
-      setDeliveryAddress(customer.addresses[0]);
-    }
+  const handleTabChange = (event, newTab) => {
+    setActiveTab(newTab);
   };
-
+  const handleAddLocationClick = () => {
+    setShowAddressInput(!showAddressInput); // Show the address input field when button is clicked
+    setDeliveryAddress("");
+  };
   const handleAddProduct = (product) => {
-    setSelectedProducts((prev) => {
-      const exists = prev.find((p) => p.name === product.name);
-      if (exists) {
-        return prev.map((p) =>
-          p.name === product.name ? { ...p, quantity: p.quantity + 1 } : p
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
+    const existingProduct = selectedProducts.find(
+      (p) => p.name === product.name
+    );
+    const newSelectedProducts = [...selectedProducts];
+
+    if (existingProduct) {
+      existingProduct.quantity += 1; // Increase quantity by 1
+    } else {
+      newSelectedProducts.push({ ...product, quantity: 1 }); // Add new product with quantity 1
+    }
+
+    setSelectedProducts(newSelectedProducts);
+    setTotalAmount((prevAmount) => prevAmount + product.price); // Update total amount
   };
 
   const handleRemoveProduct = (product) => {
-    setSelectedProducts((prev) =>
-      prev
-        .map((p) =>
-          p.name === product.name && p.quantity > 1
-            ? { ...p, quantity: p.quantity - 1 }
-            : p
-        )
-        .filter((p) => p.quantity > 0)
+    const existingProduct = selectedProducts.find(
+      (p) => p.name === product.name
     );
+    const newSelectedProducts = selectedProducts.filter(
+      (p) => p.name !== product.name
+    );
+
+    if (existingProduct) {
+      existingProduct.quantity -= 1; // Decrease quantity by 1
+      if (existingProduct.quantity > 0) {
+        newSelectedProducts.push(existingProduct); // Keep it in the list if quantity is still > 0
+      }
+      setTotalAmount((prevAmount) => prevAmount - product.price); // Update total amount
+    }
+
+    setSelectedProducts(newSelectedProducts);
+  };
+
+  const handleQuantityChange = (product, newQuantity) => {
+    const existingProduct = selectedProducts.find(
+      (p) => p.name === product.name
+    );
+    const previousQuantity = existingProduct ? existingProduct.quantity : 0;
+
+    if (existingProduct) {
+      existingProduct.quantity = newQuantity; // Update the quantity of the existing product
+    } else {
+      // If the product does not exist, create a new entry
+      selectedProducts.push({ ...product, quantity: newQuantity });
+    }
+
+    // Update the total amount
+    setTotalAmount(
+      (prevAmount) =>
+        prevAmount + (newQuantity - previousQuantity) * product.price
+    );
+
+    // Update the state to trigger a re-render
+    setSelectedProducts([...selectedProducts]);
   };
 
   const calculateTotal = () => {
@@ -104,219 +146,432 @@ const CreateOrderModal = ({ open, handleClose }) => {
     setTotalAmount(total);
   };
 
-  // Handle tab content
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 0:
-        return (
-          <Box>
-            <h4>Customer Details</h4>
-            <FormControl fullWidth>
-              <InputLabel>Choose Customer</InputLabel>
-              <Select
-                fullWidth
-                value={selectedCustomer?.name || ""}
-                onChange={(e) => {
-                  const customer = customers.find(
-                    (cust) => cust.name === e.target.value
-                  );
-                  handleCustomerSelect(customer);
-                  setIsNewCustomer(false);
-                }}
-                displayEmpty
-              >
-                <MenuItem value="">Search for an existing customer</MenuItem>
-                {customers.map((customer) => (
-                  <MenuItem key={customer.name} value={customer.name}>
-                    {customer.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button
-              onClick={() => {
-                setCustomerDetails({
-                  name: "",
-                  email: "",
-                  phone: "",
-                });
-                setSelectedCustomer(null);
-                setIsNewCustomer(true);
-              }}
-              sx={{ mt: 2 }}
-            >
-              Add New Customer
-            </Button>
+  const handleCustomerChange = (field, value) => {
+    setCustomerDetails((prev) => ({ ...prev, [field]: value }));
+  };
 
-            <Box mt={2}>
-              <TextField
-                label="Customer Name"
-                fullWidth
-                value={customerDetails.name}
-                onChange={(e) =>
-                  setCustomerDetails({
-                    ...customerDetails,
-                    name: e.target.value,
-                  })
-                }
-                disabled={!isNewCustomer && !!selectedCustomer}
-              />
-              <TextField
-                label="Email"
-                fullWidth
-                value={customerDetails.email}
-                onChange={(e) =>
-                  setCustomerDetails({
-                    ...customerDetails,
-                    email: e.target.value,
-                  })
-                }
-                disabled={!isNewCustomer && !!selectedCustomer}
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                label="Phone"
-                fullWidth
-                value={customerDetails.phone}
-                onChange={(e) =>
-                  setCustomerDetails({
-                    ...customerDetails,
-                    phone: e.target.value,
-                  })
-                }
-                disabled={!isNewCustomer && !!selectedCustomer}
-                sx={{ mt: 2 }}
-              />
-            </Box>
-          </Box>
-        );
-      case 1:
-        return (
-          <Box>
-            <h4>Delivery Location</h4>
-            {selectedCustomer && selectedCustomer.addresses.length > 0 ? (
-              <FormControl fullWidth>
-                <InputLabel>Select Address</InputLabel>
-                <Select
-                  fullWidth
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                >
-                  {selectedCustomer.addresses.map((address) => (
-                    <MenuItem key={address} value={address}>
-                      {address}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
-              <TextField
-                label="New Address"
-                fullWidth
-                value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
-              />
-            )}
-            <Button onClick={() => setNewAddress("")} sx={{ mt: 2 }}>
-              Add New Address
-            </Button>
-          </Box>
-        );
-      case 2:
-        return (
-          <Box>
-            <h4>Products</h4>
-            {productsList.map((product) => (
-              <Box
-                key={product.name}
-                sx={{ display: "flex", alignItems: "center", mb: 2 }}
-              >
-                <Button
-                  variant="outlined"
-                  sx={{ flex: 1 }}
-                  onClick={() => handleAddProduct(product)}
-                >
-                  {product.name} (${product.price})
-                </Button>
+  const renderCustomerDetails = () => (
+    <Box>
+      <h4>Customer Details</h4>
+      <FormControl fullWidth>
+        <Select
+          fullWidth
+          value={customerDetails.name || ""}
+          onChange={(e) => {
+            const selectedCustomer = customers.find(
+              (cust) => cust.name === e.target.value
+            );
+            if (selectedCustomer) {
+              setCustomerDetails({
+                name: selectedCustomer.name,
+                email: selectedCustomer.email,
+                phone: selectedCustomer.phone,
+                addresses: selectedCustomer.addresses || [],
+              });
+            }
+          }}
+          displayEmpty
+        >
+          <MenuItem value="">Search for an existing customer</MenuItem>
+          {customers.map((customer) => (
+            <MenuItem key={customer.name} value={customer.name}>
+              {customer.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <Button onClick={() => setIsNewCustomer(true)} sx={{ mt: 2 }}>
+        Add New Customer
+      </Button>
+
+      {isNewCustomer && (
+        <Box mt={2}>
+          {["name", "email", "phone"].map((field, idx) => (
+            <TextField
+              key={idx}
+              label={`Customer ${
+                field.charAt(0).toUpperCase() + field.slice(1)
+              }`}
+              fullWidth
+              value={customerDetails[field]}
+              onChange={(e) => handleCustomerChange(field, e.target.value)}
+              disabled={!isNewCustomer && !!customerDetails.name}
+              sx={{ mt: idx ? 2 : 0 }}
+            />
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+
+  const renderDeliveryDetails = () => (
+    <Box p={3}>
+      <Typography variant="h5" gutterBottom>
+        Delivery Location
+      </Typography>
+      {/* Conditionally render saved addresses if available */}
+      {customerDetails.addresses &&
+        customerDetails.addresses.length > 0 &&
+        !showAddressInput && (
+          <>
+            <RadioGroup
+              value={deliveryAddress}
+              onChange={(e) => setDeliveryAddress(e.target.value)}
+            >
+              {customerDetails.addresses.map((address, index) => (
+                <FormControlLabel
+                  key={index}
+                  value={address}
+                  control={<Radio />}
+                  label={address}
+                />
+              ))}
+            </RadioGroup>
+          </>
+        )}
+
+      {/* Button to add new address */}
+      <Button
+        variant="contained"
+        sx={{ mt: 2 }}
+        onClick={handleAddLocationClick}
+      >
+        {!showAddressInput ? "Add New Location" : "Existing Address "}
+      </Button>
+
+      {/* Conditionally render the address input field */}
+      {showAddressInput && (
+        <TextField
+          fullWidth
+          label="Enter Address"
+          variant="outlined"
+          sx={{ mt: 2 }}
+          value={newAddress}
+          onChange={(e) => setNewAddress(e.target.value)}
+        />
+      )}
+
+      <Typography variant="h6" mt={3}>
+        Delivery Slot
+      </Typography>
+
+      <Box display="flex" gap={2} mt={2}>
+        <TextField
+          label="Date"
+          type="date"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+          value={deliveryDate}
+          onChange={(e) => setDeliveryDate(e.target.value)}
+          InputProps={{ startAdornment: <CalendarTodayIcon /> }}
+        />
+        <Select
+          fullWidth
+          value={selectedSlot || ""}
+          onChange={(e) => setSelectedSlot(e.target.value)}
+          displayEmpty
+        >
+          <MenuItem value="">Select a delivery time slot</MenuItem>
+          {timeSlots.map((slot, index) => (
+            <MenuItem key={index} value={slot}>
+              {slot}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+    </Box>
+  );
+
+  const renderProducts = () => (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Products
+      </Typography>
+
+      {/* Product List */}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {productsList.map((product) => {
+          const selectedProduct = selectedProducts.find(
+            (p) => p.name === product.name
+          );
+          const quantity = selectedProduct ? selectedProduct.quantity : 0;
+
+          return (
+            <Box
+              key={product.name}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                p: 2,
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              <Box>
+                <Typography variant="h6">{product.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Price: ₹{product.price}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", alignItems: "center" }}>
                 <IconButton
                   onClick={() => handleRemoveProduct(product)}
-                  disabled={
-                    !selectedProducts.find((p) => p.name === product.name)
-                  }
+                  color="secondary"
+                  disabled={quantity === 0} // Disable if quantity is 0
                 >
                   <RemoveIcon />
                 </IconButton>
-                <IconButton onClick={() => handleAddProduct(product)}>
+
+                {/* Displaying Quantity with Input Field */}
+                <TextField
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => {
+                    const newQuantity = Math.max(0, Number(e.target.value)); // Ensure quantity is not negative
+                    handleQuantityChange(product, newQuantity);
+                  }}
+                  sx={{
+                    width: "100px",
+                    textAlign: "end",
+                    mx: 1,
+                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                      {
+                        display: "none", // Hide arrows for Chrome/Safari
+                      },
+                    "& input[type=number]": {
+                      MozAppearance: "textfield", // Hide arrows for Firefox
+                    },
+                  }} // Add some margin for styling
+                  inputProps={{ min: 0 }} // Prevent negative input
+                />
+
+                <IconButton
+                  onClick={() => handleAddProduct(product)}
+                  color="primary"
+                >
                   <AddIcon />
                 </IconButton>
+
+                <Typography variant="body2" sx={{ mx: 2 }}>
+                  Total: ₹{quantity * product.price}
+                </Typography>
               </Box>
-            ))}
-            <Box mt={2}>
-              <h5>Selected Products:</h5>
-              {selectedProducts.map((product) => (
-                <Box key={product.name}>
-                  {product.name} - {product.quantity}x = $
-                  {product.price * product.quantity}
-                </Box>
-              ))}
-              <h4>Total Amount: ${totalAmount}</h4>
             </Box>
-          </Box>
-        );
-      case 3:
-        return (
-          <Box>
-            <h4>Payment</h4>
-            <h5>Total Amount: ${totalAmount}</h5>
-            <FormControl fullWidth>
-              <InputLabel>Payment Status</InputLabel>
-              <Select
-                value={paymentStatus}
-                onChange={(e) => setPaymentStatus(e.target.value)}
+          );
+        })}
+      </Box>
+
+      {/* Overall Total Amount */}
+      <Box mt={3}>
+        <Typography variant="h5">
+          Total Amount for Selected Products:
+        </Typography>
+        <Typography variant="h6" mt={1}>
+          ₹ {totalAmount}
+        </Typography>
+      </Box>
+    </Box>
+  );
+
+  const renderPayment = () => {
+    const deliveryFee = 1220; // Fixed delivery fee
+    const discount = 0; // Assuming no discount
+    const gst = (totalAmount * 18) / 100; // Calculate GST (18%)
+    const grandTotal = totalAmount + deliveryFee + gst - discount;
+    const customerWalletBalance = 1040563; // Example wallet balance
+
+    return (
+      <Box mt={4}>
+        {/* Payment Section Header */}
+        <Typography variant="h4" gutterBottom>
+          Payment Summary
+        </Typography>
+
+        {/* Product Details Section */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            Product Details
+          </Typography>
+          {selectedProducts.length > 0 ? (
+            selectedProducts.map((product) => (
+              <Box
+                key={product.name}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
               >
-                <MenuItem value="Paid">Paid</MenuItem>
-                <MenuItem value="Unpaid">Unpaid</MenuItem>
-              </Select>
-            </FormControl>
+                <Typography variant="body1">
+                  {product.name} (x{product.quantity})
+                </Typography>
+                <Typography variant="body1">
+                  ₹{(product.quantity * product.price).toLocaleString()}
+                </Typography>
+              </Box>
+            ))
+          ) : (
+            <Typography variant="body2" color="textSecondary">
+              No products selected
+            </Typography>
+          )}
+        </Paper>
+
+        {/* Pricing Breakdown */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            Billing Details
+          </Typography>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body1">Items Total</Typography>
+            <Typography variant="body1">
+              ₹{totalAmount.toLocaleString()}
+            </Typography>
           </Box>
-        );
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body1">Delivery Fee</Typography>
+            <Typography variant="body1">
+              ₹{deliveryFee.toLocaleString()}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body1">Discount</Typography>
+            <Typography variant="body1">
+              ₹{discount.toLocaleString()}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body1">GST (18%)</Typography>
+            <Typography variant="body1">₹{gst.toLocaleString()}</Typography>
+          </Box>
+          <Divider sx={{ my: 2 }} />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "bold",
+              mb: 1,
+            }}
+          >
+            <Typography variant="h6">Grand Total</Typography>
+            <Typography variant="h6">₹{grandTotal.toLocaleString()}</Typography>
+          </Box>
+        </Paper>
+
+        {/* Wallet Balance */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="body1" fontWeight="bold">
+              Customer Wallet Balance
+            </Typography>
+            <Typography variant="body1" fontWeight="bold" color="primary">
+              ₹{customerWalletBalance.toLocaleString()}
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Payment Type Dropdown */}
+        <Paper elevation={3} sx={{ p: 3 }}>
+          <FormControl fullWidth margin="normal">
+            <Typography variant="h6" gutterBottom>
+              Select Payment Type
+            </Typography>
+            <Select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+              variant="outlined"
+              fullWidth
+            >
+              <MenuItem value="COD">COD (Cash on Delivery)</MenuItem>
+              <MenuItem value="Online">Online Payment</MenuItem>
+              <MenuItem value="UPI">UPI</MenuItem>
+              <MenuItem value="Card">Card</MenuItem>
+              <MenuItem value="Wallet">Wallet</MenuItem>
+            </Select>
+          </FormControl>
+        </Paper>
+      </Box>
+    );
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 0:
+        return renderCustomerDetails();
+      case 1:
+        return renderDeliveryDetails();
+      case 2:
+        return renderProducts();
+      case 3:
+        return renderPayment();
       default:
         return null;
     }
   };
 
   const handleSubmit = () => {
-    // Handle order submission here
-    console.log(
-      {
-        customerDetails,
-        deliveryAddress,
-        selectedProducts,
-        totalAmount,
-        paymentStatus,
-      },
-      "Created Order"
-    );
+    const orderDetails = {
+      customerDetails,
+      deliveryAddress: newAddress || deliveryAddress, // Use newAddress if it exists, otherwise fall back to deliveryAddress
+      selectedProducts,
+      totalAmount,
+      paymentStatus,
+      deliveryDate,
+      selectedSlot,
+    };
+    // Validation check
+    const isValid = Object.values(orderDetails).every((value) => value);
+    if (!isValid) {
+      // Display an error message
+      alert("Please fill in all required fields."); // You can replace this with a toast or other UI feedback
+      return; // Prevent submission
+    }
+    console.log(orderDetails, "Created Order");
     handleClose();
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Create Order</DialogTitle>
+      <Tabs value={activeTab} onChange={handleTabChange} centered>
+        <Tab label="Customer" />
+        <Tab label="Delivery" />
+        <Tab label="Products" />
+        <Tab label="Payment" />
+      </Tabs>
       <DialogContent>{renderTabContent()}</DialogContent>
       <DialogActions>
-        <Button onClick={handleBack} disabled={activeTab === 0}>
+        <Button
+          disabled={activeTab === 0}
+          onClick={() => setActiveTab(activeTab - 1)}
+        >
           Back
         </Button>
-        {activeTab < 3 ? (
-          <Button onClick={handleNext} color="primary">
-            Next
+        {activeTab === 3 ? (
+          <Button onClick={handleSubmit} variant="contained">
+            Make an Order
           </Button>
         ) : (
-          <Button onClick={handleSubmit} color="primary">
-            Submit
+          <Button
+            onClick={() => setActiveTab(activeTab + 1)}
+            variant="contained"
+          >
+            Next
           </Button>
         )}
+        <Button onClick={handleClose} variant="outlined">
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
   );

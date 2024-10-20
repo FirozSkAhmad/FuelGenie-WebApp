@@ -14,6 +14,7 @@ import EmailIcon from "@mui/icons-material/Email"; // Email icon
 import LockIcon from "@mui/icons-material/Lock"; // Lock icon
 import Visibility from "@mui/icons-material/Visibility"; // Eye icon for showing password
 import VisibilityOff from "@mui/icons-material/VisibilityOff"; // Eye icon for hiding password
+import { useNavigate } from "react-router-dom";
 
 // Define styled components using the styled API
 const LeftPanel = styled(Grid)(({ theme }) => ({
@@ -54,12 +55,15 @@ const ForgotPassword = styled(Typography)(({ theme }) => ({
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
-
+  const navigate = useNavigate();
   // Function to toggle password visibility
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
+  const handleLogin = () => {
+    console.log("Logged In !");
+    navigate("/dashboard");
+  };
   return (
     <Grid container sx={{ height: "100vh" }}>
       {/* Left panel with branding */}
@@ -97,13 +101,14 @@ const LoginPage = () => {
           </Typography>
 
           {/* Login Form */}
-          <form noValidate>
+          <form noValidate onSubmit={handleLogin}>
             {/* Email Address Input Field with Icon */}
             <TextField
               variant="outlined"
               label="Email Address"
               fullWidth
               placeholder="Email"
+              required
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -121,6 +126,7 @@ const LoginPage = () => {
               placeholder="Password"
               type={showPassword ? "text" : "password"} // Toggle between 'text' and 'password'
               fullWidth
+              required
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
