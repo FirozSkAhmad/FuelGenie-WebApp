@@ -2,3 +2,26 @@ a {
   color: inherit; /* This will inherit the text color from its parent */
   text-decoration: none; /* Remove underline */
 }
+/* WebKit-based browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px; /* Thin scrollbar width */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the scrollbar thumb */
+  border-radius: 10px; /* Rounded edges */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker color on hover */
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent; /* Transparent background for the track */
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin; /* Thin scrollbar width */
+  scrollbar-color: #888 transparent; /* Thumb color and transparent track */
+}

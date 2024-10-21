@@ -11,27 +11,56 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import { Link } from "react-router-dom";
+import { useTheme } from "@mui/material/styles"; // Import useTheme for theme-based styling
 
 const Header = () => {
+  const theme = useTheme(); // Get the current theme
+
   return (
     <AppBar
       position="static"
       elevation={0}
-      sx={{ backgroundColor: "white", color: "black" }}
+      sx={{
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? theme.palette.background.paper
+            : "white", // Dynamic background for light/dark mode
+        color: theme.palette.text.primary, // Dynamic text color
+      }}
     >
       <Toolbar>
         {/* Breadcrumb */}
         <Box sx={{ flexGrow: 1 }}>
           <Breadcrumbs aria-label="breadcrumb">
-            <Link to="/">Home</Link>
-            <Typography sx={{ color: "#2F45F3" }}>Dashboard</Typography>
+            <Link to="/" style={{ color: theme.palette.text.primary }}>
+              Home
+            </Link>
+            <Typography sx={{ color: theme.palette.primary.main }}>
+              Dashboard
+            </Typography>
           </Breadcrumbs>
         </Box>
 
         {/* Search bar */}
-        <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: theme.palette.action.hover, // Search bar background adapts to theme
+            borderRadius: "4px",
+            padding: "0 10px",
+            mr: 2,
+          }}
+        >
           <SearchIcon />
-          <InputBase placeholder="Search here" sx={{ ml: 1, flex: 1 }} />
+          <InputBase
+            placeholder="Search here"
+            sx={{
+              ml: 1,
+              flex: 1,
+              color: theme.palette.text.primary, // Dynamic text color for search input
+            }}
+          />
         </Box>
 
         {/* Profile Link */}

@@ -24,6 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
+import { useTheme } from "@mui/material/styles"; // Import useTheme hook
 // Sample data for customers and products
 const customers = [
   {
@@ -282,99 +283,104 @@ const CreateOrderModal = ({ open, handleClose }) => {
     </Box>
   );
 
-  const renderProducts = () => (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Products
-      </Typography>
+  const renderProducts = () => {
+    const theme = useTheme(); // Get current theme (light/dark)
 
-      {/* Product List */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {productsList.map((product) => {
-          const selectedProduct = selectedProducts.find(
-            (p) => p.name === product.name
-          );
-          const quantity = selectedProduct ? selectedProduct.quantity : 0;
+    return (
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Products
+        </Typography>
 
-          return (
-            <Box
-              key={product.name}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                p: 2,
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-                backgroundColor: "#f9f9f9",
-              }}
-            >
-              <Box>
-                <Typography variant="h6">{product.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Price: ₹{product.price}
-                </Typography>
-              </Box>
+        {/* Product List */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {productsList.map((product) => {
+            const selectedProduct = selectedProducts.find(
+              (p) => p.name === product.name
+            );
+            const quantity = selectedProduct ? selectedProduct.quantity : 0;
 
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton
-                  onClick={() => handleRemoveProduct(product)}
-                  color="secondary"
-                  disabled={quantity === 0} // Disable if quantity is 0
-                >
-                  <RemoveIcon />
-                </IconButton>
+            return (
+              <Box
+                key={product.name}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  p: 2,
+                  border: `1px solid ${theme.palette.divider}`, // Dynamic border color
+                  borderRadius: "4px",
+                  backgroundColor:
+                    theme.palette.mode === "dark" ? "#424242" : "#f9f9f9", // Dark/Light mode background
+                }}
+              >
+                <Box>
+                  <Typography variant="h6">{product.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Price: ₹{product.price}
+                  </Typography>
+                </Box>
 
-                {/* Displaying Quantity with Input Field */}
-                <TextField
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => {
-                    const newQuantity = Math.max(0, Number(e.target.value)); // Ensure quantity is not negative
-                    handleQuantityChange(product, newQuantity);
-                  }}
-                  sx={{
-                    width: "100px",
-                    textAlign: "end",
-                    mx: 1,
-                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        display: "none", // Hide arrows for Chrome/Safari
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <IconButton
+                    onClick={() => handleRemoveProduct(product)}
+                    color="secondary"
+                    disabled={quantity === 0} // Disable if quantity is 0
+                  >
+                    <RemoveIcon />
+                  </IconButton>
+
+                  {/* Displaying Quantity with Input Field */}
+                  <TextField
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => {
+                      const newQuantity = Math.max(0, Number(e.target.value)); // Ensure quantity is not negative
+                      handleQuantityChange(product, newQuantity);
+                    }}
+                    sx={{
+                      width: "100px",
+                      textAlign: "end",
+                      mx: 1,
+                      "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                        {
+                          display: "none", // Hide arrows for Chrome/Safari
+                        },
+                      "& input[type=number]": {
+                        MozAppearance: "textfield", // Hide arrows for Firefox
                       },
-                    "& input[type=number]": {
-                      MozAppearance: "textfield", // Hide arrows for Firefox
-                    },
-                  }} // Add some margin for styling
-                  inputProps={{ min: 0 }} // Prevent negative input
-                />
+                    }} // Add some margin for styling
+                    inputProps={{ min: 0 }} // Prevent negative input
+                  />
 
-                <IconButton
-                  onClick={() => handleAddProduct(product)}
-                  color="primary"
-                >
-                  <AddIcon />
-                </IconButton>
+                  <IconButton
+                    onClick={() => handleAddProduct(product)}
+                    color="primary"
+                  >
+                    <AddIcon />
+                  </IconButton>
 
-                <Typography variant="body2" sx={{ mx: 2 }}>
-                  Total: ₹{quantity * product.price}
-                </Typography>
+                  <Typography variant="body2" sx={{ mx: 2 }}>
+                    Total: ₹{quantity * product.price}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          );
-        })}
-      </Box>
+            );
+          })}
+        </Box>
 
-      {/* Overall Total Amount */}
-      <Box mt={3}>
-        <Typography variant="h5">
-          Total Amount for Selected Products:
-        </Typography>
-        <Typography variant="h6" mt={1}>
-          ₹ {totalAmount}
-        </Typography>
+        {/* Overall Total Amount */}
+        <Box mt={3}>
+          <Typography variant="h5">
+            Total Amount for Selected Products:
+          </Typography>
+          <Typography variant="h6" mt={1}>
+            ₹ {totalAmount}
+          </Typography>
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  };
 
   const renderPayment = () => {
     const deliveryFee = 1220; // Fixed delivery fee

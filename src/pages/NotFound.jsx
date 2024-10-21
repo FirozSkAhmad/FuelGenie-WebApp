@@ -1,10 +1,11 @@
-// NotFoundPage.js
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@mui/material/styles"; // Import useTheme hook
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
+  const theme = useTheme(); // Access the current theme
 
   return (
     <Box
@@ -15,14 +16,27 @@ const NotFoundPage = () => {
         alignItems: "center",
         height: "100vh",
         textAlign: "center",
-        backgroundColor: "#f5f5f5",
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? theme.palette.background.default
+            : "#f5f5f5", // Adjust based on theme mode
         padding: 2,
       }}
     >
-      <Typography variant="h1" component="h1" gutterBottom>
+      <Typography
+        variant="h1"
+        component="h1"
+        gutterBottom
+        sx={{ color: theme.palette.text.primary }} // Dynamic text color
+      >
         404
       </Typography>
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography
+        variant="h5"
+        component="h2"
+        gutterBottom
+        sx={{ color: theme.palette.text.secondary }} // Dynamic text color
+      >
         Oops! Page Not Found.
       </Typography>
       <Typography variant="body1" gutterBottom>
