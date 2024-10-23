@@ -62,7 +62,16 @@ const OnboardingApprovalsDetails = () => {
     setSelectedDoc(doc);
     setPreviewOpen(true); // Open the preview modal
   };
+  const handleDelete = (doc) => {
+    // Logic to delete the document
+    console.log("Deleting document:", doc);
+  };
 
+  const handleDownload = (doc) => {
+    // Logic to download the document
+    console.log("Downloading document:", doc);
+    // You can use window.open(doc.url, "_blank") if it's a URL to download the document
+  };
   return (
     <Box>
       {/* Breadcrumb */}
@@ -226,6 +235,8 @@ const OnboardingApprovalsDetails = () => {
             isOpen={isPreviewOpen}
             handleClose={() => setPreviewOpen(false)}
             document={selectedDoc}
+            handleDelete={handleDelete}
+            handleDownload={handleDownload}
           />
         </Box>
 

@@ -1,7 +1,8 @@
 import React from "react";
-import { Modal, Box, Typography, Button, IconButton } from "@mui/material";
+import { Modal, Box, Typography, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
+import { useTheme } from "@mui/material/styles"; // Import the theme hook
 
 const DocumentPreviewComponent = ({
   isOpen,
@@ -10,6 +11,8 @@ const DocumentPreviewComponent = ({
   handleDelete,
   handleDownload,
 }) => {
+  const theme = useTheme(); // Get the current theme
+
   return (
     <Modal
       open={isOpen}
@@ -20,7 +23,8 @@ const DocumentPreviewComponent = ({
       <Box
         sx={{
           p: 2,
-          bgcolor: "background.paper",
+          bgcolor:
+            theme.palette.mode === "dark" ? "grey.900" : "background.paper", // Adjust background for dark mode
           maxWidth: "400px",
           width: "100%",
           maxHeight: "90vh",
@@ -29,12 +33,13 @@ const DocumentPreviewComponent = ({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
+          borderRadius: "8px", // Add some border-radius for better aesthetics
         }}
       >
         <Typography
           variant="h6"
           id="document-preview-title"
-          sx={{ mb: 2, textAlign: "center" }}
+          sx={{ mb: 2, textAlign: "center", color: theme.palette.text.primary }} // Adjust text color for dark mode
         >
           {document?.name || "Document Preview"}
         </Typography>
@@ -44,14 +49,21 @@ const DocumentPreviewComponent = ({
           sx={{
             width: "100%",
             height: "250px",
-            backgroundColor: "grey.300",
+            backgroundColor:
+              theme.palette.mode === "dark" ? "grey.800" : "grey.300", // Adjust background color for dark mode
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             mb: 2,
+            borderRadius: "4px", // Slight border-radius for preview area
           }}
         >
-          <Typography variant="h6" sx={{ color: "white" }}>
+          <Typography
+            variant="h6"
+            sx={{
+              color: theme.palette.mode === "dark" ? "grey.300" : "white", // Adjust text color for dark mode
+            }}
+          >
             {document?.name || "No Preview Available"}
           </Typography>
         </Box>
