@@ -14,7 +14,10 @@ import Login from "../Auth/Login";
 import PriceHistory from "../pages/Products/PriceHistory";
 import Banner from "../pages/Products/Banner";
 import Order from "../pages/Sales/Order";
-import OrderDetails from "../components/Sales/OrderDetails";
+import OrderDetails from "../pages/Sales/OrderDetails";
+import NotifyMe from "../pages/Sales/NotifyMe";
+import OnboardingApprovals from "../pages/Sales/Approvals/OnboardingApprovals";
+import OnBoardingApprovalsDetails from "../pages/Sales/Approvals/OnBoardingApprovalsDetails";
 
 function AppRoutes() {
   return (
@@ -28,6 +31,15 @@ function AppRoutes() {
       <Route path="/products/banner" element={<Banner />} />
       <Route path="/sales/orders" element={<Order />} />
       <Route path="/sales/orders/:orderId" element={<OrderDetails />} />
+      <Route path="/sales/notify" element={<NotifyMe />} />
+      <Route
+        path="/sales/onboarding-approval"
+        element={<OnboardingApprovals />}
+      />
+      <Route
+        path="/sales/onboarding-approval/:customerId"
+        element={<OnBoardingApprovalsDetails />}
+      />
       <Route path="/operations" element={<Operations />} />
       <Route path="/vendor-management" element={<VendorManagement />} />
       <Route path="/admin" element={<Admin />} />

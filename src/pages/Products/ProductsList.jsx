@@ -74,8 +74,8 @@ const ProductList = () => {
         <Grid item xs={4}>
           <Select fullWidth displayEmpty>
             <MenuItem value="">Enter State</MenuItem>
-            <MenuItem value="state1">State 1</MenuItem>
-            <MenuItem value="state2">State 2</MenuItem>
+            <MenuItem value="state1">Telangana</MenuItem>
+            <MenuItem value="state2">Andra Pradesh(A.P)</MenuItem>
           </Select>
         </Grid>
         <Grid item xs={4}>

@@ -225,10 +225,10 @@ function Sidebar({ open, toggleDrawer }) {
             <ListItem
               button
               component={Link}
-              to="/sales/approval"
+              to="/sales/onboarding-approval"
               sx={{
                 pl: 4,
-                backgroundColor: isActive("/sales/approval")
+                backgroundColor: isActive("/sales/onboarding-approval")
                   ? theme.palette.action.selected
                   : "transparent",
                 "&:hover": {
@@ -239,7 +239,7 @@ function Sidebar({ open, toggleDrawer }) {
               <ListItemIcon>
                 <Comment /> {/* Approval Icon */}
               </ListItemIcon>
-              {open && <ListItemText primary="Approval" />}
+              {open && <ListItemText primary="OnBoarding Approval" />}
             </ListItem>
 
             <ListItem
