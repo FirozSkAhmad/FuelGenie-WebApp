@@ -14,6 +14,7 @@ import Login from "../Auth/Login";
 import PriceHistory from "../pages/Products/PriceHistory";
 import Banner from "../pages/Products/Banner";
 import Order from "../pages/Sales/Order";
+import OrderDetails from "../components/Sales/OrderDetails";
 
 function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ function AppRoutes() {
       <Route path="/products/price-history" element={<PriceHistory />} />
       <Route path="/products/banner" element={<Banner />} />
       <Route path="/sales/orders" element={<Order />} />
+      <Route path="/sales/orders/:orderId" element={<OrderDetails />} />
       <Route path="/operations" element={<Operations />} />
       <Route path="/vendor-management" element={<VendorManagement />} />
       <Route path="/admin" element={<Admin />} />

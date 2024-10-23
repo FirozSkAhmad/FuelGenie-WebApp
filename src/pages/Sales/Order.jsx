@@ -20,13 +20,14 @@ import {
   Breadcrumbs,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CreateOrderModal from "../../components/Sales/CreateOrderModal";
+
 // Sample Order Data
 const ordersData = [
   {
     dateTime: "05-07-2024 7:00",
-    orderId: "#11223345",
+    orderId: "11223345",
     productName: "Diesel",
     customerName: "Varun",
     quantity: "2500 Ltrs",
@@ -37,7 +38,7 @@ const ordersData = [
   },
   {
     dateTime: "05-07-2024 7:00",
-    orderId: "#11223345",
+    orderId: "11223345",
     productName: "MTO",
     customerName: "Firoz",
     quantity: "1500 Ltrs",
@@ -48,7 +49,7 @@ const ordersData = [
   },
   {
     dateTime: "05-07-2024 7:00",
-    orderId: "#11223345",
+    orderId: "11223345",
     productName: "Fuel Oil",
     customerName: "Sarik",
     quantity: "2500 Ltrs",
@@ -71,6 +72,9 @@ const Order = () => {
     status: "",
   });
   const [modalOpen, setModalOpen] = useState(false);
+
+  const navigate = useNavigate();
+
   // Handle pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -88,8 +92,15 @@ const Order = () => {
       [e.target.name]: e.target.value,
     });
   };
+
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
+
+  // Handle row click
+  const handleRowClick = (orderId) => {
+    navigate(`/sales/orders/${orderId}`);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -103,7 +114,7 @@ const Order = () => {
       >
         <Box>
           <Breadcrumbs aria-label="breadcrumb">
-            <Link color="inherit" href="/">
+            <Link color="inherit" to="/">
               Home
             </Link>
             <Typography color="text.primary">Orders</Typography>
@@ -176,7 +187,12 @@ const Order = () => {
             {orders
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((order, index) => (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  onClick={() => handleRowClick(order.orderId)}
+                  hover
+                  style={{ cursor: "pointer" }}
+                >
                   <TableCell>{order.dateTime}</TableCell>
                   <TableCell>{order.orderId}</TableCell>
                   <TableCell>{order.productName}</TableCell>
@@ -201,6 +217,7 @@ const Order = () => {
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+
       {/* Create Order Modal */}
       <CreateOrderModal open={modalOpen} handleClose={handleCloseModal} />
     </Box>
