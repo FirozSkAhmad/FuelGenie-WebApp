@@ -16,11 +16,14 @@ import {
 import { useParams } from "react-router-dom";
 import DocumentUploadModal from "../../../components/Sales/Approvals/DocumentUploadModal";
 import EditOnboardingModal from "../../../components/Sales/Approvals/EditOnboardingModal";
+import DocumentPreviewComponent from "../../../components/Sales/Approvals/DocumentPreviewModal";
 const OnboardingApprovalsDetails = () => {
   const theme = useTheme();
   const { customerId } = useParams();
   const [documentModal, setDocumentModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [isPreviewOpen, setPreviewOpen] = useState(false);
   const customerDetails = {
     customerId: `#${customerId}`,
     customerName: "Kiran Kumar",
@@ -55,6 +58,11 @@ const OnboardingApprovalsDetails = () => {
     console.log("Updated Customer Data:", updatedCustomerData);
     // Handle the saving logic here (e.g., API call)
   };
+  const handleDocumentClick = (doc) => {
+    setSelectedDoc(doc);
+    setPreviewOpen(true); // Open the preview modal
+  };
+
   return (
     <Box>
       {/* Breadcrumb */}
@@ -197,7 +205,9 @@ const OnboardingApprovalsDetails = () => {
                     textAlign: "center",
                     border: 1,
                     borderColor: "divider",
+                    cursor: "pointer", // Pointer cursor
                   }}
+                  onClick={() => handleDocumentClick(doc)} // Open document preview
                 >
                   <Typography variant="body2" sx={{ color: "text.primary" }}>
                     {doc.name}
@@ -210,6 +220,13 @@ const OnboardingApprovalsDetails = () => {
               </IconButton>
             </Box>
           </Box>
+
+          {/* Use DocumentPreviewComponent */}
+          <DocumentPreviewComponent
+            isOpen={isPreviewOpen}
+            handleClose={() => setPreviewOpen(false)}
+            document={selectedDoc}
+          />
         </Box>
 
         <Divider
