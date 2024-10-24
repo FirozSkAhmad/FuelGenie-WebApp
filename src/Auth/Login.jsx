@@ -18,7 +18,8 @@ import { useNavigate } from "react-router-dom";
 
 // Define styled components using the styled API
 const LeftPanel = styled(Grid)(({ theme }) => ({
-  background: "linear-gradient(to bottom right, #007FFF, #002BFF)",
+  background: "url('/LeftSection.webp') no-repeat center center",
+  backgroundSize: "cover",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
