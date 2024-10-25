@@ -22,22 +22,32 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
   const [gst, setGst] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
 
-  // Handle media file uploads (for multiple media files)
   const handleMediaUpload = (event) => {
-    const files = event.target.files;
-    setMediaFiles([...mediaFiles, ...files]);
+    const files = Array.from(event.target.files);
+    const newMediaFiles = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file), // Create a preview URL for each file
+    }));
+    setMediaFiles([...mediaFiles, ...newMediaFiles]); // Append new files to the existing media
+  };
+
+  const handleRemoveMedia = (index) => {
+    const updatedMediaFiles = mediaFiles.filter((_, i) => i !== index);
+    setMediaFiles(updatedMediaFiles);
   };
 
   // Handle form submission (saving the product)
   const handleSubmit = () => {
+    // Prepare product data, excluding preview URLs from media files
     const productData = {
-      productName,
+      name: productName,
       description,
       price,
       units,
-      gst,
-      mediaFiles,
+      gstPercentage: gst,
+      media: mediaFiles.map((media) => media.file), // Extract only the file objects
     };
+
     handleSave(productData);
     handleClose();
   };
@@ -96,7 +106,6 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
             />
           </Grid>
 
-          {/* Media Upload */}
           <Grid item xs={12}>
             <Typography variant="body1">Media (Multiple)</Typography>
             <Button
@@ -108,6 +117,35 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
               Upload media
               <input type="file" multiple hidden onChange={handleMediaUpload} />
             </Button>
+
+            {/* Preview Section */}
+            <Grid container spacing={2} style={{ marginTop: "1rem" }}>
+              {mediaFiles.map((media, index) => (
+                <Grid item xs={3} key={index} style={{ position: "relative" }}>
+                  <img
+                    src={media.preview}
+                    alt="preview"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      borderRadius: "5px",
+                    }}
+                  />
+                  <IconButton
+                    onClick={() => handleRemoveMedia(index)}
+                    style={{
+                      position: "absolute",
+                      top: "5px",
+                      right: "5px",
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                    }}
+                    size="small"
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              ))}
+            </Grid>
           </Grid>
 
           {/* GST % */}

@@ -18,6 +18,8 @@ import OrderDetails from "../pages/Sales/OrderDetails";
 import NotifyMe from "../pages/Sales/NotifyMe";
 import OnboardingApprovals from "../pages/Sales/Approvals/OnboardingApprovals";
 import OnBoardingApprovalsDetails from "../pages/Sales/Approvals/OnBoardingApprovalsDetails";
+import ZoneCreation from "../pages/Products/Zone/ZoneCreation";
+import ZoneCreationDetails from "../pages/Products/Zone/ZoneCreationDetails";
 
 function AppRoutes() {
   return (
@@ -27,6 +29,8 @@ function AppRoutes() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/products/product-list" element={<ProductsList />} />
+      <Route path="/products/zone" element={<ZoneCreation />} />
+      <Route path="/products/zone/:zoneID" element={<ZoneCreationDetails />} />
       <Route path="/products/price-history" element={<PriceHistory />} />
       <Route path="/products/banner" element={<Banner />} />
       <Route path="/sales/orders" element={<Order />} />

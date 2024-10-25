@@ -16,7 +16,8 @@ import Sidebar from "./components/Sidebar";
 import Routes from "./routes/Routes";
 import { useLocation } from "react-router-dom";
 import { Brightness4, Brightness7 } from "@mui/icons-material"; // Icons for light/dark mode
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function App() {
   const [open, setOpen] = useState(true); // Sidebar is open by default
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
@@ -96,6 +97,7 @@ function App() {
           <Routes /> {/* Routes handles rendering the login page */}
         </Box>
       </Box>
+      <ToastContainer />
     </ThemeProvider>
   );
 }

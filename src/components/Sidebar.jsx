@@ -137,10 +137,10 @@ function Sidebar({ open, toggleDrawer }) {
             <ListItem
               button
               component={Link}
-              to="/products/quote-list"
+              to="/products/zone"
               sx={{
                 pl: 4,
-                backgroundColor: isActive("/products/quote-list")
+                backgroundColor: isActive("/products/zone")
                   ? theme.palette.action.selected
                   : "transparent",
                 "&:hover": {
@@ -151,7 +151,7 @@ function Sidebar({ open, toggleDrawer }) {
               <ListItemIcon>
                 <Comment /> {/* Icon for Quote Product List */}
               </ListItemIcon>
-              {open && <ListItemText primary="Quote Product List" />}
+              {open && <ListItemText primary="Zones" />}
             </ListItem>
             <ListItem
               button
