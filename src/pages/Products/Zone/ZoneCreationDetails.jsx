@@ -86,7 +86,6 @@ const ZoneCreationDetails = () => {
     console.log("Product Data: ", productData);
 
     try {
-      // Initialize FormData
       const formData = new FormData();
       formData.append("zoneId", zoneID);
       formData.append("name", productData.name);
@@ -96,9 +95,17 @@ const ZoneCreationDetails = () => {
       formData.append("gstPercentage", productData.gstPercentage);
 
       // Append each file in the media array to FormData
-      productData.media.forEach((file, index) => {
+      productData.media.forEach((file) => {
         formData.append("media", file); // Adjust the key if the backend expects something else
       });
+
+      // Fetch `userName` and `roleId` from local storage
+      const userName = localStorage.getItem("userName");
+      const roleId = localStorage.getItem("roleId");
+
+      // Add userName and roleId to FormData
+      formData.append("addedBy", userName || "defaultUserName"); // Use default if null
+      formData.append("roleId", roleId || "defaultRoleId"); // Use default if null
 
       // Make the API request with FormData
       const response = await api.post(
@@ -354,7 +361,7 @@ const ZoneCreationDetails = () => {
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.productId}>
                   <ProductCard
                     product={product}
-                    onDeleteSuccess={handleRefreshProducts}
+                    onUpdate={handleRefreshProducts}
                   />
                 </Grid>
               ))}

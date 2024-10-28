@@ -62,9 +62,23 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
   const handleLogin = () => {
-    console.log("Logged In !");
+    // Dummy values for demonstration purposes
+    const userName = "JohnDoe";
+    const roleId = "1234";
+
+    // Store user information in local storage
+    localStorage.setItem("userName", userName);
+    localStorage.setItem("roleId", roleId);
+
+    // Log a confirmation and navigate to the dashboard
+    console.log("Logged In!");
+    console.log("User Name:", userName);
+    console.log("Role ID:", roleId);
+
+    // Navigate to dashboard
     navigate("/dashboard");
   };
+
   return (
     <Grid container sx={{ height: "100vh" }}>
       {/* Left panel with branding */}
