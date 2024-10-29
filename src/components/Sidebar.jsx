@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Drawer,
   List,
@@ -34,7 +34,7 @@ import {
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-
+import AuthContext from "../context/AuthContext";
 const drawerWidth = 240;
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -48,7 +48,7 @@ function Sidebar({ open, toggleDrawer }) {
   const theme = useTheme();
   const location = useLocation(); // Get the current location
   const navigate = useNavigate();
-
+  const { logout } = useContext(AuthContext);
   const isActive = (path) => location.pathname === path; // Function to check if the current path is active
   const [openProducts, setOpenProducts] = useState(false); // State for dropdown
   const [openSales, setOpenSales] = useState(false);
@@ -60,6 +60,7 @@ function Sidebar({ open, toggleDrawer }) {
   };
   const handleLogout = () => {
     // Perform logout logic here (e.g., clear tokens, update state, etc.)
+    logout();
     navigate("/");
   };
   return (

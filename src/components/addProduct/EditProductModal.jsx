@@ -23,8 +23,10 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
   const [description, setDescription] = useState(product.description || "");
   const [price, setPrice] = useState(product.price || "");
   const [units, setUnits] = useState(product.units || "");
-  const [gst, setGst] = useState(product.gstPercentage || "");
+  const [gst, setGst] = useState(product.gstPercentage || 0); // Default to 0
   const [mediaFiles, setMediaFiles] = useState(product.media || []);
+  const [mediaToDelete, setMediaToDelete] = useState([]); // Track media URLs to delete
+  const [errors, setErrors] = useState({}); // State for validation errors
 
   useEffect(() => {
     // Initialize with current product data
@@ -33,10 +35,31 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
       setDescription(product.description);
       setPrice(product.price);
       setUnits(product.units);
-      setGst(product.gst);
+      setGst(product.gstPercentage || 0); // Default to 0 if undefined
       setMediaFiles(product.media || []);
+      setMediaToDelete([]); // Reset mediaToDelete on product change
     }
   }, [product]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!productName) newErrors.productName = "Product name is required.";
+    if (!description) newErrors.description = "Description is required.";
+    if (!price) newErrors.price = "Price is required.";
+    if (isNaN(price) || Number(price) < 0) {
+      newErrors.price = "Price must be a positive number.";
+    }
+    if (!units) newErrors.units = "Units are required.";
+    if (!units) {
+      newErrors.units = "Unit is required";
+    }
+    if (isNaN(gst) || Number(gst) < 0) {
+      newErrors.gst = "GST must be a positive number.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
 
   const handleMediaUpload = (event) => {
     const files = Array.from(event.target.files);
@@ -48,30 +71,55 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
   };
 
   const handleRemoveMedia = (index) => {
-    setMediaFiles(mediaFiles.filter((_, i) => i !== index));
+    const mediaToRemove = mediaFiles[index];
+    if (mediaToRemove.file) {
+      // It's a new file, just remove it from mediaFiles
+      setMediaFiles(mediaFiles.filter((_, i) => i !== index));
+    } else {
+      // It's an existing file, add it to mediaToDelete
+      setMediaToDelete([...mediaToDelete, mediaToRemove]);
+      setMediaFiles(mediaFiles.filter((_, i) => i !== index));
+    }
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return; // Validate the form
+
     const userName = localStorage.getItem("userName");
     const roleId = localStorage.getItem("roleId");
 
-    const updatedProduct = {
-      ...product,
-      name: productName,
-      description,
-      price,
-      units,
-      gst,
-      media: mediaFiles,
-      userId: userName,
-      userRole: roleId,
-    };
+    // Create a FormData object to send the updated product
+    const formData = new FormData();
+    formData.append("name", productName);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("units", units);
+    formData.append("gstPercentage", gst);
+
+    // Append media files to the FormData object
+    mediaFiles.forEach((media) => {
+      if (media.file) {
+        formData.append("media", media.file); // Ensure "media" is the correct field name
+      }
+    });
+
+    // Add userId and userRole to the FormData object
+    formData.append("userId", userName);
+    formData.append("userRole", roleId);
+
+    // Include media to delete in the request body
+    formData.append("mediaToDelete", JSON.stringify(mediaToDelete)); // Convert to JSON string if necessary
 
     try {
       // Call your API to update the product
       await api.patch(
         `/products/edit-product/${product.zoneId}/${product.productId}`,
-        updatedProduct
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       // Notify the user of success
@@ -109,6 +157,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
               fullWidth
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
+              error={!!errors.productName}
+              helperText={errors.productName}
             />
           </Grid>
           <Grid item xs={12}>
@@ -119,6 +169,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              error={!!errors.description}
+              helperText={errors.description}
             />
           </Grid>
           <Grid item xs={6}>
@@ -127,6 +179,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
               fullWidth
               value={price}
               onChange={(e) => setPrice(e.target.value)}
+              error={!!errors.price}
+              helperText={errors.price}
             />
           </Grid>
           <Grid item xs={6}>
@@ -135,6 +189,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
               fullWidth
               value={units}
               onChange={(e) => setUnits(e.target.value)}
+              error={!!errors.units}
+              helperText={errors.units}
             />
           </Grid>
           <Grid item xs={12}>
@@ -152,7 +208,7 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
               {mediaFiles.map((media, index) => (
                 <Grid item xs={3} key={index} sx={{ position: "relative" }}>
                   <img
-                    src={media} // Use media.preview for image preview
+                    src={media.file ? media.preview : media} // Use preview for new, URL for existing
                     alt="preview"
                     style={{
                       width: "100%",
@@ -181,7 +237,9 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
               label="GST %"
               fullWidth
               value={gst}
-              onChange={(e) => setGst(e.target.value)}
+              onChange={(e) => setGst(e.target.value || 0)} // Default to 0 if empty
+              error={!!errors.gst}
+              helperText={errors.gst}
             />
           </Grid>
         </Grid>

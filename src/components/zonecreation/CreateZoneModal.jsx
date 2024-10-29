@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import axios from "axios";
 
+import api from "../../utils/api";
 const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
   const [zoneName, setZoneName] = useState("");
   const [state, setState] = useState("");
@@ -24,8 +24,6 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
   const [customState, setCustomState] = useState(false);
   const [customCity, setCustomCity] = useState(false);
 
-  const BASE_URL = "https://fuelgenie-bck.onrender.com";
-
   useEffect(() => {
     if (open) {
       fetchStates();
@@ -34,7 +32,7 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
 
   const fetchStates = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/products/all-states`);
+      const response = await api.get(`/products/all-states`);
       setStates(response.data.data || []);
     } catch (error) {
       console.error("Error fetching states:", error);
@@ -43,9 +41,7 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
 
   const fetchCities = async (stateName) => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/products/all-cities/${stateName}`
-      );
+      const response = await api.get(`/products/all-cities/${stateName}`);
       setCities(response.data.data || []);
     } catch (error) {
       console.error("Error fetching cities:", error);
@@ -95,7 +91,7 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
     };
 
     try {
-      await axios.post(`${BASE_URL}/products/create-zone`, zoneData);
+      await api.post(`/products/create-zone`, zoneData);
       handleCreateZone(zoneData);
       handleClose();
     } catch (error) {

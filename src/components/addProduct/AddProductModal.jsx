@@ -26,9 +26,9 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
     const files = Array.from(event.target.files);
     const newMediaFiles = files.map((file) => ({
       file,
-      preview: URL.createObjectURL(file), // Create a preview URL for each file
+      preview: URL.createObjectURL(file),
     }));
-    setMediaFiles([...mediaFiles, ...newMediaFiles]); // Append new files to the existing media
+    setMediaFiles([...mediaFiles, ...newMediaFiles]);
   };
 
   const handleRemoveMedia = (index) => {
@@ -36,19 +36,31 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
     setMediaFiles(updatedMediaFiles);
   };
 
-  // Handle form submission (saving the product)
   const handleSubmit = () => {
-    // Prepare product data, excluding preview URLs from media files
+    // Basic validation
+    if (!productName || !price) {
+      alert("Please fill in required fields: Product Name and Price.");
+      return;
+    }
+
     const productData = {
       name: productName,
       description,
       price,
       units,
       gstPercentage: gst,
-      media: mediaFiles.map((media) => media.file), // Extract only the file objects
+      media: mediaFiles.map((media) => media.file),
     };
 
     handleSave(productData);
+
+    // Reset form fields
+    setProductName("");
+    setDescription("");
+    setPrice("");
+    setUnits("");
+    setGst("");
+    setMediaFiles([]);
     handleClose();
   };
 
@@ -66,17 +78,15 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2}>
-          {/* Product Name */}
           <Grid item xs={12}>
             <TextField
-              label="Product name"
+              label="Product Name"
               fullWidth
+              required
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
             />
           </Grid>
-
-          {/* Description */}
           <Grid item xs={12}>
             <TextField
               label="Description"
@@ -87,12 +97,12 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
               onChange={(e) => setDescription(e.target.value)}
             />
           </Grid>
-
-          {/* Price and Units */}
           <Grid item xs={6}>
             <TextField
               label="Price"
               fullWidth
+              required
+              type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
@@ -101,11 +111,11 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
             <TextField
               label="Units"
               fullWidth
+              type="text"
               value={units}
               onChange={(e) => setUnits(e.target.value)}
             />
           </Grid>
-
           <Grid item xs={12}>
             <Typography variant="body1">Media (Multiple)</Typography>
             <Button
@@ -114,11 +124,9 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
               startIcon={<CloudUploadIcon />}
               fullWidth
             >
-              Upload media
+              Upload Media
               <input type="file" multiple hidden onChange={handleMediaUpload} />
             </Button>
-
-            {/* Preview Section */}
             <Grid container spacing={2} style={{ marginTop: "1rem" }}>
               {mediaFiles.map((media, index) => (
                 <Grid item xs={3} key={index} style={{ position: "relative" }}>
@@ -147,41 +155,22 @@ const AddProductModal = ({ open, handleClose, handleSave }) => {
               ))}
             </Grid>
           </Grid>
-
-          {/* GST % */}
           <Grid item xs={12}>
             <TextField
               label="GST %"
               fullWidth
+              type="text"
               value={gst}
               onChange={(e) => setGst(e.target.value)}
             />
           </Grid>
         </Grid>
       </DialogContent>
-
       <DialogActions>
-        <Grid container justifyContent="space-between">
-          {/* Delete Button */}
-          <Grid item>
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => {
-                // Add delete logic here
-              }}
-            >
-              Delete
-            </Button>
-          </Grid>
-
-          {/* Save Button */}
-          <Grid item>
-            <Button variant="contained" color="primary" onClick={handleSubmit}>
-              Save
-            </Button>
-          </Grid>
+        <Grid container justifyContent="flex-end">
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            Save
+          </Button>
         </Grid>
       </DialogActions>
     </Dialog>

@@ -183,13 +183,6 @@ const ProductList = () => {
         <Pagination count={10} color="primary" />
       </Grid>
 
-      {/* Add Product Modal */}
-      <AddProductModal
-        open={addProductOpen}
-        handleClose={() => setAddProductOpen(false)}
-        handleSave={handleSaveProduct}
-      />
-
       {/* Create Zone Modal */}
       <CreateZoneModal
         open={createZoneOpen}

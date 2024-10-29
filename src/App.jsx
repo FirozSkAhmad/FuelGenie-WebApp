@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Box,
   CssBaseline,
@@ -18,11 +18,13 @@ import { useLocation } from "react-router-dom";
 import { Brightness4, Brightness7 } from "@mui/icons-material"; // Icons for light/dark mode
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import AuthContext from "./context/AuthContext";
 function App() {
   const [open, setOpen] = useState(true); // Sidebar is open by default
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
   const location = useLocation(); // Get current location
-
+  const { isAuthenticated } = useContext(AuthContext);
   // Toggle sidebar
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -54,7 +56,7 @@ function App() {
       <CssBaseline />
       <Box sx={{ display: "flex" }}>
         {/* Top AppBar */}
-        {!isLoginRoute && (
+        {!isLoginRoute && isAuthenticated && (
           <AppBar
             position="fixed"
             sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -87,13 +89,13 @@ function App() {
           </AppBar>
         )}
         {/* Sidebar */}
-        {!isLoginRoute && (
+        {!isLoginRoute && isAuthenticated && (
           <Sidebar open={open} toggleDrawer={handleDrawerToggle} />
         )}
 
         {/* Main Content */}
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          {!isLoginRoute && <Toolbar />}
+          {isAuthenticated && <Toolbar />}
           <Routes /> {/* Routes handles rendering the login page */}
         </Box>
       </Box>

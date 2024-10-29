@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Box,
   Button,
@@ -15,7 +15,7 @@ import LockIcon from "@mui/icons-material/Lock"; // Lock icon
 import Visibility from "@mui/icons-material/Visibility"; // Eye icon for showing password
 import VisibilityOff from "@mui/icons-material/VisibilityOff"; // Eye icon for hiding password
 import { useNavigate } from "react-router-dom";
-
+import AuthContext from "../context/AuthContext";
 // Define styled components using the styled API
 const LeftPanel = styled(Grid)(({ theme }) => ({
   background: "url('/LeftSection.webp') no-repeat center center",
@@ -56,27 +56,34 @@ const ForgotPassword = styled(Typography)(({ theme }) => ({
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   // Function to toggle password visibility
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  const handleLogin = () => {
-    // Dummy values for demonstration purposes
-    const userName = "JohnDoe";
-    const roleId = "1234";
 
-    // Store user information in local storage
-    localStorage.setItem("userName", userName);
-    localStorage.setItem("roleId", roleId);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(""); // Clear any previous errors
 
-    // Log a confirmation and navigate to the dashboard
-    console.log("Logged In!");
-    console.log("User Name:", userName);
-    console.log("Role ID:", roleId);
+    try {
+      // Use the login function from AuthContext
+      await login(email, password);
 
-    // Navigate to dashboard
-    navigate("/dashboard");
+      console.log("Logged In!");
+
+      // Only navigate to the dashboard if there's no error
+      if (!error) {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError("Login failed. Please check your credentials.");
+      console.error("Login failed:", err);
+    }
   };
 
   return (
@@ -124,6 +131,8 @@ const LoginPage = () => {
               fullWidth
               placeholder="Email"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -131,17 +140,18 @@ const LoginPage = () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 2 }} // Add some margin below the field
+              sx={{ mb: 2 }}
             />
 
-            {/* Password Input Field with Icon and Eye Toggle */}
             <TextField
               variant="outlined"
               label="Password"
               placeholder="Password"
-              type={showPassword ? "text" : "password"} // Toggle between 'text' and 'password'
+              type={showPassword ? "text" : "password"}
               fullWidth
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -163,17 +173,15 @@ const LoginPage = () => {
               sx={{ mb: 2 }}
             />
 
-            {/* Login Button */}
+            {error && (
+              <Typography color="error" align="center" sx={{ mb: 2 }}>
+                {error}
+              </Typography>
+            )}
+
             <Button type="submit" variant="contained" fullWidth>
               Login
             </Button>
-
-            {/* Forgot Password */}
-            <Typography align="center" sx={{ mt: 2 }}>
-              <a href="/forgot-password" style={{ textDecoration: "none" }}>
-                Forgot Password?
-              </a>
-            </Typography>
           </form>
         </FormContainer>
       </Grid>
