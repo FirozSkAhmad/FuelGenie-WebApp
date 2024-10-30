@@ -17,40 +17,35 @@ const ZoneCreationDetails = () => {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newPincode, setNewPincode] = useState("");
 
   const handleTabChange = (event, newValue) => setActiveTab(newValue);
-  const handleAddPincode = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleSavePincode = () => {
-    if (newPincode) {
-      setPincodes([...pincodes, newPincode]);
-      handleCloseModal();
-    }
+  const handleOpenModal = (pincode = "") => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   // Fetch pincodes on component mount or when zoneID changes
-  useEffect(() => {
-    const fetchPincodes = async () => {
-      try {
-        setLoadingPincodes(true);
-        const response = await api.get(`/products/all-pincodes/${zoneID}`);
+  const fetchPincodes = async () => {
+    try {
+      setLoadingPincodes(true);
+      const response = await api.get(`/products/all-pincodes/${zoneID}`);
 
-        // Check if response is ok
-        if (response.status !== 200) {
-          throw new Error(response.message || "Failed to fetch pincodes");
-        }
-
-        // Directly set the array of pincodes from the response
-        setPincodes(response.data.data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoadingPincodes(false);
+      if (response.status !== 200) {
+        throw new Error(response.message || "Failed to fetch pincodes");
       }
-    };
 
+      setPincodes(response.data.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoadingPincodes(false);
+    }
+  };
+  useEffect(() => {
     fetchPincodes();
   }, [zoneID]);
 
@@ -61,11 +56,10 @@ const ZoneCreationDetails = () => {
         setLoadingProducts(true);
         const response = await api.get(`/products/products-by-zone/${zoneID}`);
 
-        // Check if the response is successful and contains a products array
         if (response.status === 200 && Array.isArray(response.data.products)) {
-          setProducts(response.data.products); // Set products if valid
+          setProducts(response.data.products);
         } else {
-          setProducts([]); // Ensure products is an empty array if not valid
+          setProducts([]);
         }
       } catch (error) {
         setError(error.message);
@@ -73,11 +67,6 @@ const ZoneCreationDetails = () => {
         setLoadingProducts(false);
       }
     }
-  };
-
-  const handleRefreshProducts = () => {
-    fetchProducts();
-    console.log("refectch"); // Call fetchProducts when refreshing
   };
 
   // Fetch products on component mount or when activeTab or zoneID changes
@@ -89,6 +78,23 @@ const ZoneCreationDetails = () => {
   const handleAddProduct = (newProduct) => {
     setProducts((prevProducts) => [...prevProducts, newProduct]);
   };
+  const handleUpdatePincodes = () => {
+    fetchPincodes();
+  };
+
+  const handleDeletePincode = async (pincode) => {
+    try {
+      await api.patch(`/products/add-or-remove-pincodes/${zoneID}`, {
+        pincodesToAdd: [],
+        pincodesToRemove: [pincode],
+      });
+      // fetchPincodes();
+      setPincodes((prev) => prev.filter((pc) => pc !== pincode));
+    } catch (error) {
+      setError("Failed to delete pincode");
+    }
+  };
+
   return (
     <Container maxWidth="lg">
       <BreadcrumbNavigation />
@@ -104,27 +110,30 @@ const ZoneCreationDetails = () => {
             pincodes={pincodes}
             loading={loadingPincodes}
             error={error}
-            onAddPincode={handleAddPincode}
-            onEdit={() => {}}
-            onDelete={() => {}}
+            onUpdatePincodes={handleUpdatePincodes}
+            onAddPincode={() => handleOpenModal()} // Open modal for new pincode
+            onEdit={handleOpenModal} // Open modal for editing existing pincode
+            onDelete={handleDeletePincode}
           />
         </TabPanel>
         <TabPanel value={activeTab} index={1}>
           <ProductList
+            zoneId={zoneID}
             products={products}
             loading={loadingProducts}
             error={error}
             onAddProduct={handleAddProduct}
-            fetchProducts={handleRefreshProducts}
+            fetchProducts={fetchProducts}
           />
         </TabPanel>
       </Paper>
+      {/* Pincode Modal for Adding/Editing */}
       <PincodeModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSave={handleSavePincode}
-        pincode={newPincode}
-        setPincode={setNewPincode}
+        zoneId={zoneID}
+        existingPincodes={pincodes}
+        onUpdatePincodes={handleUpdatePincodes} // Pass the update handler
       />
     </Container>
   );

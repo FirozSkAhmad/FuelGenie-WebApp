@@ -94,7 +94,7 @@ const LoginPage = () => {
           Fuel Genie
         </Typography>
         <Typography variant="h6" gutterBottom>
-          Lorem Ipsum
+          Control Center
         </Typography>
         <Button
           variant="contained"
