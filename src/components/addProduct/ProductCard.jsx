@@ -22,11 +22,12 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import api from "../../utils/api";
 import EditProductModal from "./EditProductModal";
+import { useNavigate } from "react-router-dom";
 const ProductCard = ({ product, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-
+  const navigate = useNavigate();
   const settings = {
     dots: true,
     infinite: false,
@@ -62,7 +63,11 @@ const ProductCard = ({ product, onUpdate }) => {
       setOpenDeleteDialog(false);
     }
   };
-
+  const moveToDetailPage = () => {
+    navigate(
+      `/products/price-history-by-zone-product/${product.zoneId}/${product.productId}`
+    );
+  };
   return (
     <Card
       elevation={2}
@@ -99,6 +104,7 @@ const ProductCard = ({ product, onUpdate }) => {
             },
           },
         }}
+        onClick={moveToDetailPage}
       >
         <Slider {...settings}>
           {product.media.map((url, index) => (

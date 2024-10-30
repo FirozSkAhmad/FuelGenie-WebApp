@@ -8,6 +8,7 @@ import {
   Grid,
   Paper,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import EmailIcon from "@mui/icons-material/Email"; // Email icon
@@ -16,6 +17,7 @@ import Visibility from "@mui/icons-material/Visibility"; // Eye icon for showing
 import VisibilityOff from "@mui/icons-material/VisibilityOff"; // Eye icon for hiding password
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
+
 // Define styled components using the styled API
 const LeftPanel = styled(Grid)(({ theme }) => ({
   background: "url('/LeftSection.webp') no-repeat center center",
@@ -33,34 +35,15 @@ const FormContainer = styled(Paper)(({ theme }) => ({
   borderRadius: "10px",
 }));
 
-const InputField = styled(TextField)(({ theme }) => ({
-  marginBottom: "20px",
-}));
-
-const LoginButton = styled(Button)(({ theme }) => ({
-  backgroundColor: "#007FFF",
-  color: "white",
-  "&:hover": {
-    backgroundColor: "#005BB5",
-  },
-  padding: "10px",
-  width: "100%",
-}));
-
-const ForgotPassword = styled(Typography)(({ theme }) => ({
-  marginTop: "15px",
-  color: "#007FFF",
-  cursor: "pointer",
-  textAlign: "center",
-}));
-
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+
   // Function to toggle password visibility
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -69,20 +52,17 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(""); // Clear any previous errors
+    setLoading(true); // Start loading spinner
 
     try {
       // Use the login function from AuthContext
       await login(email, password);
-
-      console.log("Logged In!");
-
-      // Only navigate to the dashboard if there's no error
-      if (!error) {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (err) {
       setError("Login failed. Please check your credentials.");
       console.error("Login failed:", err);
+    } finally {
+      setLoading(false); // Stop loading spinner
     }
   };
 
@@ -179,8 +159,17 @@ const LoginPage = () => {
               </Typography>
             )}
 
-            <Button type="submit" variant="contained" fullWidth>
-              Login
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={24} sx={{ color: "white" }} />
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
         </FormContainer>
