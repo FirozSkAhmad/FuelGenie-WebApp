@@ -21,6 +21,7 @@ const PriceHistoryByProduct = () => {
   const [productName, setProductName] = useState("");
   const [currentPrice, setCurrentPrice] = useState(null);
   const [currentDate, setCurrentDate] = useState(null);
+  const [currentGST, setCurrentGST] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { zoneId, productId } = useParams();
@@ -43,6 +44,7 @@ const PriceHistoryByProduct = () => {
           setProductName(data[0].productName);
           setCurrentPrice(data[0].updatedPrice);
           setCurrentDate(data[0].updatedAt);
+          setCurrentGST(data[0].updatedGstPercentage);
         }
       } catch (err) {
         setError("Failed to fetch price history");
@@ -100,6 +102,9 @@ const PriceHistoryByProduct = () => {
             <Typography variant="subtitle1" color="text.secondary">
               <strong>Current Price:</strong> ₹ {currentPrice}
             </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              <strong>Current GST: {currentGST} %</strong>
+            </Typography>
             <Typography variant="subtitle2" color="text.secondary">
               Last Updated On:{" "}
               {new Date(currentDate).toLocaleString("en-US", {
@@ -133,6 +138,12 @@ const PriceHistoryByProduct = () => {
                   <strong>Updated Price</strong>
                 </TableCell>
                 <TableCell>
+                  <strong>Previous Gst (%)</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Updated Gst (%)</strong>
+                </TableCell>
+                <TableCell>
                   <strong>Updated By</strong>
                 </TableCell>
                 <TableCell>
@@ -159,6 +170,8 @@ const PriceHistoryByProduct = () => {
                   <TableCell>
                     ₹ {`${record.updatedPrice} per ${record.updatedUnit}`}
                   </TableCell>
+                  <TableCell>{record.previousGstPercentage}</TableCell>
+                  <TableCell>{record.updatedGstPercentage}</TableCell>
                   <TableCell>{record.updatedBy}</TableCell>
                   <TableCell>{record.roleType}</TableCell>
                 </TableRow>

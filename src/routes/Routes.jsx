@@ -11,7 +11,7 @@ import VendorManagement from "../pages/Vendor-Management";
 import NotFoundPage from "../pages/NotFound";
 import ProductsList from "../pages/Products/ProductsList";
 import Login from "../Auth/Login";
-import PriceHistory from "../pages/Products/PriceHistory";
+import PriceHistory from "../pages/Products/PriceHistory/PriceHistory";
 import Banner from "../pages/Products/Banner";
 import Order from "../pages/Sales/Order";
 import OrderDetails from "../pages/Sales/OrderDetails";
