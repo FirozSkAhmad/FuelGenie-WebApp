@@ -18,6 +18,8 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -35,6 +37,7 @@ const Banner = () => {
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
   const [bannerToDelete, setBannerToDelete] = useState(null);
   const [bannerToEdit, setBannerToEdit] = useState(null);
+  const [loading, setLoading] = useState(false); // Added loading state
   const [newBanner, setNewBanner] = useState({
     title: "",
     bannerImg: null,
@@ -46,11 +49,14 @@ const Banner = () => {
   const theme = useTheme();
   const isDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const fetchBanners = async () => {
+    setLoading(true);
     try {
       const response = await api.get("/products/get-banners");
       setBanners(response.data.data || []);
     } catch (error) {
       console.error("Error fetching banners:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,6 +65,7 @@ const Banner = () => {
   }, []);
 
   const handleDelete = async () => {
+    setLoading(true);
     try {
       await api.delete(`/products/delete-banner/${bannerToDelete}`);
       setBanners((prev) =>
@@ -67,6 +74,8 @@ const Banner = () => {
       setOpenDeleteDialog(false);
     } catch (error) {
       console.error("Error deleting banner:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,6 +88,7 @@ const Banner = () => {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     const formData = new FormData();
     formData.append("title", newBanner.title);
     formData.append("redirectLink", newBanner.redirectLink);
@@ -91,6 +101,8 @@ const Banner = () => {
       setOpenUpload(false);
     } catch (error) {
       console.error("Error creating banner:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,6 +118,7 @@ const Banner = () => {
   };
 
   const handleEditSubmit = async () => {
+    setLoading(true);
     const formData = new FormData();
     formData.append("newTitle", newBanner.title); // Update title
     formData.append("newRedirectLink", newBanner.redirectLink); // Update redirect link
@@ -119,6 +132,8 @@ const Banner = () => {
       fetchBanners(); // Fetch the updated banners after editing
     } catch (error) {
       console.error("Error editing banner:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -298,6 +313,12 @@ const Banner = () => {
             {snackbarMessage}
           </Alert>
         </Snackbar>
+        <Backdrop
+          open={loading}
+          sx={{ color: "#fff", zIndex: theme.zIndex.drawer + 1 }}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
       </Grid>
 
       {/* Upload Modal */}
