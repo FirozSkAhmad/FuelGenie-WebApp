@@ -12,7 +12,7 @@ import NotFoundPage from "../pages/NotFound";
 import ProductsList from "../pages/Products/ProductsList";
 import Login from "../Auth/Login";
 import PriceHistory from "../pages/Products/PriceHistory/PriceHistory";
-import Banner from "../pages/Products/Banner";
+import Banner from "../pages/Products/Banner/Banner";
 import Order from "../pages/Sales/Order";
 import OrderDetails from "../pages/Sales/OrderDetails";
 import NotifyMe from "../pages/Sales/NotifyMe";
