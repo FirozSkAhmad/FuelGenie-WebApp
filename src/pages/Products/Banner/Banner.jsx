@@ -51,7 +51,7 @@ const Banner = () => {
   const fetchBanners = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/products/get-banners");
+      const response = await api.get("/products/banner/get-banners");
       setBanners(response.data.data || []);
     } catch (error) {
       console.error("Error fetching banners:", error);
@@ -67,7 +67,7 @@ const Banner = () => {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await api.delete(`/products/delete-banner/${bannerToDelete}`);
+      await api.delete(`/products/banner/delete-banner/${bannerToDelete}`);
       setBanners((prev) =>
         prev.filter((banner) => banner.bannerId !== bannerToDelete)
       );
@@ -95,7 +95,10 @@ const Banner = () => {
     if (newBanner.imageFile) formData.append("bannerImg", newBanner.imageFile);
 
     try {
-      const response = await api.post("/products/create-banner", formData);
+      const response = await api.post(
+        "/products/banner/create-banner",
+        formData
+      );
       setBanners((prev) => [...prev, response.data.data]);
       resetNewBanner();
       setOpenUpload(false);
@@ -126,7 +129,7 @@ const Banner = () => {
       formData.append("newBannerImg", newBanner.imageFile); // Update image if new one is provided
 
     try {
-      await api.patch(`/products/edit-banner/${bannerToEdit}`, formData);
+      await api.patch(`/products/banner/edit-banner/${bannerToEdit}`, formData);
       setOpenEditDialog(false);
       resetNewBanner();
       fetchBanners(); // Fetch the updated banners after editing
