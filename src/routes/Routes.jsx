@@ -22,6 +22,7 @@ import ZoneCreation from "../pages/Products/Zone/ZoneCreation";
 import ZoneCreationDetails from "../pages/Products/Zone/ZoneCreationDetails";
 import SignupPage from "../Auth/Signup";
 import PriceHistoryByProduct from "../pages/Products/PriceHistory/PriceHistoryByProduct";
+import Roles from "../pages/Admin/Roles";
 
 function AppRoutes() {
   return (
@@ -42,11 +43,11 @@ function AppRoutes() {
         element={<PrivateRoute element={<ProductsList />} />}
       />
       <Route
-        path="/products/zone"
+        path="/products/zone-prod-mgr"
         element={<PrivateRoute element={<ZoneCreation />} />}
       />
       <Route
-        path="/products/zone/:zoneID"
+        path="/products/zone-prod-mgr/:zoneID"
         element={<PrivateRoute element={<ZoneCreationDetails />} />}
       />
       <Route
@@ -90,6 +91,10 @@ function AppRoutes() {
         element={<PrivateRoute element={<VendorManagement />} />}
       />
       <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
+      <Route
+        path="/admin/roles"
+        element={<PrivateRoute element={<Roles />} />}
+      />
       <Route
         path="/management"
         element={<PrivateRoute element={<Management />} />}

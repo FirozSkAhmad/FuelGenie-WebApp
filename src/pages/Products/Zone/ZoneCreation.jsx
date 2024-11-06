@@ -45,7 +45,7 @@ const ZoneCreation = () => {
     // Fetch zones from the API
     const fetchZones = async () => {
       try {
-        const response = await api.get("/products/all-zones");
+        const response = await api.get("/products/zone-prod-mgr/all-zones");
         if (response.data.status === 200) {
           setZones(response.data.data);
         }
@@ -75,7 +75,7 @@ const ZoneCreation = () => {
   };
 
   const handleRowClick = (zone) => {
-    navigate(`/products/zone/${zone}`);
+    navigate(`/products/zone-prod-mgr/${zone}`);
   };
 
   const toggleCustomState = () => {

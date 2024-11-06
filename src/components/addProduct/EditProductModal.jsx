@@ -113,7 +113,7 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
     try {
       // Call your API to update the product
       await api.patch(
-        `/products/edit-product/${product.zoneId}/${product.productId}`,
+        `/products/zone-prod-mgr/edit-product/${product.zoneId}/${product.productId}`,
         formData,
         {
           headers: {

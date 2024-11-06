@@ -67,7 +67,7 @@ const PincodeModal = ({
 
     try {
       const response = await api.patch(
-        `/products/add-or-remove-pincodes/${zoneID}`,
+        `/products/zone-prod-mgr/add-or-remove-pincodes/${zoneID}`,
         data
       );
 

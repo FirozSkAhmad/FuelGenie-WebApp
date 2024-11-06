@@ -34,7 +34,7 @@ const PriceHistoryByProduct = () => {
     const fetchPriceHistory = async () => {
       try {
         const response = await api.get(
-          `/products/price-history-by-zone-product/${zoneId}/${productId}`
+          `/products/price-history/price-history-by-zone-product/${zoneId}/${productId}`
         );
         const data = response.data.data;
         setPriceHistory(data);

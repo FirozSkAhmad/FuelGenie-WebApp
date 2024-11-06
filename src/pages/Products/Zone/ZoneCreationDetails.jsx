@@ -32,7 +32,9 @@ const ZoneCreationDetails = () => {
   const fetchPincodes = async () => {
     try {
       setLoadingPincodes(true);
-      const response = await api.get(`/products/all-pincodes/${zoneID}`);
+      const response = await api.get(
+        `/products/zone-prod-mgr/all-pincodes/${zoneID}`
+      );
 
       if (response.status !== 200) {
         throw new Error(response.message || "Failed to fetch pincodes");
@@ -54,7 +56,9 @@ const ZoneCreationDetails = () => {
     if (activeTab === 1) {
       try {
         setLoadingProducts(true);
-        const response = await api.get(`/products/products-by-zone/${zoneID}`);
+        const response = await api.get(
+          `/products/zone-prod-mgr/products-by-zone/${zoneID}`
+        );
 
         if (response.status === 200 && Array.isArray(response.data.products)) {
           setProducts(response.data.products);
@@ -84,10 +88,13 @@ const ZoneCreationDetails = () => {
 
   const handleDeletePincode = async (pincode) => {
     try {
-      await api.patch(`/products/add-or-remove-pincodes/${zoneID}`, {
-        pincodesToAdd: [],
-        pincodesToRemove: [pincode],
-      });
+      await api.patch(
+        `/products/zone-prod-mgr/add-or-remove-pincodes/${zoneID}`,
+        {
+          pincodesToAdd: [],
+          pincodesToRemove: [pincode],
+        }
+      );
       // fetchPincodes();
       setPincodes((prev) => prev.filter((pc) => pc !== pincode));
     } catch (error) {

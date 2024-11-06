@@ -30,6 +30,8 @@ import {
   RequestQuote,
   AlarmOn,
   Notifications,
+  People,
+  Security,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -52,11 +54,15 @@ function Sidebar({ open, toggleDrawer }) {
   const isActive = (path) => location.pathname === path; // Function to check if the current path is active
   const [openProducts, setOpenProducts] = useState(false); // State for dropdown
   const [openSales, setOpenSales] = useState(false);
+  const [openAdmin, setOpenAdmin] = useState(false);
   const handleProductsToggle = () => {
     setOpenProducts(!openProducts); // Toggle the dropdown
   };
   const handleSalesToggle = () => {
     setOpenSales(!openSales);
+  };
+  const handleAdminToggle = () => {
+    setOpenAdmin(!openAdmin);
   };
   const handleLogout = () => {
     // Perform logout logic here (e.g., clear tokens, update state, etc.)
@@ -138,10 +144,10 @@ function Sidebar({ open, toggleDrawer }) {
             <ListItem
               button
               component={Link}
-              to="/products/zone"
+              to="/products/zone-prod-mgr"
               sx={{
                 pl: 4,
-                backgroundColor: isActive("/products/zone")
+                backgroundColor: isActive("/products/zone-prod-mgr")
                   ? theme.palette.action.selected
                   : "transparent",
                 "&:hover": {
@@ -152,7 +158,7 @@ function Sidebar({ open, toggleDrawer }) {
               <ListItemIcon>
                 <Comment /> {/* Icon for Quote Product List */}
               </ListItemIcon>
-              {open && <ListItemText primary="Zones" />}
+              {open && <ListItemText primary="Zone Prod Mgr" />}
             </ListItem>
             <ListItem
               button
@@ -381,24 +387,94 @@ function Sidebar({ open, toggleDrawer }) {
           </ListItemIcon>
           {open && <ListItemText primary="Vendor Management" />}
         </ListItem>
-        <ListItem
-          button
-          component={Link}
-          to="/admin"
-          sx={{
-            backgroundColor: isActive("/admin")
-              ? theme.palette.action.selected
-              : "transparent",
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
+        {/* Admin Dropdown */}
+        <ListItem button onClick={handleAdminToggle}>
           <ListItemIcon>
             <AdminPanelSettings />
           </ListItemIcon>
           {open && <ListItemText primary="Admin" />}
         </ListItem>
+        <Collapse in={openAdmin} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItem
+              button
+              component={Link}
+              to="/admin/roles"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/admin/roles")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Security /> {/* Icon for Roles  */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Roles" />}
+            </ListItem>
+            <ListItem
+              button
+              component={Link}
+              to="/admin/team"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/admin/team")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <People /> {/* Icon for Team */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Team" />}
+            </ListItem>
+            <ListItem
+              button
+              component={Link}
+              to="/admin/activity-logs"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/admin/activity-logs")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <History /> {/* Icon for Activity Logs */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Activity Logs" />}
+            </ListItem>
+            <ListItem
+              button
+              component={Link}
+              to="/admin/settings"
+              sx={{
+                pl: 4,
+                backgroundColor: isActive("/admin/settings")
+                  ? theme.palette.action.selected
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Settings /> {/* Icon for Settings */}
+              </ListItemIcon>
+              {open && <ListItemText primary="Settings" />}
+            </ListItem>
+          </List>
+        </Collapse>
+
         <ListItem
           button
           component={Link}

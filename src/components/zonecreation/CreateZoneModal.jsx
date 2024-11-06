@@ -32,7 +32,7 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
 
   const fetchStates = async () => {
     try {
-      const response = await api.get(`/products/all-states`);
+      const response = await api.get(`/products/zone-prod-mgr/all-states`);
       setStates(response.data.data || []);
     } catch (error) {
       console.error("Error fetching states:", error);
@@ -41,7 +41,9 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
 
   const fetchCities = async (stateName) => {
     try {
-      const response = await api.get(`/products/all-cities/${stateName}`);
+      const response = await api.get(
+        `/products/zone-prod-mgr/all-cities/${stateName}`
+      );
       setCities(response.data.data || []);
     } catch (error) {
       console.error("Error fetching cities:", error);
@@ -91,7 +93,7 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
     };
 
     try {
-      await api.post(`/products/create-zone`, zoneData);
+      await api.post(`/products/zone-prod-mgr/create-zone`, zoneData);
       handleCreateZone(zoneData);
       handleClose();
     } catch (error) {

@@ -47,7 +47,7 @@ const ProductCard = ({ product, onUpdate }) => {
       const roleId = localStorage.getItem("roleId");
 
       await api.delete(
-        `/products/delete-product/${product.productId}/${product.zoneId}`,
+        `/products/zone-prod-mgr/delete-product/${product.productId}/${product.zoneId}`,
         {
           data: { deletedBy, roleId },
         }

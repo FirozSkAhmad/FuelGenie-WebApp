@@ -33,7 +33,9 @@ const PriceHistory = () => {
   useEffect(() => {
     const fetchPriceHistory = async () => {
       try {
-        const response = await api.get("/products/price-history");
+        const response = await api.get(
+          "/products/price-history/all-price-history"
+        );
         if (response.data.status === 200) {
           setPriceHistoryData(response.data.data);
           setFilteredData(response.data.data); // Initially, all data is displayed

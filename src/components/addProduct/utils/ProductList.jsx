@@ -48,7 +48,7 @@ const ProductList = ({
       formData.append("roleId", roleId || "defaultRoleId");
 
       const response = await api.post(
-        "/products/add-product-to-zone",
+        "/products/zone-prod-mgr/add-product-to-zone",
         formData,
         {
           headers: {
