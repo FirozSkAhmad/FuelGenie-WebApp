@@ -26,7 +26,7 @@ import {
   NavigateNext as NavigateNextIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import CreateZoneModal from "../../../components/zonecreation/CreateZoneModal";
+import CreateZoneModal from "../../../components/addProduct/zonecreation/CreateZoneModal";
 
 import api from "../../../utils/api";
 const ZoneCreation = () => {

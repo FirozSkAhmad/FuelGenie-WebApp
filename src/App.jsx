@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
   CssBaseline,
@@ -7,12 +7,11 @@ import {
   Typography,
   IconButton,
   Switch,
-  useTheme,
   createTheme,
   ThemeProvider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/UI/Sidebar";
 import Routes from "./routes/Routes";
 import { useLocation } from "react-router-dom";
 import { Brightness4, Brightness7 } from "@mui/icons-material"; // Icons for light/dark mode
@@ -20,11 +19,30 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import AuthContext from "./context/AuthContext";
+
 function App() {
   const [open, setOpen] = useState(true); // Sidebar is open by default
-  const [darkMode, setDarkMode] = useState(false); // Dark mode state
+  const [darkMode, setDarkMode] = useState(null); // Dark mode state, initially null
   const location = useLocation(); // Get current location
   const { isAuthenticated } = useContext(AuthContext);
+
+  // Load the dark mode setting from localStorage (default to false if not set)
+  useEffect(() => {
+    const storedMode = localStorage.getItem("darkMode");
+    if (storedMode !== null) {
+      setDarkMode(JSON.parse(storedMode)); // Parse the string value to boolean
+    } else {
+      setDarkMode(false); // Default to false if no mode is stored
+    }
+  }, []);
+
+  // Store the dark mode setting in localStorage whenever it changes
+  useEffect(() => {
+    if (darkMode !== null) {
+      localStorage.setItem("darkMode", JSON.stringify(darkMode)); // Save as string
+    }
+  }, [darkMode]);
+
   // Toggle sidebar
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -32,7 +50,7 @@ function App() {
 
   // Toggle between light and dark mode
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    setDarkMode((prev) => !prev);
   };
 
   // Create light and dark themes
@@ -40,16 +58,27 @@ function App() {
     palette: {
       mode: "light",
     },
+    typography: {
+      fontFamily: "'Proza Libre', sans-serif", // Set Proza Libre font for light theme
+    },
   });
 
   const darkTheme = createTheme({
     palette: {
       mode: "dark",
     },
+    typography: {
+      fontFamily: "'Proza Libre', sans-serif", // Set Proza Libre font for dark theme
+    },
   });
 
   // Check if the current route is the login route
   const isLoginRoute = location.pathname === "/";
+
+  // If darkMode is null (still loading from localStorage), render nothing to avoid UI flicker
+  if (darkMode === null) {
+    return null; // You could render a loading spinner here if needed
+  }
 
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
@@ -96,7 +125,7 @@ function App() {
         {/* Main Content */}
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           {isAuthenticated && <Toolbar />}
-          <Routes /> {/* Routes handles rendering the login page */}
+          <Routes />
         </Box>
       </Box>
       <ToastContainer />

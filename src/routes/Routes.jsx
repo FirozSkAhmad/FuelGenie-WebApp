@@ -9,7 +9,7 @@ import Admin from "../pages/admin";
 import Management from "../pages/Management";
 import VendorManagement from "../pages/Vendor-Management";
 import NotFoundPage from "../pages/NotFound";
-import ProductsList from "../pages/Products/ProductsList";
+
 import Login from "../Auth/Login";
 import PriceHistory from "../pages/Products/PriceHistory/PriceHistory";
 import Banner from "../pages/Products/Banner/Banner";
@@ -23,6 +23,7 @@ import ZoneCreationDetails from "../pages/Products/Zone/ZoneCreationDetails";
 import SignupPage from "../Auth/Signup";
 import PriceHistoryByProduct from "../pages/Products/PriceHistory/PriceHistoryByProduct";
 import Roles from "../pages/Admin/Roles";
+import TimeSlots from "../pages/Products/TimeSlots/TimeSlots";
 
 function AppRoutes() {
   return (
@@ -39,8 +40,8 @@ function AppRoutes() {
         element={<PrivateRoute element={<Settings />} />}
       />
       <Route
-        path="/products/product-list"
-        element={<PrivateRoute element={<ProductsList />} />}
+        path="/products/time-slots"
+        element={<PrivateRoute element={<TimeSlots />} />}
       />
       <Route
         path="/products/zone-prod-mgr"

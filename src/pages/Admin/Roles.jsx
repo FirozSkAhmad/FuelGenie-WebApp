@@ -19,7 +19,7 @@ import {
 import { Add, CheckCircle, Cancel } from "@mui/icons-material";
 import api from "../../utils/api";
 import RoleModal from "../../components/admin/RoleModal";
-
+import { CircularProgress } from "@mui/material";
 function Roles() {
   const [openModal, setOpenModal] = useState(false);
   const [rolesData, setRolesData] = useState([]);
@@ -140,7 +140,7 @@ function Roles() {
             {loading ? (
               <TableRow>
                 <TableCell colSpan={4} align="center">
-                  Loading...
+                  <CircularProgress />
                 </TableCell>
               </TableRow>
             ) : rolesData.length > 0 ? (

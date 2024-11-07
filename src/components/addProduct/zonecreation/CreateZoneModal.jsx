@@ -13,7 +13,7 @@ import {
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
-import api from "../../utils/api";
+import api from "../../../utils/api";
 const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
   const [zoneName, setZoneName] = useState("");
   const [state, setState] = useState("");

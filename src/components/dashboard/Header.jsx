@@ -40,35 +40,6 @@ const Header = () => {
             </Typography>
           </Breadcrumbs>
         </Box>
-
-        {/* Search bar */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: theme.palette.action.hover, // Search bar background adapts to theme
-            borderRadius: "4px",
-            padding: "0 10px",
-            mr: 2,
-          }}
-        >
-          <SearchIcon />
-          <InputBase
-            placeholder="Search here"
-            sx={{
-              ml: 1,
-              flex: 1,
-              color: theme.palette.text.primary, // Dynamic text color for search input
-            }}
-          />
-        </Box>
-
-        {/* Profile Link */}
-        <Link to="/profile" style={{ textDecoration: "none" }}>
-          <IconButton>
-            <Avatar alt="User" src="/path-to-avatar.jpg" />
-          </IconButton>
-        </Link>
       </Toolbar>
     </AppBar>
   );
