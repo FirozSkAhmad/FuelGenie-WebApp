@@ -65,7 +65,7 @@ const ProductCard = ({ product, onUpdate }) => {
   };
   const moveToDetailPage = () => {
     navigate(
-      `/products/price-history-by-zone-product/${product.zoneId}/${product.productId}`
+      `/products/zone-prod-mgr/price-history-by-zone-product/${product.zoneId}/${product.productId}`
     );
   };
   return (

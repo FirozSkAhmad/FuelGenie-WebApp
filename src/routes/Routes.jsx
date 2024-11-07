@@ -24,6 +24,7 @@ import SignupPage from "../Auth/Signup";
 import PriceHistoryByProduct from "../pages/Products/PriceHistory/PriceHistoryByProduct";
 import Roles from "../pages/Admin/Roles";
 import TimeSlots from "../pages/Products/TimeSlots/TimeSlots";
+import ProductDetail from "../pages/Products/Zone/ProductDetail";
 
 function AppRoutes() {
   return (
@@ -51,6 +52,11 @@ function AppRoutes() {
         path="/products/zone-prod-mgr/:zoneID"
         element={<PrivateRoute element={<ZoneCreationDetails />} />}
       />
+      <Route
+        path="/products/zone-prod-mgr/price-history-by-zone-product/:zoneId/:productId"
+        element={<PrivateRoute element={<ProductDetail />} />}
+      />
+
       <Route
         path="/products/price-history"
         element={<PrivateRoute element={<PriceHistory />} />}
