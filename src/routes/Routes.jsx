@@ -25,6 +25,9 @@ import PriceHistoryByProduct from "../pages/Products/PriceHistory/PriceHistoryBy
 import Roles from "../pages/Admin/Roles";
 import TimeSlots from "../pages/Products/TimeSlots/TimeSlots";
 import ProductDetail from "../pages/Products/Zone/ProductDetail";
+import Approvals from "../pages/Admin/Approvals/Approvals";
+import Team from "../pages/Admin/Team/Team";
+import TeamDetail from "../pages/Admin/Team/TeamDetail";
 
 function AppRoutes() {
   return (
@@ -101,6 +104,15 @@ function AppRoutes() {
       <Route
         path="/admin/roles"
         element={<PrivateRoute element={<Roles />} />}
+      />
+      <Route path="/admin/team" element={<PrivateRoute element={<Team />} />} />
+      <Route
+        path="/admin/team/:teamId"
+        element={<PrivateRoute element={<TeamDetail />} />}
+      />
+      <Route
+        path="/admin/approvals"
+        element={<PrivateRoute element={<Approvals />} />}
       />
       <Route
         path="/management"

@@ -29,7 +29,7 @@ function Roles() {
   const handleCloseModal = () => setOpenModal(false);
   const fetchRoles = async () => {
     try {
-      const response = await api.get("/role/all-roles");
+      const response = await api.get("/admin/roles/all-roles");
       if (response.status === 200) {
         setRolesData(response.data.data);
       }

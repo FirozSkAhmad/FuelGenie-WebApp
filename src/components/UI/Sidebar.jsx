@@ -44,6 +44,7 @@ import {
   Category,
   Timeline,
   Wallpaper,
+  Approval,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -204,6 +205,11 @@ function Sidebar({ open, toggleDrawer }) {
       items: [
         { label: "Roles", icon: <VerifiedUser />, path: "/admin/roles" },
         { label: "Team", icon: <Group />, path: "/admin/team" },
+        {
+          label: "Approvals",
+          icon: <Approval />,
+          path: "/admin/approvals",
+        },
         {
           label: "Activity Logs",
           icon: <ReceiptLong />,
