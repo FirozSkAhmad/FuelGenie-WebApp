@@ -8,29 +8,35 @@ import {
   Typography,
   CircularProgress,
   TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+
+import DeleteIcon from "@mui/icons-material/Delete";
 import api from "../../../utils/api";
 
 const Team = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTeamName, setNewTeamName] = useState("");
+  const [actionLoading, setActionLoading] = useState(false); // For button loading
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState(null);
   const navigate = useNavigate();
 
   // Fetch all teams
   const fetchTeams = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await api.get("/admin/team/all-teams");
-      if (response.status === 200) {
-        setTeams(response.data.data);
-      }
+      const response = await api.get("/admin/teams/all-teams");
+      setTeams(response?.data?.data || []);
     } catch (error) {
       console.error("Error fetching teams:", error);
-      toast.error("Failed to fetch teams!");
+      toast.error("Failed to fetch teams.");
     } finally {
       setLoading(false);
     }
@@ -38,9 +44,10 @@ const Team = () => {
 
   // Create a new team
   const handleCreateTeam = async () => {
+    setActionLoading(true);
     try {
-      const response = await api.post("/admin/team/create-team", {
-        teamName: newTeamName,
+      const response = await api.post("/admin/teams/create-team", {
+        teamName: newTeamName.trim(),
       });
       if (response.status === 201) {
         toast.success("Team created successfully!");
@@ -50,7 +57,43 @@ const Team = () => {
     } catch (error) {
       console.error("Error creating team:", error);
       toast.error("Failed to create team.");
+    } finally {
+      setActionLoading(false);
     }
+  };
+
+  // Delete a team
+  const handleDeleteTeam = async () => {
+    if (!teamToDelete) return;
+
+    setActionLoading(true);
+    try {
+      const response = await api.delete(
+        `/admin/teams/delete-a-team/${teamToDelete.teamId}`
+      );
+      if (response.status === 200) {
+        toast.success("Team deleted successfully!");
+        fetchTeams();
+        setOpenDeleteDialog(false); // Close the dialog after deletion
+      } else {
+        toast.error("Failed to delete the team.");
+      }
+    } catch (error) {
+      console.error("Error deleting team:", error);
+      toast.error("An error occurred while deleting the team.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDialogClose = () => {
+    setOpenDeleteDialog(false);
+    setTeamToDelete(null);
+  };
+
+  const handleOpenDeleteDialog = (team) => {
+    setTeamToDelete(team);
+    setOpenDeleteDialog(true);
   };
 
   useEffect(() => {
@@ -74,8 +117,6 @@ const Team = () => {
 
   return (
     <Box sx={{ padding: "2rem" }}>
-      <ToastContainer position="top-center" autoClose={3000} />
-
       <Typography variant="h4" gutterBottom>
         Teams Management
       </Typography>
@@ -100,7 +141,6 @@ const Team = () => {
           fullWidth
           sx={{
             "& .MuiInputBase-root": {
-              color: (theme) => theme.palette.text.primary,
               backgroundColor: (theme) => theme.palette.background.default,
             },
             "& .MuiInputLabel-root": {
@@ -112,13 +152,13 @@ const Team = () => {
           variant="contained"
           color="primary"
           onClick={handleCreateTeam}
-          disabled={!newTeamName.trim()}
+          disabled={!newTeamName.trim() || actionLoading}
         >
-          Create Team
+          {actionLoading ? <CircularProgress size={20} /> : "Create Team"}
         </Button>
       </Box>
 
-      {/* Display teams as cards */}
+      {/* Display Teams */}
       <Box
         sx={{
           display: "flex",
@@ -133,8 +173,6 @@ const Team = () => {
             sx={{
               width: "400px",
               height: "200px",
-              backgroundColor: (theme) => theme.palette.background.paper,
-              color: (theme) => theme.palette.text.primary,
               p: 2,
               borderRadius: "16px",
               boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2)",
@@ -168,10 +206,41 @@ const Team = () => {
               >
                 View Details
               </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => handleOpenDeleteDialog(team)}
+                sx={{ mt: 2, ml: 2 }}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <DeleteIcon />
+                )}
+              </Button>
             </CardActions>
           </Card>
         ))}
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={handleDialogClose}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            Are you sure you want to delete the team "{teamToDelete?.teamName}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteTeam} color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
