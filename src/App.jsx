@@ -66,6 +66,9 @@ function App() {
         600: "#757575", // Optional: Add more shades if needed
         700: "#616161", // Optional: Add more shades if needed
       },
+      drawerBack: {
+        default: "#e0e0e0", // Your custom background color
+      },
     },
     typography: {
       fontFamily: "'Proza Libre', sans-serif", // Set Proza Libre font for light theme
@@ -83,6 +86,9 @@ function App() {
         500: "#9e9e9e", // Same for dark theme
         600: "#757575", // Optional: Add more shades if needed
         700: "#616161", // Optional: Add more shades if needed
+      },
+      drawerBack: {
+        default: "#2c2c2c", // Your custom background color
       },
     },
     typography: {

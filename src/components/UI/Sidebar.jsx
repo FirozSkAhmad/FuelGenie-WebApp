@@ -254,13 +254,13 @@ function Sidebar({ open, toggleDrawer }) {
             duration: theme.transitions.duration.enteringScreen,
           }),
           boxShadow: open ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "none",
-          backgroundColor: theme.palette.background.default,
           color: theme.palette.text.primary,
           overflowX: "hidden",
         },
         // Prevent horizontal scroll in collapsible sections
         [`& .MuiCollapse-root`]: {
           overflowX: "hidden", // Prevent horizontal scrolling in the collapsed section
+          backgroundColor: theme.palette.drawerBack.default, // Background color for the collapsible sections
         },
       }}
     >
