@@ -193,7 +193,13 @@ const Team = () => {
                 Team ID: {team.teamId}
               </Typography>
             </CardContent>
-            <CardActions>
+            <CardActions
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "16px",
+              }}
+            >
               <Button
                 variant="contained"
                 color="secondary"

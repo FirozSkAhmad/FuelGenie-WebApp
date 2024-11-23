@@ -14,13 +14,14 @@ import {
   ListItemText,
   ListSubheader,
   useMediaQuery,
-  CircularProgress, // Importing the loading spinner
+  CircularProgress,
 } from "@mui/material";
 import { Close, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import api from "../../utils/api";
 import { toast } from "react-toastify";
-const RoleModal = ({ open, onClose, onUpdate }) => {
+
+const RoleModal = ({ open, onClose, onUpdate, mode, role }) => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -40,19 +41,21 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
   const [selectedPermissions, setSelectedPermissions] = useState({});
   const [openSections, setOpenSections] = useState({});
   const [modules, setModules] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state for API call
+  const [loading, setLoading] = useState(false);
 
-  // Fetch modules from the API
   useEffect(() => {
     const fetchModules = async () => {
       try {
+        setLoading(true);
         const response = await api.get("/module/all-modules");
         if (response.status === 200) {
-          setModules(response.data.data);
-          // Initialize selectedPermissions and openSections for the fetched modules
+          const fetchedModules = response.data.data;
+          setModules(fetchedModules);
+
+          // Initialize permissions and sections
           const initialPermissions = {};
           const initialOpenSections = {};
-          response.data.data.forEach((module) => {
+          fetchedModules.forEach((module) => {
             initialPermissions[module.moduleName] = {};
             initialOpenSections[module.moduleName] = false;
             module.subModules.forEach((submodule) => {
@@ -64,12 +67,29 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
               };
             });
           });
+
           setSelectedPermissions(initialPermissions);
           setOpenSections(initialOpenSections);
+
+          // Pre-fill permissions for edit mode
+          if (mode === "edit" && role) {
+            setRoleName(role.roleName);
+            const preFilledPermissions = { ...initialPermissions };
+
+            role.sections.forEach((section) => {
+              section.subModules.forEach((subModule) => {
+                preFilledPermissions[section.moduleName][
+                  subModule.subModuleName
+                ] = subModule.permissions;
+              });
+            });
+
+            setSelectedPermissions(preFilledPermissions);
+          }
         }
       } catch (error) {
         console.error("Error fetching modules:", error);
-        toast.error("Error fetching modules:", error); // Show error message
+        toast.error("Error fetching modules");
       } finally {
         setLoading(false);
       }
@@ -78,7 +98,7 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
     if (open) {
       fetchModules();
     }
-  }, [open]);
+  }, [open, mode, role]);
 
   const handleSectionToggle = (moduleName) => {
     setOpenSections((prev) => ({
@@ -99,69 +119,155 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
       },
     }));
   };
-
-  const handleContinue = async () => {
-    // Construct API payload
+  const handleCreate = async () => {
+    // Gather current state of selected permissions for creating a role
     const sections = Object.entries(selectedPermissions).map(
       ([moduleName, submodules]) => ({
         moduleName,
         subModules: Object.entries(submodules).map(
           ([submoduleName, permissions]) => ({
             subModuleName: submoduleName,
-            permissions: {
-              create: permissions.create || false,
-              read: permissions.read || false,
-              update: permissions.update || false,
-              delete: permissions.delete || false,
-            },
+            permissions,
           })
         ),
       })
     );
 
+    // Payload for creating the role
     const payload = {
-      roleName,
-      sections,
+      roleName, // Role name for creating a new role
+      sections, // Sections will contain the permissions for each module
     };
 
     try {
-      const response = await api.post("/role/create-role", payload);
-      console.log("Role created:", response.data);
-      toast.success("Role successfully created!"); // Show success message
-      onClose();
+      const response = await api.post("/admin/roles/create-role", payload);
+      toast.success("Role created successfully!");
       onUpdate();
+      onClose();
     } catch (error) {
       console.error("Error creating role:", error);
-      toast.error("Error creating role!"); // Show error message
+      toast.error("Error creating role!");
     }
   };
+  const handleEdit = async () => {
+    const sections = Object.entries(selectedPermissions).map(
+      ([moduleName, submodules]) => ({
+        moduleName,
+        subModules: Object.entries(submodules).map(
+          ([submoduleName, permissions]) => ({
+            subModuleName: submoduleName,
+            permissions,
+          })
+        ),
+      })
+    );
 
-  const getSelectedCount = () => {
-    return Object.values(selectedPermissions).reduce((total, submodules) => {
-      return (
-        total +
-        Object.values(submodules).reduce(
-          (subTotal, permissions) =>
-            subTotal + Object.values(permissions).filter(Boolean).length,
-          0
-        )
+    let payload = {
+      updateRoleName: roleName, // Updated role name
+      addModules: [],
+      addSubModules: [],
+      updatePermissions: [],
+      removeModules: [],
+      removeSubModules: [],
+    };
+
+    // Assuming `currentModules` contains the current state of the role's modules and submodules
+    const currentModules = modules.map((module) => ({
+      moduleName: module.moduleName,
+      subModules: module.subModules.map((subModule) => ({
+        subModuleName: subModule.subModuleName,
+        permissions: subModule.permissions,
+      })),
+    }));
+
+    // Loop through selectedPermissions to find additions, updates, and removals
+    sections.forEach(({ moduleName, subModules }) => {
+      const existingModule = currentModules.find(
+        (module) => module.moduleName === moduleName
       );
-    }, 0);
-  };
-  const handleReset = () => {
-    // Clear the role name and selected permissions state
-    setRoleName("");
-    setSelectedPermissions({});
-    setOpenSections({});
 
-    // Use toast only once after resetting the state
-    if (!roleName && Object.keys(selectedPermissions).length === 0) {
-      toast.success("Selection Reset !");
+      if (!existingModule) {
+        // Add new module (with submodules) if it doesn't exist in the current state
+        payload.addModules.push({ moduleName, subModules });
+      } else {
+        // Process submodules for existing modules
+        subModules.forEach(({ subModuleName, permissions }) => {
+          const existingSubModule = existingModule.subModules.find(
+            (subModule) => subModule.subModuleName === subModuleName
+          );
+
+          if (!existingSubModule) {
+            // Add new submodule under existing module
+            payload.addSubModules.push({
+              moduleName,
+              subModule: { subModuleName, permissions },
+            });
+          } else if (
+            JSON.stringify(existingSubModule.permissions) !==
+            JSON.stringify(permissions)
+          ) {
+            // If permissions are different, update permissions for this submodule
+            payload.updatePermissions.push({
+              moduleName,
+              subModuleName,
+              permissions,
+            });
+          }
+        });
+      }
+    });
+
+    // Identify modules that need to be removed (those not in the updated list)
+    currentModules.forEach((module) => {
+      if (!sections.find((sec) => sec.moduleName === module.moduleName)) {
+        payload.removeModules.push(module.moduleName);
+      }
+
+      // Identify submodules to be removed
+      module.subModules.forEach((subModule) => {
+        const isSubModuleInUpdatedState = sections
+          .find((sec) => sec.moduleName === module.moduleName)
+          ?.subModules.some(
+            (subSec) => subSec.subModuleName === subModule.subModuleName
+          );
+
+        // Only add to removeSubModules if the submodule is not in the updated state
+        if (!isSubModuleInUpdatedState) {
+          payload.removeSubModules.push({
+            moduleName: module.moduleName,
+            subModuleName: subModule.subModuleName,
+          });
+        }
+      });
+    });
+
+    // Send the request to update the role
+    try {
+      const response = await api.put(
+        `/admin/roles/edit-role/${role.roleId}`,
+        payload
+      );
+      toast.success("Role updated successfully!");
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast.error("Error updating role!");
     }
   };
-  const isContinueDisabled = !roleName || getSelectedCount() === 0;
+
+  const handleSubmit = async () => {
+    if (mode === "edit") {
+      // Call the handleEdit function for edit mode
+      await handleEdit();
+    } else {
+      // Call the handleCreate function for create mode
+      await handleCreate();
+    }
+  };
+
   return (
-    <Modal open={open} onClose={onClose} aria-labelledby="add-role-modal">
+    <Modal open={open} onClose={onClose} aria-labelledby="role-modal">
       <Box sx={style}>
         <Box
           display="flex"
@@ -169,8 +275,8 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography id="add-role-modal" variant="h6" component="h2">
-            Add Role
+          <Typography variant="h6">
+            {mode === "edit" ? "Edit Role" : "Add Role"}
           </Typography>
           <IconButton onClick={onClose}>
             <Close />
@@ -197,29 +303,24 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
             border: "1px solid #ddd",
             borderRadius: 1,
           }}
-          component="nav"
-          subheader={
-            <ListSubheader>{getSelectedCount()} selected</ListSubheader>
-          }
         >
-          {loading ? ( // Show loading spinner if data is still loading
+          {loading ? (
             <Box display="flex" justifyContent="center" my={2}>
               <CircularProgress />
             </Box>
           ) : (
             modules.map((module) => (
-              <React.Fragment key={module._id}>
+              <React.Fragment key={module.moduleName}>
                 <ListItem
                   button
                   onClick={() => handleSectionToggle(module.moduleName)}
                 >
                   <ListItemIcon>
                     <Checkbox
-                      edge="start"
                       checked={Object.values(
                         selectedPermissions[module.moduleName] || {}
-                      ).some((permission) =>
-                        Object.values(permission).some(Boolean)
+                      ).some((permissions) =>
+                        Object.values(permissions).some(Boolean)
                       )}
                     />
                   </ListItemIcon>
@@ -235,79 +336,50 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
                   timeout="auto"
                   unmountOnExit
                 >
-                  <List component="div" disablePadding>
+                  <List sx={{ pl: 4 }}>
                     {module.subModules.map((submodule) => (
-                      <React.Fragment key={submodule}>
-                        <ListItem
-                          button
-                          onClick={() =>
-                            setOpenSections((prev) => ({
-                              ...prev,
-                              [module.moduleName]: !prev[module.moduleName],
-                            }))
-                          }
-                          sx={{ pl: 4 }}
+                      <ListItem key={submodule} sx={{ display: "block" }}>
+                        {/* Submodule Name */}
+                        <ListItemText primary={submodule} sx={{ mb: 1 }} />
+                        {/* Permissions Checkboxes */}
+                        <Box
+                          display="flex"
+                          flexWrap="wrap"
+                          gap={2}
+                          sx={{ pl: 2 }}
                         >
-                          <ListItemIcon>
-                            <Checkbox
-                              edge="start"
-                              checked={Object.values(
-                                selectedPermissions[module.moduleName]?.[
-                                  submodule
-                                ] || {}
-                              ).some(Boolean)}
-                            />
-                          </ListItemIcon>
-                          <ListItemText primary={submodule} />
-                          {openSections[module.moduleName] ? (
-                            <ExpandLess />
-                          ) : (
-                            <ExpandMore />
-                          )}
-                        </ListItem>
-                        <Collapse
-                          in={openSections[module.moduleName]}
-                          timeout="auto"
-                          unmountOnExit
-                        >
-                          <Box sx={{ display: "flex", pl: 6 }}>
-                            {["read", "create", "update", "delete"].map(
-                              (action) => (
-                                <Box
-                                  key={action}
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    mr: 2,
-                                  }}
+                          {["create", "read", "update", "delete"].map(
+                            (action) => (
+                              <Box
+                                key={action}
+                                display="flex"
+                                alignItems="center"
+                              >
+                                <Checkbox
+                                  checked={
+                                    selectedPermissions[module.moduleName]?.[
+                                      submodule
+                                    ]?.[action]
+                                  }
+                                  onChange={() =>
+                                    handlePermissionChange(
+                                      module.moduleName,
+                                      submodule,
+                                      action
+                                    )
+                                  }
+                                />
+                                <Typography
+                                  variant="body2"
+                                  sx={{ textTransform: "capitalize" }}
                                 >
-                                  <Checkbox
-                                    edge="start"
-                                    checked={
-                                      !!selectedPermissions[
-                                        module.moduleName
-                                      ]?.[submodule]?.[action]
-                                    }
-                                    onChange={() =>
-                                      handlePermissionChange(
-                                        module.moduleName,
-                                        submodule,
-                                        action
-                                      )
-                                    }
-                                  />
-                                  <ListItemText
-                                    primary={
-                                      action.charAt(0).toUpperCase() +
-                                      action.slice(1)
-                                    }
-                                  />
-                                </Box>
-                              )
-                            )}
-                          </Box>
-                        </Collapse>
-                      </React.Fragment>
+                                  {action}
+                                </Typography>
+                              </Box>
+                            )
+                          )}
+                        </Box>
+                      </ListItem>
                     ))}
                   </List>
                 </Collapse>
@@ -320,19 +392,13 @@ const RoleModal = ({ open, onClose, onUpdate }) => {
           <Button
             variant="contained"
             color="primary"
-            sx={{ borderRadius: "20px", width: "40%" }}
-            onClick={handleContinue}
-            disabled={isContinueDisabled || loading}
+            onClick={handleSubmit}
+            disabled={!roleName}
           >
-            Continue
+            {mode === "edit" ? "Update Role" : "Add Role"}
           </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            sx={{ borderRadius: "20px", width: "40%" }}
-            onClick={handleReset}
-          >
-            Reset
+          <Button variant="outlined" onClick={onClose}>
+            Cancel
           </Button>
         </Box>
       </Box>

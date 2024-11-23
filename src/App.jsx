@@ -57,6 +57,15 @@ function App() {
   const lightTheme = createTheme({
     palette: {
       mode: "light",
+      primary: { main: "#1976d2" },
+      success: { main: "#2e7d32" },
+      warning: { main: "#ed6c02" },
+      error: { main: "#d32f2f" },
+      grey: {
+        500: "#9e9e9e", // Ensure grey shades are available
+        600: "#757575", // Optional: Add more shades if needed
+        700: "#616161", // Optional: Add more shades if needed
+      },
     },
     typography: {
       fontFamily: "'Proza Libre', sans-serif", // Set Proza Libre font for light theme
@@ -66,6 +75,15 @@ function App() {
   const darkTheme = createTheme({
     palette: {
       mode: "dark",
+      primary: { main: "#1976d2" },
+      success: { main: "#2e7d32" },
+      warning: { main: "#ed6c02" },
+      error: { main: "#d32f2f" },
+      grey: {
+        500: "#9e9e9e", // Same for dark theme
+        600: "#757575", // Optional: Add more shades if needed
+        700: "#616161", // Optional: Add more shades if needed
+      },
     },
     typography: {
       fontFamily: "'Proza Libre', sans-serif", // Set Proza Libre font for dark theme

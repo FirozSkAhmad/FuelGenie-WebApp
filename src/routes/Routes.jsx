@@ -22,7 +22,7 @@ import ZoneCreation from "../pages/Products/Zone/ZoneCreation";
 import ZoneCreationDetails from "../pages/Products/Zone/ZoneCreationDetails";
 import SignupPage from "../Auth/Signup";
 import PriceHistoryByProduct from "../pages/Products/PriceHistory/PriceHistoryByProduct";
-import Roles from "../pages/Admin/Roles";
+import Roles from "../pages/Admin/Roles/Roles";
 import TimeSlots from "../pages/Products/TimeSlots/TimeSlots";
 import ProductDetail from "../pages/Products/Zone/ProductDetail";
 import Approvals from "../pages/Admin/Approvals/Approvals";
