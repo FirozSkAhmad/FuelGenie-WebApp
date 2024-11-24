@@ -73,10 +73,19 @@ const TeamDetail = () => {
 
     try {
       const response = await api.post(endpoint, payload);
-      if (response.status === 201) {
+
+      // Handle both success statuses
+      if (
+        (isModalOpen.type === "Roles" && response.status === 201) ||
+        (isModalOpen.type !== "Roles" && response.status === 200)
+      ) {
         toast.success(`${isModalOpen.type} assigned successfully!`);
         fetchData();
+        // Clear payload by resetting selectedItems
+        setSelectedItems([]);
         setIsModalOpen({ open: false, type: "" });
+      } else {
+        throw new Error("Unexpected response status");
       }
     } catch (error) {
       console.error(
