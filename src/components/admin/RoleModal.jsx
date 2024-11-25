@@ -150,96 +150,26 @@ const RoleModal = ({ open, onClose, onUpdate, mode, role }) => {
     }
   };
   const handleEdit = async () => {
-    const sections = Object.entries(selectedPermissions).map(
-      ([moduleName, submodules]) => ({
-        moduleName,
-        subModules: Object.entries(submodules).map(
-          ([submoduleName, permissions]) => ({
-            subModuleName: submoduleName,
-            permissions,
-          })
-        ),
-      })
+    // Build the `updatePermissions` payload
+    const updatePermissions = Object.entries(selectedPermissions).flatMap(
+      ([moduleName, submodules]) =>
+        Object.entries(submodules).map(([subModuleName, permissions]) => ({
+          moduleName: moduleName.toLowerCase(), // Ensure moduleName is lowercase
+          subModuleName: subModuleName.replace(/\s+/g, "-").toLowerCase(), // Convert spaces to hyphens and lowercase
+          permissions: {
+            create: !!permissions.create, // Ensure boolean values
+            read: !!permissions.read,
+            update: !!permissions.update,
+            delete: !!permissions.delete,
+          },
+        }))
     );
 
-    let payload = {
-      updateRoleName: roleName, // Updated role name
-      addModules: [],
-      addSubModules: [],
-      updatePermissions: [],
-      removeModules: [],
-      removeSubModules: [],
+    // Construct the payload
+    const payload = {
+      updateRoleName: roleName.trim(), // Ensure the role name is unique and trimmed
+      updatePermissions,
     };
-
-    // Assuming `currentModules` contains the current state of the role's modules and submodules
-    const currentModules = modules.map((module) => ({
-      moduleName: module.moduleName,
-      subModules: module.subModules.map((subModule) => ({
-        subModuleName: subModule.subModuleName,
-        permissions: subModule.permissions,
-      })),
-    }));
-
-    // Loop through selectedPermissions to find additions, updates, and removals
-    sections.forEach(({ moduleName, subModules }) => {
-      const existingModule = currentModules.find(
-        (module) => module.moduleName === moduleName
-      );
-
-      if (!existingModule) {
-        // Add new module (with submodules) if it doesn't exist in the current state
-        payload.addModules.push({ moduleName, subModules });
-      } else {
-        // Process submodules for existing modules
-        subModules.forEach(({ subModuleName, permissions }) => {
-          const existingSubModule = existingModule.subModules.find(
-            (subModule) => subModule.subModuleName === subModuleName
-          );
-
-          if (!existingSubModule) {
-            // Add new submodule under existing module
-            payload.addSubModules.push({
-              moduleName,
-              subModule: { subModuleName, permissions },
-            });
-          } else if (
-            JSON.stringify(existingSubModule.permissions) !==
-            JSON.stringify(permissions)
-          ) {
-            // If permissions are different, update permissions for this submodule
-            payload.updatePermissions.push({
-              moduleName,
-              subModuleName,
-              permissions,
-            });
-          }
-        });
-      }
-    });
-
-    // Identify modules that need to be removed (those not in the updated list)
-    currentModules.forEach((module) => {
-      if (!sections.find((sec) => sec.moduleName === module.moduleName)) {
-        payload.removeModules.push(module.moduleName);
-      }
-
-      // Identify submodules to be removed
-      module.subModules.forEach((subModule) => {
-        const isSubModuleInUpdatedState = sections
-          .find((sec) => sec.moduleName === module.moduleName)
-          ?.subModules.some(
-            (subSec) => subSec.subModuleName === subModule.subModuleName
-          );
-
-        // Only add to removeSubModules if the submodule is not in the updated state
-        if (!isSubModuleInUpdatedState) {
-          payload.removeSubModules.push({
-            moduleName: module.moduleName,
-            subModuleName: subModule.subModuleName,
-          });
-        }
-      });
-    });
 
     // Send the request to update the role
     try {
