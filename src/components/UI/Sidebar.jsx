@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Drawer,
   List,
@@ -9,11 +9,9 @@ import {
   Collapse,
   ListItemButton,
   Tooltip,
+  Box,
 } from "@mui/material";
 import {
-  AccessTime,
-  Person,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Build,
@@ -44,7 +42,10 @@ import {
   Category,
   Timeline,
   Wallpaper,
+  AccessTime,
   Approval,
+  Person,
+  Settings,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -62,19 +63,62 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
 }));
 
-// Main Sidebar component
 function Sidebar({ open, toggleDrawer }) {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
 
-  const [openSections, setOpenSections] = useState({
-    products: false,
-    sales: false,
-    admin: false,
-    operation: false,
-  });
+  const [openSections, setOpenSections] = useState({});
+  const [filteredSidebarItems, setFilteredSidebarItems] = useState([]);
+
+  useEffect(() => {
+    // Retrieve user data from localStorage
+    const userData = JSON.parse(localStorage.getItem("user")) || {
+      sections: [],
+      teamAndRole: [],
+    };
+
+    // Check if the user has the ADMIN role
+    const isAdmin = userData.teamAndRole?.some((team) =>
+      team.roles.some((role) => role.roleName === "ADMIN")
+    );
+
+    // Filter sidebar items based on user permissions or grant access to all if ADMIN
+    const filteredData = sidebarItems
+      .map((module) => {
+        if (isAdmin) {
+          // ADMIN gets access to all modules and submodules
+          return module;
+        }
+
+        // Non-admin users: Filter modules and submodules based on permissions
+        const userModule = userData.sections.find(
+          (userSection) => userSection.moduleName === module.toggle
+        );
+
+        if (userModule) {
+          // Filter submodules
+          const accessibleSubModules = module.items?.filter((item) =>
+            userModule.subModules.some(
+              (subModule) =>
+                subModule.subModuleName === item.path.split("/").pop() &&
+                subModule.permissions.read
+            )
+          );
+
+          return {
+            ...module,
+            items: accessibleSubModules || [],
+          };
+        }
+
+        return null; // Exclude the module if the user doesn't have access
+      })
+      .filter(Boolean); // Remove null values
+
+    setFilteredSidebarItems(filteredData);
+  }, []);
 
   const handleSectionToggle = (section) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -204,7 +248,7 @@ function Sidebar({ open, toggleDrawer }) {
       icon: <AdminPanelSettings />,
       items: [
         { label: "Roles", icon: <VerifiedUser />, path: "/admin/roles" },
-        { label: "Team", icon: <Group />, path: "/admin/team" },
+        { label: "Teams", icon: <Group />, path: "/admin/teams" },
         {
           label: "Approvals",
           icon: <Approval />,
@@ -270,87 +314,55 @@ function Sidebar({ open, toggleDrawer }) {
         </IconButton>
       </DrawerHeader>
       <Divider />
+
       <List>
-        {sidebarItems.map(({ label, icon, path, items, toggle, onClick }) =>
-          items ? (
-            <SidebarDropdown
-              key={label}
-              label={label}
-              icon={icon}
-              items={items}
-              open={open}
-              isExpanded={openSections[toggle]}
-              toggleOpen={() => handleSectionToggle(toggle)}
-              currentPath={location.pathname}
-              getActiveBackground={getActiveBackground}
-            />
-          ) : (
-            <SidebarItem
-              key={label}
-              label={label}
-              icon={icon}
-              path={path}
-              open={open}
-              onClick={onClick}
-            />
-          )
-        )}
+        {filteredSidebarItems.map((item) => {
+          const { label, icon, items, toggle, path } = item;
+
+          if (items?.length) {
+            return (
+              <SidebarDropdown
+                key={label}
+                label={label}
+                icon={icon}
+                items={items}
+                open={open}
+                isExpanded={openSections[toggle]}
+                toggleOpen={() => handleSectionToggle(toggle)}
+                currentPath={location.pathname}
+                getActiveBackground={getActiveBackground}
+              />
+            );
+          }
+
+          if (path) {
+            return (
+              <SidebarItem
+                key={label}
+                label={label}
+                icon={icon}
+                path={path}
+                open={open}
+              />
+            );
+          }
+
+          return null;
+        })}
       </List>
+      {/* Logout Button */}
+      <Box sx={{ marginTop: "auto" }}>
+        <SidebarItem
+          label="Logout"
+          icon={<ExitToApp />}
+          open={open}
+          onClick={handleLogout} // Ensure this function is defined to handle logout
+        />
+      </Box>
     </Drawer>
   );
 }
 
-// SidebarItem Component (Icon + Label)
-const SidebarItem = ({ icon, label, path, open, onClick }) => {
-  const location = useLocation();
-  const theme = useTheme();
-  const isActive = location.pathname === path;
-
-  return (
-    <ListItemButton
-      component={Link}
-      to={path}
-      onClick={onClick}
-      sx={{
-        color: isActive ? theme.palette.primary.main : "inherit",
-        backgroundColor: isActive
-          ? theme.palette.action.selected
-          : "transparent",
-        "&:hover": { backgroundColor: theme.palette.action.hover },
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      {/* Conditionally wrap icon in Tooltip when sidebar is collapsed */}
-      {open ? (
-        <ListItemIcon
-          sx={{ color: isActive ? theme.palette.primary.main : "inherit" }}
-        >
-          {icon}
-        </ListItemIcon>
-      ) : (
-        <Tooltip title={label} arrow>
-          <ListItemIcon
-            sx={{ color: isActive ? theme.palette.primary.main : "inherit" }}
-          >
-            {icon}
-          </ListItemIcon>
-        </Tooltip>
-      )}
-
-      {/* Show label text only when sidebar is expanded */}
-      <ListItemText
-        primary={label}
-        sx={{
-          display: open ? "block" : "none", // Always show text if open
-          transition: "all 0.3s",
-        }}
-      />
-    </ListItemButton>
-  );
-};
-
-// SidebarDropdown Component (Expandable Items)
 const SidebarDropdown = ({
   label,
   icon,
@@ -387,23 +399,52 @@ const SidebarDropdown = ({
       </ListItemButton>
       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          {items.map(({ icon, label, path }) => (
+          {items.map(({ label, icon, path }) => (
             <SidebarItem
               key={label}
               icon={icon}
               label={label}
               path={path}
               open={open}
-              sx={{
-                pl: 4,
-                color: theme.palette.text.secondary,
-                backgroundColor: getActiveBackground(path),
-              }}
+              getActiveBackground={getActiveBackground}
             />
           ))}
         </List>
       </Collapse>
     </>
+  );
+};
+
+const SidebarItem = ({
+  icon,
+  label,
+  path,
+  open,
+  getActiveBackground,
+  onClick,
+}) => {
+  const theme = useTheme();
+  const location = useLocation();
+  const isActive = location.pathname === path;
+
+  return (
+    <ListItemButton
+      onClick={onClick}
+      component={Link}
+      to={path}
+      sx={{
+        color: isActive ? theme.palette.primary.main : "inherit",
+        backgroundColor: isActive
+          ? theme.palette.action.selected
+          : "transparent",
+        "&:hover": { backgroundColor: theme.palette.action.hover },
+      }}
+    >
+      <Tooltip title={!open ? label : ""} arrow>
+        <ListItemIcon>{icon}</ListItemIcon>
+      </Tooltip>
+      {open && <ListItemText primary={label} />}
+    </ListItemButton>
   );
 };
 

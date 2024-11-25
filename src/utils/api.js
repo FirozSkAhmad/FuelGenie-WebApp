@@ -1,4 +1,3 @@
-// src/services/api.js
 import axios from 'axios';
 
 const api = axios.create({
@@ -24,7 +23,13 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
     response => response,
-    error => Promise.reject(error)
+    error => {
+        if (error.response && error.response.status === 403) {
+            // Redirect to the restricted page
+            window.location.href = '/restricted';
+        }
+        return Promise.reject(error);
+    }
 );
 
 export default api;

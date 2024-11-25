@@ -28,6 +28,7 @@ import ProductDetail from "../pages/Products/Zone/ProductDetail";
 import Approvals from "../pages/Admin/Approvals/Approvals";
 import Team from "../pages/Admin/Team/Team";
 import TeamDetail from "../pages/Admin/Team/TeamDetail";
+import Restricted from "../pages/Restricted";
 
 function AppRoutes() {
   return (
@@ -105,7 +106,10 @@ function AppRoutes() {
         path="/admin/roles"
         element={<PrivateRoute element={<Roles />} />}
       />
-      <Route path="/admin/team" element={<PrivateRoute element={<Team />} />} />
+      <Route
+        path="/admin/teams"
+        element={<PrivateRoute element={<Team />} />}
+      />
       <Route
         path="/admin/team/:teamId"
         element={<PrivateRoute element={<TeamDetail />} />}
@@ -119,6 +123,7 @@ function AppRoutes() {
         element={<PrivateRoute element={<Management />} />}
       />
       <Route path="*" element={<NotFoundPage />} />
+      <Route path="/restricted" element={<Restricted />} />
     </Routes>
   );
 }
