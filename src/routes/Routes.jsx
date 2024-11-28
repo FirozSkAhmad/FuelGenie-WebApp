@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Setting";
@@ -29,8 +29,35 @@ import Approvals from "../pages/Admin/Approvals/Approvals";
 import Team from "../pages/Admin/Team/Team";
 import TeamDetail from "../pages/Admin/Team/TeamDetail";
 import Restricted from "../pages/Restricted";
-
+import ModuleAccessWrapper from "./ModuleAccessWrapper";
 function AppRoutes() {
+  const location = useLocation();
+  // Function to extract requiredModule and requiredSubModule from the path
+  // Function to extract requiredModule and requiredSubModule from the path
+  const getModuleAndSubModule = (path) => {
+    const segments = path.split("/").filter(Boolean); // Split path and remove empty segments
+    console.log(segments); // Debugging to check the split path
+
+    // Define module and submodule with default values
+    let requiredModule = null;
+    let requiredSubModule = null;
+
+    // Ensure there are enough segments to extract the module and submodule
+    if (segments.length > 0) {
+      requiredModule = segments[0]; // First part of the path as the module
+    }
+    if (segments.length > 1) {
+      requiredSubModule = segments[1]; // Second part of the path as the submodule (if any)
+    }
+
+    // Return the extracted module and submodule
+    return { requiredModule, requiredSubModule };
+  };
+
+  const { requiredModule, requiredSubModule } = getModuleAndSubModule(
+    location.pathname
+  );
+
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -46,81 +73,204 @@ function AppRoutes() {
       />
       <Route
         path="/products/time-slots"
-        element={<PrivateRoute element={<TimeSlots />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<TimeSlots />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/products/zone-prod-mgr"
-        element={<PrivateRoute element={<ZoneCreation />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<ZoneCreation />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/products/zone-prod-mgr/:zoneID"
-        element={<PrivateRoute element={<ZoneCreationDetails />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<ZoneCreationDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/products/zone-prod-mgr/price-history-by-zone-product/:zoneId/:productId"
-        element={<PrivateRoute element={<ProductDetail />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<ProductDetail />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
 
       <Route
         path="/products/price-history"
-        element={<PrivateRoute element={<PriceHistory />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<PriceHistory />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/products/price-history-by-zone-product/:zoneId/:productId"
-        element={<PrivateRoute element={<PriceHistoryByProduct />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<PriceHistoryByProduct />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/products/banner"
-        element={<PrivateRoute element={<Banner />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Banner />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/sales/orders"
-        element={<PrivateRoute element={<Order />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Order />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/sales/orders/:orderId"
-        element={<PrivateRoute element={<OrderDetails />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<OrderDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/sales/notify"
-        element={<PrivateRoute element={<NotifyMe />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<NotifyMe />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/sales/onboarding-approval"
-        element={<PrivateRoute element={<OnboardingApprovals />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<OnboardingApprovals />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/sales/onboarding-approval/:customerId"
-        element={<PrivateRoute element={<OnBoardingApprovalsDetails />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<OnBoardingApprovalsDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/operations"
-        element={<PrivateRoute element={<Operations />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Operations />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/vendor-management"
-        element={<PrivateRoute element={<VendorManagement />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<VendorManagement />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
-      <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
+      <Route
+        path="/admin"
+        element={
+          <ModuleAccessWrapper
+            element={<Admin />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
       <Route
         path="/admin/roles"
-        element={<PrivateRoute element={<Roles />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Roles />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/admin/teams"
-        element={<PrivateRoute element={<Team />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Team />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
-        path="/admin/team/:teamId"
-        element={<PrivateRoute element={<TeamDetail />} />}
+        path="/admin/teams/:teamId"
+        element={
+          <ModuleAccessWrapper
+            element={<TeamDetail />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/admin/approvals"
-        element={<PrivateRoute element={<Approvals />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Approvals />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route
         path="/management"
-        element={<PrivateRoute element={<Management />} />}
+        element={
+          <ModuleAccessWrapper
+            element={<Management />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
       />
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/restricted" element={<Restricted />} />

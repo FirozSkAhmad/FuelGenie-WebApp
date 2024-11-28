@@ -204,7 +204,7 @@ const Team = () => {
                 variant="contained"
                 color="secondary"
                 onClick={() =>
-                  navigate(`/admin/team/${team.teamId}`, {
+                  navigate(`/admin/teams/${team.teamId}`, {
                     state: { teamName: team.teamName },
                   })
                 }

@@ -87,6 +87,10 @@ function Sidebar({ open, toggleDrawer }) {
     // Filter sidebar items based on user permissions or grant access to all if ADMIN
     const filteredData = sidebarItems
       .map((module) => {
+        if (["/dashboard", "/profile", "/settings"].includes(module.path)) {
+          // Always include Dashboard, Profile, and Settings
+          return module;
+        }
         if (isAdmin) {
           // ADMIN gets access to all modules and submodules
           return module;
