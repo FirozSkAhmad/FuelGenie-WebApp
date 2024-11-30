@@ -19,41 +19,68 @@ import {
   Container,
   Grid,
   Button,
-  TextField,
+  Tooltip,
+  CircularProgress, // Import CircularProgress
 } from "@mui/material";
 import {
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import CreateZoneModal from "../../../components/addProduct/zonecreation/CreateZoneModal";
-
 import api from "../../../utils/api";
+import { usePermissions } from "../../../utils/permissionssHelper";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
+import { toast } from "react-toastify";
+
 const ZoneCreation = () => {
   const navigate = useNavigate();
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
-  const [zone, setZone] = useState("");
-  const [customState, setCustomState] = useState("");
-  const [customCity, setCustomCity] = useState("");
-  const [createZoneOpen, setCreateZoneOpen] = useState(false);
   const [zones, setZones] = useState([]);
-  const [isCustomState, setIsCustomState] = useState(false);
-  const [isCustomCity, setIsCustomCity] = useState(false);
+  const [createZoneOpen, setCreateZoneOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Loader state
+
+  const permissions = usePermissions();
+
+  // Fetch zones from the API
+  const fetchZones = async () => {
+    setLoading(true); // Start loading
+    try {
+      const response = await api.get("/products/zone-prod-mgr/all-zones");
+      if (response.data.status === 200) {
+        setZones(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching zones:", error);
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  };
+
+  const deleteZone = async (zoneId, zoneName) => {
+    setLoading(true); // Start loading
+    try {
+      // Call API to delete the zone
+      await api.delete(`/products/zone-prod-mgr/delete-zone/${zoneId}`);
+
+      // Update state to remove the deleted zone
+      setZones((prevZones) =>
+        prevZones.filter((zone) => zone.zoneId !== zoneId)
+      );
+
+      // Show success toast message
+      toast.success(`Zone Deleted: ${zoneName}`);
+    } catch (error) {
+      console.error("Error deleting zone:", error);
+      toast.error("Failed to delete zone.");
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  };
 
   useEffect(() => {
-    // Fetch zones from the API
-    const fetchZones = async () => {
-      try {
-        const response = await api.get("/products/zone-prod-mgr/all-zones");
-        if (response.data.status === 200) {
-          setZones(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching zones:", error);
-      }
-    };
-
     fetchZones();
   }, []);
 
@@ -65,157 +92,140 @@ const ZoneCreation = () => {
     setCity(event.target.value);
   };
 
-  const handleZoneChange = (event) => {
-    setZone(event.target.value);
-  };
-
   const handleCreateZone = (zoneData) => {
-    console.log("Zone Data: ", zoneData);
-    // API call to create the zone can go here
+    try {
+      console.log("Zone Data: ", zoneData);
+
+      toast.success(`New Zone Created: ${zoneData.zone}`);
+
+      fetchZones();
+    } catch (error) {
+      // If an error occurs, show an error message
+      console.error("Error creating zone:", error);
+      toast.error("Error creating zone. Please try again.");
+    }
   };
 
   const handleRowClick = (zone) => {
     navigate(`/products/zone-prod-mgr/${zone}`);
   };
 
-  const toggleCustomState = () => {
-    setIsCustomState((prev) => !prev);
-    setState("");
-  };
-
-  const toggleCustomCity = () => {
-    setIsCustomCity((prev) => !prev);
-    setCity("");
-  };
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
-        <Link underline="hover" color="inherit" href="/">
-          Home
-        </Link>
-        <Link underline="hover" color="inherit" href="/products">
-          Products
-        </Link>
-        <Typography color="text.primary">Location Product List</Typography>
-      </Breadcrumbs>
+      <BreadcrumbNavigation />
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel id="state-select-label">Enter State</InputLabel>
+            <InputLabel id="state-select-label">Select State</InputLabel>
             <Select
               labelId="state-select-label"
               id="state-select"
-              value={isCustomState ? "" : state}
-              label="Enter State"
+              value={state}
+              label="Select State"
               onChange={handleStateChange}
-              disabled={isCustomState}
             >
-              <MenuItem value="">No State</MenuItem>
+              <MenuItem value="">All States</MenuItem>
               <MenuItem value="telangana">Telangana</MenuItem>
               <MenuItem value="andhra">Andhra Pradesh</MenuItem>
             </Select>
           </FormControl>
-          <Button variant="outlined" onClick={toggleCustomState}>
-            {isCustomState ? "Use Dropdown" : "Add Custom State"}
-          </Button>
-          {isCustomState && (
-            <TextField
-              fullWidth
-              label="Custom State"
-              value={customState}
-              onChange={(e) => setCustomState(e.target.value)}
-              sx={{ mt: 2 }}
-            />
-          )}
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel id="city-select-label">Enter City</InputLabel>
+            <InputLabel id="city-select-label">Select City</InputLabel>
             <Select
               labelId="city-select-label"
               id="city-select"
-              value={isCustomCity ? "" : city}
-              label="Enter City"
+              value={city}
+              label="Select City"
               onChange={handleCityChange}
-              disabled={isCustomCity}
             >
-              <MenuItem value="">No City</MenuItem>
+              <MenuItem value="">All Cities</MenuItem>
               <MenuItem value="hyderabad">Hyderabad</MenuItem>
               <MenuItem value="warangal">Warangal</MenuItem>
             </Select>
           </FormControl>
-          <Button variant="outlined" onClick={toggleCustomCity}>
-            {isCustomCity ? "Use Dropdown" : "Add Custom City"}
-          </Button>
-          {isCustomCity && (
-            <TextField
-              fullWidth
-              label="Custom City"
-              value={customCity}
-              onChange={(e) => setCustomCity(e.target.value)}
-              sx={{ mt: 2 }}
-            />
-          )}
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <FormControl fullWidth>
-            <InputLabel id="zone-select-label">Enter Zone</InputLabel>
-            <Select
-              labelId="zone-select-label"
-              id="zone-select"
-              value={zone}
-              label="Enter Zone"
-              onChange={handleZoneChange}
-            >
-              <MenuItem value="">No Zone</MenuItem>
-              {zones.map((zone) => (
-                <MenuItem key={zone.zoneId} value={zone.zone}>
-                  {zone.zone}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Button variant="contained" onClick={() => setCreateZoneOpen(true)}>
-            Create Zone
-          </Button>
+        <Grid item xs={12}>
+          <Tooltip
+            title={
+              !permissions?.create
+                ? "You don't have permission to create a zone."
+                : ""
+            }
+          >
+            <span>
+              <Button
+                variant="contained"
+                onClick={() => setCreateZoneOpen(true)}
+                disabled={!permissions?.create}
+              >
+                Create Zone
+              </Button>
+            </span>
+          </Tooltip>
         </Grid>
       </Grid>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="zone table">
-          <TableHead>
-            <TableRow>
-              <TableCell>State</TableCell>
-              <TableCell>City</TableCell>
-              <TableCell>Zone</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {zones.map((row, index) => (
-              <TableRow
-                key={index}
-                onClick={() => handleRowClick(row.zoneId)}
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": {
-                    backgroundColor: "rgba(0, 0, 0, 0.04)",
-                  },
-                }}
-              >
-                <TableCell>{row.state}</TableCell>
-                <TableCell>{row.city}</TableCell>
-                <TableCell>{row.zone}</TableCell>
+      {loading ? ( // Show loader while loading
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="zone table">
+            <TableHead>
+              <TableRow>
+                <TableCell>State</TableCell>
+                <TableCell>City</TableCell>
+                <TableCell>Zone</TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {zones.map((row) => (
+                <TableRow
+                  key={row.zoneId}
+                  onClick={() => handleRowClick(row.zoneId)}
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
+                  }}
+                >
+                  <TableCell>{row.state}</TableCell>
+                  <TableCell>{row.city}</TableCell>
+                  <TableCell>{row.zone}</TableCell>
+                  <TableCell align="center">
+                    <Tooltip
+                      title={
+                        !permissions?.delete
+                          ? "You don't have permission to delete a zone."
+                          : ""
+                      }
+                    >
+                      <span>
+                        <IconButton
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteZone(row.zoneId, row.zone);
+                          }}
+                          disabled={!permissions?.delete}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Box
         sx={{
@@ -228,48 +238,7 @@ const ZoneCreation = () => {
         <IconButton>
           <NavigateBeforeIcon />
         </IconButton>
-        <Box sx={{ display: "flex", alignItems: "center", mx: 2 }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bgcolor: "primary.main",
-              color: "white",
-              mr: 1,
-            }}
-          >
-            1
-          </Box>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              mr: 1,
-            }}
-          >
-            2
-          </Box>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            3
-          </Box>
-        </Box>
+        <Box sx={{ mx: 2 }}>1</Box>
         <IconButton>
           <NavigateNextIcon />
         </IconButton>
@@ -279,6 +248,7 @@ const ZoneCreation = () => {
         open={createZoneOpen}
         handleClose={() => setCreateZoneOpen(false)}
         handleCreateZone={handleCreateZone}
+        onUpdate={fetchZones}
       />
     </Container>
   );

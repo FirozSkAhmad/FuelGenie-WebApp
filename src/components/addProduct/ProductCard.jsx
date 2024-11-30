@@ -16,6 +16,7 @@ import {
   Chip,
   Stack,
   Paper,
+  Tooltip,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import "slick-carousel/slick/slick.css";
@@ -23,10 +24,12 @@ import "slick-carousel/slick/slick-theme.css";
 import api from "../../utils/api";
 import EditProductModal from "./EditProductModal";
 import { useNavigate } from "react-router-dom";
+import { usePermissions } from "../../utils/permissionssHelper";
 const ProductCard = ({ product, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const permissions = usePermissions();
   const navigate = useNavigate();
   const settings = {
     dots: true,
@@ -181,7 +184,6 @@ const ProductCard = ({ product, onUpdate }) => {
               variant="outlined"
             />
           </Stack>
-
           <Box
             sx={{
               display: "flex",
@@ -190,31 +192,57 @@ const ProductCard = ({ product, onUpdate }) => {
               mt: "auto",
             }}
           >
-            <IconButton
-              size="small"
-              onClick={() => setOpenEditModal(true)}
-              sx={{
-                "&:hover": {
-                  color: "primary.main",
-                  bgcolor: "primary.lighter",
-                },
-              }}
+            <Tooltip
+              title={
+                permissions.update
+                  ? "Edit"
+                  : "You don't have permission to edit"
+              }
+              arrow
             >
-              <Edit fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => setOpenDeleteDialog(true)}
-              disabled={loading}
-              sx={{
-                "&:hover": {
-                  color: "error.main",
-                  bgcolor: "error.lighter",
-                },
-              }}
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => setOpenEditModal(true)}
+                  disabled={!permissions.update}
+                  sx={{
+                    "&:hover": {
+                      color: "primary.main",
+                      bgcolor: "primary.lighter",
+                    },
+                  }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+
+            <Tooltip
+              title={
+                loading
+                  ? "Action in progress..."
+                  : permissions.delete
+                  ? "Delete"
+                  : "You don't have permission to delete"
+              }
+              arrow
             >
-              <Delete fontSize="small" />
-            </IconButton>
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => setOpenDeleteDialog(true)}
+                  disabled={loading || !permissions.delete}
+                  sx={{
+                    "&:hover": {
+                      color: "error.main",
+                      bgcolor: "error.lighter",
+                    },
+                  }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Box>
         </Stack>
       </CardContent>

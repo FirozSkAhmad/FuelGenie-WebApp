@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Grid, CircularProgress, Typography, Box, Button } from "@mui/material";
+import {
+  Grid,
+  CircularProgress,
+  Typography,
+  Box,
+  Button,
+  Tooltip,
+} from "@mui/material";
 import ProductCard from "../ProductCard";
 import AddProductModal from "../AddProductModal";
 import api from "../../../utils/api";
 import { useParams } from "react-router-dom";
+import { usePermissions } from "../../../utils/permissionssHelper";
 const ProductList = ({
   products,
   loading,
@@ -13,6 +21,7 @@ const ProductList = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { zoneID } = useParams();
+  const permissions = usePermissions();
   const handleAddProductClick = () => {
     setIsModalOpen(true);
   };
@@ -90,10 +99,25 @@ const ProductList = ({
         </Grid>
       )}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-        <Button variant="contained" onClick={handleAddProductClick}>
-          Add Product
-        </Button>
+        <Tooltip
+          title={
+            permissions.create
+              ? "Add Product"
+              : "You don't have permission to add a product"
+          }
+        >
+          <span>
+            <Button
+              variant="contained"
+              onClick={handleAddProductClick}
+              disabled={!permissions.create}
+            >
+              Add Product
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
+
       <AddProductModal
         open={isModalOpen}
         handleClose={handleCloseModal}

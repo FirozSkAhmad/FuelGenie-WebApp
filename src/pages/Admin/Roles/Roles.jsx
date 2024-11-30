@@ -22,12 +22,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Tooltip,
 } from "@mui/material";
 import { Edit, Delete, ExpandMore } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import RoleModal from "../../../components/admin/RoleModal";
 import api from "../../../utils/api";
 import { useTheme } from "@mui/system";
+import { usePermissions } from "../../../utils/permissionssHelper";
 const Roles = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,7 @@ const Roles = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [mode, setMode] = useState("add");
+  const permissions = usePermissions();
   const theme = useTheme();
   // Fetch roles from the API
   const fetchRoles = async () => {
@@ -186,9 +189,25 @@ const Roles = () => {
         mb={3}
       >
         <Typography variant="h5">Roles Management</Typography>
-        <Button variant="contained" color="primary" onClick={handleAddRole}>
-          Add Role
-        </Button>
+        <Tooltip
+          title={
+            permissions.create
+              ? "Add a new role"
+              : "You don't have permission to add roles"
+          }
+          arrow
+        >
+          <span>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddRole}
+              disabled={!permissions.create}
+            >
+              Add Role
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {/* Loading spinner */}
@@ -214,12 +233,43 @@ const Roles = () => {
                     {getActivePermissions(role.sections)}
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton onClick={() => handleEditRole(role)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton onClick={() => handleDeleteDialogOpen(role)}>
-                      <Delete />
-                    </IconButton>
+                    <Tooltip
+                      title={
+                        permissions.update
+                          ? "Edit Role"
+                          : "You don't have permission to edit this role"
+                      }
+                      arrow
+                    >
+                      <span>
+                        <IconButton
+                          onClick={() => handleEditRole(role)}
+                          disabled={!permissions.update}
+                        >
+                          <Edit />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+
+                    <Tooltip
+                      title={
+                        loading
+                          ? "Action in progress..."
+                          : permissions.delete
+                          ? "Delete Role"
+                          : "You don't have permission to delete this role"
+                      }
+                      arrow
+                    >
+                      <span>
+                        <IconButton
+                          onClick={() => handleDeleteDialogOpen(role)}
+                          disabled={!permissions.delete || loading}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

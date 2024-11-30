@@ -14,7 +14,7 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
 import api from "../../../utils/api";
-const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
+const CreateZoneModal = ({ open, handleClose, handleCreateZone, onUpdate }) => {
   const [zoneName, setZoneName] = useState("");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
@@ -96,6 +96,7 @@ const CreateZoneModal = ({ open, handleClose, handleCreateZone }) => {
       await api.post(`/products/zone-prod-mgr/create-zone`, zoneData);
       handleCreateZone(zoneData);
       handleClose();
+      // onUpdate();
     } catch (error) {
       console.error("Error creating zone:", error);
     }

@@ -123,7 +123,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/products/price-history-by-zone-product/:zoneId/:productId"
+        path="/products/price-history/by-zone-product/:zoneId/:productId"
         element={
           <ModuleAccessWrapper
             element={<PriceHistoryByProduct />}

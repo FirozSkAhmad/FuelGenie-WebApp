@@ -12,10 +12,11 @@ import {
   Button,
   CircularProgress,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import PincodeModal from "./PincodeModal";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 const PincodeTable = ({
   pincodes,
   loading,
@@ -33,7 +34,7 @@ const PincodeTable = ({
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-
+  const permissions = usePermissions();
   return (
     <>
       {loading ? (
@@ -61,20 +62,43 @@ const PincodeTable = ({
                     <Box
                       sx={{ display: "flex", gap: 1, justifyContent: "center" }}
                     >
-                      <IconButton
-                        size="small"
-                        onClick={handleOpenModal}
-                        color="primary"
+                      <Tooltip
+                        title={
+                          permissions.update
+                            ? "Edit"
+                            : "You don't have permission to edit"
+                        }
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => onDelete(row)}
-                        color="error"
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={handleOpenModal}
+                            color="primary"
+                            disabled={!permissions.update}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+
+                      <Tooltip
+                        title={
+                          permissions.delete
+                            ? "Delete"
+                            : "You don't have permission to delete"
+                        }
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => onDelete(row)}
+                            color="error"
+                            disabled={!permissions.delete}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -84,9 +108,23 @@ const PincodeTable = ({
         </TableContainer>
       )}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-        <Button variant="contained" onClick={handleOpenModal}>
-          Add Pincode
-        </Button>
+        <Tooltip
+          title={
+            permissions.create
+              ? "Add Pincode"
+              : "You don't have permission to add a pincode"
+          }
+        >
+          <span>
+            <Button
+              variant="contained"
+              onClick={handleOpenModal}
+              disabled={!permissions.create}
+            >
+              Add Pincode
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       <PincodeModal

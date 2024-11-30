@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import api from "../../../utils/api";
 import { useNavigate } from "react-router-dom";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 const PriceHistory = () => {
   const [priceHistoryData, setPriceHistoryData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -91,7 +92,7 @@ const PriceHistory = () => {
     setPage(newPage);
   };
   const goToDetailPage = (productId, zoneId) => {
-    navigate(`/products/price-history-by-zone-product/${zoneId}/${productId}`);
+    navigate(`/products/price-history/by-zone-product/${zoneId}/${productId}`);
   };
 
   return (
@@ -102,14 +103,7 @@ const PriceHistory = () => {
       </Typography>
 
       {/* Breadcrumb */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="subtitle1">Home / Products</Typography>
-      </Box>
+      <BreadcrumbNavigation />
 
       {/* Filters */}
       <Grid container spacing={2} mb={2}>

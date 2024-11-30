@@ -1,27 +1,43 @@
 import React from "react";
 import { Breadcrumbs, Link, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const BreadcrumbNavigation = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    return (
-        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
-            <Link underline="hover" color="inherit" onClick={() => navigate("/")}>
-                Home
-            </Link>
-            <Link underline="hover" color="inherit" onClick={() => navigate("/products")}>
-                Products
-            </Link>
-            <Link underline="hover" color="inherit" onClick={() => navigate("/location-product-list")}>
-                Location Product List
-            </Link>
-            <Link underline="hover" color="inherit" onClick={() => navigate("/view-pincodes")}>
-                View Pincodes
-            </Link>
-            <Typography color="text.primary">Product List</Typography>
-        </Breadcrumbs>
-    );
+  // Split the location pathname into parts
+  const pathnames = location.pathname.split("/").filter((x) => x);
+
+  return (
+    <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
+      {/* Home link */}
+      <Link underline="hover" color="inherit" onClick={() => navigate("/")}>
+        Home
+      </Link>
+
+      {/* Render breadcrumbs dynamically */}
+      {pathnames.map((value, index) => {
+        const to = `/${pathnames.slice(0, index + 1).join("/")}`;
+        const isClickable = index < 2; // Only make the first two steps clickable after "Home"
+
+        return isClickable ? (
+          <Link
+            key={to}
+            underline="hover"
+            color="inherit"
+            onClick={() => navigate(to)}
+          >
+            {value.replace("-", " ").toUpperCase()}
+          </Link>
+        ) : (
+          <Typography key={to} color="text.primary">
+            {value.replace("-", " ").toUpperCase()}
+          </Typography>
+        );
+      })}
+    </Breadcrumbs>
+  );
 };
 
 export default BreadcrumbNavigation;

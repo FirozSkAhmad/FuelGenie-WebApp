@@ -12,10 +12,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 import DeleteIcon from "@mui/icons-material/Delete";
 import api from "../../../utils/api";
 
@@ -27,7 +28,7 @@ const Team = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState(null);
   const navigate = useNavigate();
-
+  const permissions = usePermissions();
   // Fetch all teams
   const fetchTeams = async () => {
     setLoading(true);
@@ -148,14 +149,31 @@ const Team = () => {
             },
           }}
         />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleCreateTeam}
-          disabled={!newTeamName.trim() || actionLoading}
+        <Tooltip
+          title={
+            !permissions.create
+              ? "You don't have permission to create a team"
+              : !newTeamName.trim()
+              ? "Team name is required"
+              : actionLoading
+              ? "Action in progress..."
+              : "Click to create a team"
+          }
+          arrow
         >
-          {actionLoading ? <CircularProgress size={20} /> : "Create Team"}
-        </Button>
+          <span>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreateTeam}
+              disabled={
+                !permissions.create || !newTeamName.trim() || actionLoading
+              }
+            >
+              {actionLoading ? <CircularProgress size={20} /> : "Create Team"}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {/* Display Teams */}
@@ -212,19 +230,32 @@ const Team = () => {
               >
                 View Details
               </Button>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => handleOpenDeleteDialog(team)}
-                sx={{ mt: 2, ml: 2 }}
-                disabled={actionLoading}
+              <Tooltip
+                title={
+                  !permissions.delete
+                    ? "You don't have permission to delete this team"
+                    : actionLoading
+                    ? "Action in progress..."
+                    : "Click to delete this team"
+                }
+                arrow
               >
-                {actionLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <DeleteIcon />
-                )}
-              </Button>
+                <span>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleOpenDeleteDialog(team)}
+                    sx={{ mt: 2, ml: 2 }}
+                    disabled={!permissions.delete || actionLoading}
+                  >
+                    {actionLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <DeleteIcon />
+                    )}
+                  </Button>
+                </span>
+              </Tooltip>
             </CardActions>
           </Card>
         ))}

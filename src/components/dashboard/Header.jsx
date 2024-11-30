@@ -12,6 +12,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles"; // Import useTheme for theme-based styling
+import BreadcrumbNavigation from "../addProduct/utils/BreadcrumbNavigation";
 
 const Header = () => {
   const theme = useTheme(); // Get the current theme
@@ -31,14 +32,7 @@ const Header = () => {
       <Toolbar>
         {/* Breadcrumb */}
         <Box sx={{ flexGrow: 1 }}>
-          <Breadcrumbs aria-label="breadcrumb">
-            <Link to="/" style={{ color: theme.palette.text.primary }}>
-              Home
-            </Link>
-            <Typography sx={{ color: theme.palette.primary.main }}>
-              Dashboard
-            </Typography>
-          </Breadcrumbs>
+          <BreadcrumbNavigation />
         </Box>
       </Toolbar>
     </AppBar>
