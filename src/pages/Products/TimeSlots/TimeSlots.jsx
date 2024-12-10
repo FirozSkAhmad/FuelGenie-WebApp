@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  Grid,
   Box,
   Typography,
   Table,
@@ -14,309 +15,556 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  MenuItem,
   IconButton,
-  Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  CircularProgress,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CustomSlotDialog from "../../../components/addProduct/TimeSlots/CustomSlotDialog";
-import { useTheme } from "@mui/material/styles";
-import { Edit } from "@mui/icons-material";
-
-const days = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-const timeSlots = ["09:00-12:00", "12:00-15:00", "15:00-18:00", "18:00-21:00"];
-
+import { Edit, AddCircle, Delete } from "@mui/icons-material";
+import api from "../../../utils/api";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
+import { toast } from "react-toastify";
 const TimeSlots = () => {
-  const theme = useTheme(); // Access the current theme
-  const [slots, setSlots] = useState(
-    days.reduce((acc, day) => {
-      acc[day] = timeSlots.reduce((slotAcc, slot) => {
-        slotAcc[slot] = 5; // Default number of orders per slot
-        return slotAcc;
-      }, {});
-      return acc;
-    }, {})
-  );
+  const [loading, setLoading] = useState(false);
+  const [slots, setSlots] = useState({});
+  const [customSlots, setCustomSlots] = useState({});
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState({});
+  const [activeSlotType, setActiveSlotType] = useState({});
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [addCustomDialogOpen, setAddCustomDialogOpen] = useState(false);
+  const [toShowDialogOpen, setToShowDialogOpen] = useState(false);
+  const [slotMaxOrders, setSlotMaxOrders] = useState("");
+  const [toShowValue, setToShowValue] = useState("");
+  const [newCustomSlot, setNewCustomSlot] = useState({
+    fromTime: "",
+    toTime: "",
+    maxOrders: "",
+  });
+  const [selectedWeek, setSelectedWeek] = useState("current");
+  const [dates, setDates] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [slotToDelete, setSlotToDelete] = useState(null);
+  const fetchSlots = async (weekOrDate) => {
+    setLoading(true);
+    let url = "";
 
-  const [customSlots, setCustomSlots] = useState(
-    days.reduce((acc, day) => {
-      acc[day] = {}; // Initialize custom slots for each day as an empty object
-      return acc;
-    }, {})
-  );
+    // Determine if we're fetching by week or by date
+    if (weekOrDate === "current" || weekOrDate === "next") {
+      // Fetching by week (current or next week)
+      url = `/products/time-slots/get-time-slots/${weekOrDate}`;
+    } else {
+      // Fetching by specific date
+      url = `/products/time-slots/by-date/${weekOrDate}`;
+    }
 
-  const [open, setOpen] = useState(false);
-  const [selectedDay, setSelectedDay] = useState("");
-  const [editedSlots, setEditedSlots] = useState({});
-  const [customDialogOpen, setCustomDialogOpen] = useState(false);
+    try {
+      const response = await api.get(url);
 
-  const handleOpenDialog = (day) => {
-    setSelectedDay(day);
-    // Safely merge the default slots with any custom slots
-    setEditedSlots({
-      ...slots[day], // default slots
-      ...customSlots[day], // custom slots
-    });
-    setOpen(true);
-  };
+      // Initialize the state variables
+      const initialSlots = {};
+      const initialCustomSlots = {};
+      const initialToShow = {};
 
-  const handleSlotChange = (slot, value) => {
-    setEditedSlots((prevSlots) => ({
-      ...prevSlots,
-      [slot]: parseInt(value, 10),
-    }));
-  };
+      // Check if response.data is an array or an object
+      const data = Array.isArray(response.data.data)
+        ? response.data.data
+        : [response.data.data];
 
-  const handleDeleteSlot = (slot, slotType) => {
-    if (slotType === "default") {
-      setSlots((prevSlots) => ({
-        ...prevSlots,
-        [selectedDay]: {
-          ...prevSlots[selectedDay],
-          [slot]: 0, // Reset the slot count to 0 to represent deletion
-        },
-      }));
-    } else if (slotType === "custom") {
-      setCustomSlots((prevCustomSlots) => ({
-        ...prevCustomSlots,
-        [selectedDay]: {
-          ...prevCustomSlots[selectedDay],
-          [slot]: null, // Remove custom slot
-        },
-      }));
+      // Loop through the data (assuming data is now an array)
+      data.forEach((dayData) => {
+        const { date, defaultSlots, customSlots, toShow } = dayData;
+
+        initialToShow[date] = toShow;
+        initialSlots[date] = {};
+        initialCustomSlots[date] = {};
+
+        defaultSlots.forEach((slot) => {
+          initialSlots[date][slot.slotId] = slot;
+        });
+
+        customSlots.forEach((slot) => {
+          initialCustomSlots[date][slot.slotId] = slot;
+        });
+      });
+
+      // Set the state after mapping the data
+      setSlots(initialSlots);
+      setCustomSlots(initialCustomSlots);
+      setActiveSlotType(initialToShow);
+
+      // If we're fetching by week, update dates accordingly
+      if (weekOrDate === "current" || weekOrDate === "next") {
+        setDates(Object.keys(initialSlots)); // Set initial dates based on the fetched slots
+      } else {
+        setDates([weekOrDate]); // Only one date selected
+      }
+    } catch (error) {
+      console.error("Error fetching time slots:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSave = () => {
-    // Separate the edited slots into default and custom slots
-    const defaultSlots = {};
-    const customSlotUpdates = {};
+  useEffect(() => {
+    fetchSlots("current"); // Load the initial slots for the current week
+  }, []);
 
-    // Loop through the edited slots and separate default and custom
-    Object.entries(editedSlots).forEach(([slot, value]) => {
-      // Check if this slot is one of the default time slots
-      if (timeSlots.includes(slot)) {
-        defaultSlots[slot] = value;
+  const handleWeekChange = (event) => {
+    const selectedWeek = event.target.value;
+    setSelectedWeek(selectedWeek); // Update the week selection
+    fetchSlots(selectedWeek); // Fetch the slots for the selected week
+  };
+
+  const handleDateChange = (event) => {
+    const date = event.target.value;
+    setSelectedDate(date); // Update the selected date
+    fetchSlots(date); // Fetch the slots for the selected date
+  };
+
+  // Open update max orders dialog
+  const handleOpenUpdateDialog = (date, slotId, type) => {
+    setSelectedDate(date);
+    setSelectedSlot({ slotId, type });
+    const slotData =
+      type === "DEFAULT" ? slots[date][slotId] : customSlots[date][slotId];
+    setSlotMaxOrders(slotData?.maxOrders || "");
+    setUpdateDialogOpen(true);
+  };
+
+  // Update max orders API
+  const handleUpdateMaxOrders = async () => {
+    try {
+      const { slotId, type } = selectedSlot;
+      await api.patch(`/products/time-slots/update-max-orders/${slotId}`, {
+        maxOrders: parseInt(slotMaxOrders, 10),
+      });
+
+      if (type === "DEFAULT") {
+        setSlots((prev) => ({
+          ...prev,
+          [selectedDate]: {
+            ...prev[selectedDate],
+            [slotId]: {
+              ...prev[selectedDate][slotId],
+              maxOrders: parseInt(slotMaxOrders, 10),
+            },
+          },
+        }));
       } else {
-        customSlotUpdates[slot] = value;
+        setCustomSlots((prev) => ({
+          ...prev,
+          [selectedDate]: {
+            ...prev[selectedDate],
+            [slotId]: {
+              ...prev[selectedDate][slotId],
+              maxOrders: parseInt(slotMaxOrders, 10),
+            },
+          },
+        }));
       }
-    });
 
-    // Save the updated default slots
-    setSlots((prevSlots) => ({
-      ...prevSlots,
-      [selectedDay]: { ...prevSlots[selectedDay], ...defaultSlots },
-    }));
-
-    // Save the updated custom slots
-    setCustomSlots((prevCustomSlots) => ({
-      ...prevCustomSlots,
-      [selectedDay]: { ...prevCustomSlots[selectedDay], ...customSlotUpdates },
-    }));
-
-    setOpen(false);
+      setUpdateDialogOpen(false);
+      setSlotMaxOrders("");
+    } catch (error) {
+      console.error("Error updating max orders:", error);
+    }
   };
 
-  const handleCustomSlotSave = (newCustomSlots) => {
-    setCustomSlots((prevCustomSlots) => ({
-      ...prevCustomSlots,
-      [selectedDay]: {
-        ...prevCustomSlots[selectedDay],
-        ...newCustomSlots,
-      },
-    }));
-    setCustomDialogOpen(false);
+  // Open toShow update dialog
+  const handleOpenToShowDialog = (date) => {
+    setSelectedDate(date);
+    setToShowValue(activeSlotType[date]);
+    setToShowDialogOpen(true);
   };
 
+  // Update active slot type API
+  const handleUpdateToShow = async () => {
+    try {
+      await api.patch(`/products/time-slots/update-to-show/${selectedDate}`, {
+        toShow: toShowValue,
+      });
+
+      setActiveSlotType((prev) => ({
+        ...prev,
+        [selectedDate]: toShowValue,
+      }));
+
+      setToShowDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating active slot type:", error);
+    }
+  };
+  // Add this function to handle opening the Add Custom Slot dialog
+  const handleOpenAddCustomDialog = (date) => {
+    setSelectedDate(date); // Set the selected date
+    setAddCustomDialogOpen(true);
+  };
+
+  // Updated function to handle adding a custom slot
+  const handleAddCustomSlot = async () => {
+    try {
+      // Ensure the selectedDate is passed in the body
+      const requestBody = {
+        date: selectedDate, // Pass the date explicitly
+        fromTime: newCustomSlot.fromTime,
+        toTime: newCustomSlot.toTime,
+        maxOrders: parseInt(newCustomSlot.maxOrders, 10),
+      };
+
+      const response = await api.post(
+        "/products/time-slots/create-custom-slot",
+        requestBody
+      );
+
+      const { slotId } = response.data; // Assume API returns the new slot's ID
+
+      setCustomSlots((prev) => ({
+        ...prev,
+        [selectedDate]: {
+          ...prev[selectedDate],
+          [slotId]: { ...requestBody, slotId }, // Include the new slot
+        },
+      }));
+
+      setAddCustomDialogOpen(false);
+      setNewCustomSlot({ fromTime: "", toTime: "", maxOrders: "" }); // Reset form state
+      fetchSlots(selectedWeek);
+    } catch (error) {
+      console.error("Error adding custom slot:", error);
+    }
+  };
+
+  // Handle delete confirmation dialog open
+  const handleDeleteClick = (slotId) => {
+    setSlotToDelete(slotId);
+    setOpenDialog(true);
+  };
+
+  // Handle the delete slot operation
+  const handleDeleteSlot = async () => {
+    setLoading(true);
+    try {
+      const response = await api.delete(
+        `/products/time-slots/delete-custom-slot/${slotToDelete}`
+      );
+      if (response.status === 200) {
+        toast.success("Slot deleted successfully!");
+        // Optionally refresh your list of slots here
+        fetchSlots(selectedWeek);
+      }
+    } catch (error) {
+      toast.error("Failed to delete slot.");
+    } finally {
+      setLoading(false);
+      setOpenDialog(false); // Close the dialog after the operation
+    }
+  };
+
+  // Close the confirmation dialog
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
   return (
-    <Box sx={{ backgroundColor: theme.palette.background.default, padding: 2 }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ color: theme.palette.text.primary }}
-      >
+    <Box sx={{ padding: 2 }}>
+      <Typography variant="h4" gutterBottom>
         Time Slots
       </Typography>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ color: theme.palette.text.primary }}>
-                Day
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>
-                Default Slots
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>
-                Custom Slots
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>
-                Action
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {days.map((day) => (
-              <TableRow key={day}>
-                <TableCell sx={{ color: theme.palette.text.primary }}>
-                  {day}
-                </TableCell>
-                <TableCell sx={{ color: theme.palette.text.primary }}>
-                  {slots[day] &&
-                    Object.entries(slots[day]).map(([slot, count]) => (
-                      <div key={slot}>{`${slot}, Orders: ${count}`}</div>
-                    ))}
-                </TableCell>
-                <TableCell sx={{ color: theme.palette.text.primary }}>
-                  {customSlots[day] &&
-                  Object.entries(customSlots[day]).length > 0 ? (
-                    Object.entries(customSlots[day]).map(
-                      ([slotKey, slotData]) => (
-                        <div key={slotKey}>
-                          {`From: ${slotData.fromTime}, To: ${slotData.toTime}, Orders: ${slotData.orderCount}`}
-                        </div>
-                      )
-                    )
-                  ) : (
-                    <Typography variant="body2" color="textSecondary">
-                      No Custom Slots
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    startIcon={<Edit />}
-                    variant="outlined"
-                    color="primary"
-                    onClick={() => handleOpenDialog(day)}
-                  >
-                    Edit
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <BreadcrumbNavigation />
 
+      {/* Week and Date Selection */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <InputLabel>Week</InputLabel>
+            <Select
+              value={selectedWeek}
+              onChange={handleWeekChange}
+              label="Week"
+            >
+              <MenuItem value="current">Current Week</MenuItem>
+              <MenuItem value="next">Next Week</MenuItem>
+              {/* Add more options for weeks as necessary */}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <InputLabel>Date</InputLabel>
+            <Select
+              value={selectedDate}
+              onChange={handleDateChange}
+              label="Date"
+            >
+              {dates.map((date) => (
+                <MenuItem key={date} value={date}>
+                  {date}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+      {loading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh", // Full viewport height
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Default Slots</TableCell>
+                  <TableCell>Custom Slots</TableCell>
+                  <TableCell>Active Slot</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Object.keys(slots).map((date) => (
+                  <TableRow key={date}>
+                    <TableCell>{date}</TableCell>
+
+                    {/* Default Slots Column */}
+                    <TableCell>
+                      {Object.entries(slots[date]).map(([slotId, slot]) => (
+                        <Box
+                          key={slotId}
+                          display="flex"
+                          alignItems="center"
+                          mb={1}
+                        >
+                          <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              handleOpenUpdateDialog(date, slotId, "DEFAULT")
+                            }
+                            title="Update Order Count"
+                            sx={{ marginLeft: 1 }}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </TableCell>
+
+                    {/* Custom Slots Column */}
+                    <TableCell>
+                      {customSlots[date] &&
+                      Object.keys(customSlots[date]).length > 0 ? (
+                        Object.entries(customSlots[date]).map(
+                          ([slotId, slot]) => (
+                            <Box
+                              key={slotId}
+                              display="flex"
+                              alignItems="center"
+                              mb={1}
+                            >
+                              <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
+
+                              {/* Update Button */}
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleOpenUpdateDialog(date, slotId, "CUSTOM")
+                                }
+                                title="Update Order Count"
+                                sx={{ marginLeft: 1 }}
+                              >
+                                <Edit />
+                              </IconButton>
+
+                              {/* Delete Button */}
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDeleteClick(slotId)}
+                                title="Delete Slot"
+                                sx={{ marginLeft: 1 }}
+                              >
+                                <Delete />
+                              </IconButton>
+                            </Box>
+                          )
+                        )
+                      ) : (
+                        <Typography variant="body2">No Custom Slots</Typography>
+                      )}
+                    </TableCell>
+
+                    {/* Active Slot Column */}
+                    <TableCell>{activeSlotType[date]}</TableCell>
+
+                    {/* Actions Column */}
+                    <TableCell>
+                      <Grid container spacing={2}>
+                        <Grid item>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleOpenToShowDialog(date)}
+                          >
+                            Update Active Slot
+                          </Button>
+                        </Grid>
+                        <Grid item>
+                          <Button
+                            startIcon={<AddCircle />}
+                            onClick={() => handleOpenAddCustomDialog(date)}
+                            color="primary"
+                            size="small"
+                            variant="text"
+                          >
+                            Add Custom Slot
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
+
+      {/* Update Max Orders Dialog */}
       <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
+        open={updateDialogOpen}
+        onClose={() => setUpdateDialogOpen(false)}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ textAlign: "center" }}>
-          Edit Slots for {selectedDay}
-        </DialogTitle>
+        <DialogTitle>Update Max Orders</DialogTitle>
         <DialogContent>
-          {/* Default Slots Section */}
-          <Typography
-            variant="h6"
-            sx={{ color: theme.palette.text.primary, marginBottom: 1 }}
-          >
-            Default Slots
-          </Typography>
-          <Divider sx={{ marginBottom: 2 }} />
-          {Object.keys(slots[selectedDay] || {}).map((slot) => (
-            <Box
-              key={slot}
-              sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}
-            >
-              <TextField
-                label={`${slot} Order Count (Default)`}
-                type="number"
-                value={editedSlots[slot] || ""}
-                onChange={(e) => handleSlotChange(slot, e.target.value)}
-                fullWidth
-                margin="dense"
-                sx={{ flex: 1 }}
-              />
-              <IconButton
-                color="secondary"
-                onClick={() => handleDeleteSlot(slot, "default")}
-                sx={{ marginLeft: 1 }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
-          ))}
-
-          {/* Custom Slots Section */}
-          <Typography
-            variant="h6"
-            sx={{ color: theme.palette.text.primary, marginBottom: 1 }}
-          >
-            Custom Slots
-          </Typography>
-          <Divider sx={{ marginBottom: 2 }} />
-          {Object.entries(customSlots[selectedDay] || {}).length > 0 ? (
-            Object.entries(customSlots[selectedDay]).map(
-              ([slotKey, slotData]) => (
-                <Box
-                  key={slotKey}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 2,
-                  }}
-                >
-                  <Typography variant="body1" sx={{ flex: 1 }}>
-                    {`From: ${slotData.fromTime}, To: ${slotData.toTime}, Orders: ${slotData.orderCount}`}
-                  </Typography>
-                  <IconButton
-                    color="secondary"
-                    onClick={() => handleDeleteSlot(slotKey, "custom")}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              )
-            )
-          ) : (
-            <Typography
-              variant="body2"
-              color="textSecondary"
-              sx={{ marginBottom: 2 }}
-            >
-              No Custom Slots
-            </Typography>
-          )}
-
-          {/* Add Custom Slot Button */}
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => setCustomDialogOpen(true)}
+          <TextField
             fullWidth
-            sx={{ marginBottom: 2 }}
-          >
-            Add Custom Slot
-          </Button>
+            margin="dense"
+            label="Max Orders"
+            type="number"
+            value={slotMaxOrders}
+            onChange={(e) => setSlotMaxOrders(e.target.value)}
+          />
         </DialogContent>
-
-        <DialogActions sx={{ justifyContent: "center" }}>
-          <Button onClick={() => setOpen(false)} color="secondary">
-            Cancel
+        <DialogActions>
+          <Button onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleUpdateMaxOrders} color="primary">
+            Update
           </Button>
-          <Button onClick={handleSave} color="primary">
-            Save
+        </DialogActions>
+      </Dialog>
+      {/* Update Active Slot Dialog */}
+      <Dialog
+        open={toShowDialogOpen}
+        onClose={() => setToShowDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Update Active Slot Type</DialogTitle>
+        <DialogContent>
+          <TextField
+            select
+            fullWidth
+            label="Slot Type"
+            value={toShowValue}
+            onChange={(e) => setToShowValue(e.target.value)}
+          >
+            <MenuItem value="DEFAULT">Default</MenuItem>
+            <MenuItem value="CUSTOM">Custom</MenuItem>
+            <MenuItem value="BOTH">Both</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setToShowDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleUpdateToShow} color="primary">
+            Update
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Custom Slot Dialog */}
-      <CustomSlotDialog
-        open={customDialogOpen}
-        onClose={() => setCustomDialogOpen(false)}
-        onSave={handleCustomSlotSave}
-      />
+      <Dialog
+        open={addCustomDialogOpen}
+        onClose={() => setAddCustomDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Add Custom Slot</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            margin="dense"
+            label="From Time"
+            type="time"
+            value={newCustomSlot.fromTime}
+            onChange={(e) =>
+              setNewCustomSlot((prev) => ({
+                ...prev,
+                fromTime: e.target.value,
+              }))
+            }
+          />
+          <TextField
+            fullWidth
+            margin="dense"
+            label="To Time"
+            type="time"
+            value={newCustomSlot.toTime}
+            onChange={(e) =>
+              setNewCustomSlot((prev) => ({ ...prev, toTime: e.target.value }))
+            }
+          />
+          <TextField
+            fullWidth
+            margin="dense"
+            label="Max Orders"
+            type="number"
+            value={newCustomSlot.maxOrders}
+            onChange={(e) =>
+              setNewCustomSlot((prev) => ({
+                ...prev,
+                maxOrders: e.target.value,
+              }))
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddCustomDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddCustomSlot} color="primary">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Confirmation Delete Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this slot?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteSlot}
+            color="secondary"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
