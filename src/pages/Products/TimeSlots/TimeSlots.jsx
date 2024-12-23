@@ -21,11 +21,15 @@ import {
   InputLabel,
   Select,
   CircularProgress,
+  InputAdornment,
 } from "@mui/material";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { Edit, AddCircle, Delete } from "@mui/icons-material";
 import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import { toast } from "react-toastify";
+import { useTheme } from "@mui/system";
+import { usePermissions } from "../../../utils/permissionssHelper";
 const TimeSlots = () => {
   const [loading, setLoading] = useState(false);
   const [slots, setSlots] = useState({});
@@ -38,6 +42,9 @@ const TimeSlots = () => {
   const [toShowDialogOpen, setToShowDialogOpen] = useState(false);
   const [slotMaxOrders, setSlotMaxOrders] = useState("");
   const [toShowValue, setToShowValue] = useState("");
+  const [error, setError] = useState(null);
+  const theme = useTheme();
+  const permissions = usePermissions();
   const [newCustomSlot, setNewCustomSlot] = useState({
     fromTime: "",
     toTime: "",
@@ -50,6 +57,8 @@ const TimeSlots = () => {
   const fetchSlots = async (weekOrDate) => {
     setLoading(true);
     let url = "";
+    // Error state for storing error messages
+    setError(null); // Reset previous error
 
     // Determine if we're fetching by week or by date
     if (weekOrDate === "current" || weekOrDate === "next") {
@@ -103,6 +112,7 @@ const TimeSlots = () => {
       }
     } catch (error) {
       console.error("Error fetching time slots:", error);
+      setError("Failed to fetch time slots. Please try again later."); // Set the error message in state
     } finally {
       setLoading(false);
     }
@@ -290,21 +300,35 @@ const TimeSlots = () => {
             </Select>
           </FormControl>
         </Grid>
-
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <InputLabel>Date</InputLabel>
-            <Select
-              value={selectedDate}
-              onChange={handleDateChange}
+            <TextField
               label="Date"
-            >
-              {dates.map((date) => (
-                <MenuItem key={date} value={date}>
-                  {date}
-                </MenuItem>
-              ))}
-            </Select>
+              type="date"
+              InputLabelProps={{
+                shrink: true, // Ensures the label does not overlap the input
+              }}
+              variant="outlined"
+              value={selectedDate}
+              onChange={handleDateChange} // Use your existing function
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarTodayIcon
+                      sx={{ color: theme.palette.text.primary }}
+                    />
+                  </InputAdornment>
+                ),
+                // To remove the default date input icon, override it
+                disableUnderline: true, // Disable underline for the input field
+              }}
+              sx={{
+                minWidth: 180,
+                "& .MuiInputBase-root": {
+                  color: theme.palette.text.primary, // Adjust text color based on the current theme
+                },
+              }}
+            />
           </FormControl>
         </Grid>
       </Grid>
@@ -319,125 +343,158 @@ const TimeSlots = () => {
         >
           <CircularProgress />
         </Box>
+      ) : error ? (
+        // Show error message if there is an error
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <Typography variant="h6" color="error" mb={2}>
+            {error}
+          </Typography>
+        </Box>
+      ) : Object.keys(slots).length === 0 ||
+        Object.keys(customSlots).length === 0 ? (
+        // Show "No data available" message if there is no data
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <Typography variant="h6" color="textSecondary">
+            No data available
+          </Typography>
+        </Box>
       ) : (
-        <>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Default Slots</TableCell>
-                  <TableCell>Custom Slots</TableCell>
-                  <TableCell>Active Slot</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.keys(slots).map((date) => (
-                  <TableRow key={date}>
-                    <TableCell>{date}</TableCell>
+        // Only show the table when there is data and no error
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Default Slots</TableCell>
+                <TableCell>Custom Slots</TableCell>
+                <TableCell>Active Slot</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.keys(slots).map((date) => (
+                <TableRow key={date}>
+                  <TableCell>{date}</TableCell>
 
-                    {/* Default Slots Column */}
-                    <TableCell>
-                      {Object.entries(slots[date]).map(([slotId, slot]) => (
-                        <Box
-                          key={slotId}
-                          display="flex"
-                          alignItems="center"
-                          mb={1}
+                  {/* Default Slots Column */}
+                  <TableCell>
+                    {Object.entries(slots[date]).map(([slotId, slot]) => (
+                      <Box
+                        key={slotId}
+                        display="flex"
+                        alignItems="center"
+                        mb={1}
+                      >
+                        <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            handleOpenUpdateDialog(date, slotId, "DEFAULT")
+                          }
+                          disabled={!permissions?.update}
+                          title="Update Order Count"
+                          sx={{ marginLeft: 1 }}
                         >
-                          <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleOpenUpdateDialog(date, slotId, "DEFAULT")
-                            }
-                            title="Update Order Count"
-                            sx={{ marginLeft: 1 }}
-                          >
-                            <Edit />
-                          </IconButton>
-                        </Box>
-                      ))}
-                    </TableCell>
+                          <Edit />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </TableCell>
 
-                    {/* Custom Slots Column */}
-                    <TableCell>
-                      {customSlots[date] &&
-                      Object.keys(customSlots[date]).length > 0 ? (
-                        Object.entries(customSlots[date]).map(
-                          ([slotId, slot]) => (
-                            <Box
-                              key={slotId}
-                              display="flex"
-                              alignItems="center"
-                              mb={1}
+                  {/* Custom Slots Column */}
+                  <TableCell>
+                    {customSlots[date] &&
+                    Object.keys(customSlots[date]).length > 0 ? (
+                      Object.entries(customSlots[date]).map(
+                        ([slotId, slot]) => (
+                          <Box
+                            key={slotId}
+                            display="flex"
+                            alignItems="center"
+                            mb={1}
+                          >
+                            <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
+
+                            {/* Update Button */}
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleOpenUpdateDialog(date, slotId, "CUSTOM")
+                              }
+                              disabled={!permissions?.update}
+                              title="Update Order Count"
+                              sx={{ marginLeft: 1 }}
                             >
-                              <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
+                              <Edit />
+                            </IconButton>
 
-                              {/* Update Button */}
-                              <IconButton
-                                size="small"
-                                onClick={() =>
-                                  handleOpenUpdateDialog(date, slotId, "CUSTOM")
-                                }
-                                title="Update Order Count"
-                                sx={{ marginLeft: 1 }}
-                              >
-                                <Edit />
-                              </IconButton>
-
-                              {/* Delete Button */}
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeleteClick(slotId)}
-                                title="Delete Slot"
-                                sx={{ marginLeft: 1 }}
-                              >
-                                <Delete />
-                              </IconButton>
-                            </Box>
-                          )
+                            {/* Delete Button */}
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteClick(slotId)}
+                              title="Delete Slot"
+                              sx={{ marginLeft: 1 }}
+                              disabled={!permissions?.delete}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </Box>
                         )
-                      ) : (
-                        <Typography variant="body2">No Custom Slots</Typography>
-                      )}
-                    </TableCell>
+                      )
+                    ) : (
+                      <Typography variant="body2">No Custom Slots</Typography>
+                    )}
+                  </TableCell>
 
-                    {/* Active Slot Column */}
-                    <TableCell>{activeSlotType[date]}</TableCell>
+                  {/* Active Slot Column */}
+                  <TableCell>{activeSlotType[date]}</TableCell>
 
-                    {/* Actions Column */}
-                    <TableCell>
-                      <Grid container spacing={2}>
-                        <Grid item>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleOpenToShowDialog(date)}
-                          >
-                            Update Active Slot
-                          </Button>
-                        </Grid>
-                        <Grid item>
-                          <Button
-                            startIcon={<AddCircle />}
-                            onClick={() => handleOpenAddCustomDialog(date)}
-                            color="primary"
-                            size="small"
-                            variant="text"
-                          >
-                            Add Custom Slot
-                          </Button>
-                        </Grid>
+                  {/* Actions Column */}
+                  <TableCell>
+                    <Grid container spacing={2}>
+                      <Grid item>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => handleOpenToShowDialog(date)}
+                          disabled={!permissions?.update}
+                        >
+                          Update Active Slot
+                        </Button>
                       </Grid>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
+                      <Grid item>
+                        <Button
+                          startIcon={<AddCircle />}
+                          onClick={() => handleOpenAddCustomDialog(date)}
+                          color="primary"
+                          size="small"
+                          variant="text"
+                          disabled={!permissions?.create}
+                        >
+                          Add Custom Slot
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Update Max Orders Dialog */}

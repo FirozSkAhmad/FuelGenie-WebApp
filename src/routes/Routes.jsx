@@ -30,6 +30,7 @@ import Team from "../pages/Admin/Team/Team";
 import TeamDetail from "../pages/Admin/Team/TeamDetail";
 import Restricted from "../pages/Restricted";
 import ModuleAccessWrapper from "./ModuleAccessWrapper";
+import Wallets from "../pages/Admin/wallets/Wallets";
 function AppRoutes() {
   const location = useLocation();
   // Function to extract requiredModule and requiredSubModule from the path
@@ -247,6 +248,16 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<TeamDetail />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/wallets"
+        element={
+          <ModuleAccessWrapper
+            element={<Wallets />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

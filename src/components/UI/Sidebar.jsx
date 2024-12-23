@@ -46,6 +46,7 @@ import {
   Approval,
   Person,
   Settings,
+  Wallet,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -253,6 +254,7 @@ function Sidebar({ open, toggleDrawer }) {
       items: [
         { label: "Roles", icon: <VerifiedUser />, path: "/admin/roles" },
         { label: "Teams", icon: <Group />, path: "/admin/teams" },
+        { label: "Wallets", icon: <Wallet />, path: "/admin/wallets" },
         {
           label: "Approvals",
           icon: <Approval />,
