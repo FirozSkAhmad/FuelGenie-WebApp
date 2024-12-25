@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../utils/permissionssHelper";
 import DeleteIcon from "@mui/icons-material/Delete";
 import api from "../../../utils/api";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 
 const Team = () => {
   const [teams, setTeams] = useState([]);
@@ -118,6 +119,7 @@ const Team = () => {
 
   return (
     <Box sx={{ padding: "2rem" }}>
+      <BreadcrumbNavigation />
       <Typography variant="h4" gutterBottom>
         Teams Management
       </Typography>

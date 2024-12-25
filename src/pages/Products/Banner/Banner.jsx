@@ -27,7 +27,8 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import CopyIcon from "@mui/icons-material/ContentCopy";
 import api from "../../../utils/api";
-
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
+import { usePermissions } from "../../../utils/permissionssHelper";
 const Banner = () => {
   const [banners, setBanners] = useState([]);
   const [openUpload, setOpenUpload] = useState(false);
@@ -45,7 +46,7 @@ const Banner = () => {
     imageFile: null,
   });
   const [previewImage, setPreviewImage] = useState(null);
-
+  const permissions = usePermissions();
   const theme = useTheme();
   const isDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const fetchBanners = async () => {
@@ -173,6 +174,7 @@ const Banner = () => {
   };
   return (
     <Box sx={{ p: 3 }}>
+      <BreadcrumbNavigation />
       <Typography variant="h4" gutterBottom>
         Banners
       </Typography>
@@ -186,6 +188,7 @@ const Banner = () => {
           startIcon={<CloudUploadIcon />}
           sx={{ mb: 3 }}
           onClick={() => setOpenUpload(true)}
+          disabled={!permissions.create}
         >
           Create Banners
         </Button>
@@ -229,7 +232,10 @@ const Banner = () => {
                     </Tooltip>
                   </CardContent>
                 </Box>
-                <IconButton onClick={() => openEditBanner(banner)}>
+                <IconButton
+                  onClick={() => openEditBanner(banner)}
+                  disabled={!permissions.update}
+                >
                   <EditIcon />
                 </IconButton>
                 <IconButton
@@ -237,6 +243,7 @@ const Banner = () => {
                     setBannerToDelete(banner.bannerId);
                     setOpenDeleteDialog(true);
                   }}
+                  disabled={!permissions.delete}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -295,6 +302,7 @@ const Banner = () => {
                 startIcon={<AddIcon />}
                 onClick={() => setOpenUpload(true)} // Replace with your function to open the create banner modal
                 sx={{ mt: 2 }}
+                disabled={!permissions.create}
               >
                 Create Banner
               </Button>

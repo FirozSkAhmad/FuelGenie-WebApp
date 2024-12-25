@@ -21,6 +21,8 @@ import {
   InputLabel,
   Select,
   CircularProgress,
+  Card,
+  CardContent,
   InputAdornment,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -393,25 +395,40 @@ const TimeSlots = () => {
                   {/* Default Slots Column */}
                   <TableCell>
                     {Object.entries(slots[date]).map(([slotId, slot]) => (
-                      <Box
+                      <Card
                         key={slotId}
-                        display="flex"
-                        alignItems="center"
-                        mb={1}
+                        variant="outlined"
+                        sx={{ marginBottom: 2, padding: 2 }}
                       >
-                        <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            handleOpenUpdateDialog(date, slotId, "DEFAULT")
-                          }
-                          disabled={!permissions?.update}
-                          title="Update Order Count"
-                          sx={{ marginLeft: 1 }}
-                        >
-                          <Edit />
-                        </IconButton>
-                      </Box>
+                        <CardContent>
+                          <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                          >
+                            <Typography variant="body2" fontWeight="bold">
+                              {slot.fromTime} - {slot.toTime}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleOpenUpdateDialog(date, slotId, "DEFAULT")
+                              }
+                              disabled={!permissions?.update}
+                              title="Update Order Count"
+                            >
+                              <Edit />
+                            </IconButton>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>Max Orders:</strong> {slot.maxOrders}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>Received Orders:</strong>{" "}
+                            {slot.ordersReceived}
+                          </Typography>
+                        </CardContent>
+                      </Card>
                     ))}
                   </TableCell>
 
@@ -421,42 +438,73 @@ const TimeSlots = () => {
                     Object.keys(customSlots[date]).length > 0 ? (
                       Object.entries(customSlots[date]).map(
                         ([slotId, slot]) => (
-                          <Box
+                          <Card
                             key={slotId}
-                            display="flex"
-                            alignItems="center"
-                            mb={1}
+                            variant="outlined"
+                            sx={{ marginBottom: 2, padding: 2 }}
                           >
-                            <Typography variant="body2">{`${slot.fromTime}-${slot.toTime}, Orders: ${slot.maxOrders}`}</Typography>
-
-                            {/* Update Button */}
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleOpenUpdateDialog(date, slotId, "CUSTOM")
-                              }
-                              disabled={!permissions?.update}
-                              title="Update Order Count"
-                              sx={{ marginLeft: 1 }}
-                            >
-                              <Edit />
-                            </IconButton>
-
-                            {/* Delete Button */}
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteClick(slotId)}
-                              title="Delete Slot"
-                              sx={{ marginLeft: 1 }}
-                              disabled={!permissions?.delete}
-                            >
-                              <Delete />
-                            </IconButton>
-                          </Box>
+                            <CardContent>
+                              <Box
+                                display="flex"
+                                justifyContent="space-between"
+                                alignItems="center"
+                              >
+                                {/* Slot Time Range */}
+                                <Typography variant="body2" fontWeight="bold">
+                                  {slot.fromTime} - {slot.toTime}
+                                </Typography>
+                                <Box>
+                                  {/* Update Button */}
+                                  <IconButton
+                                    size="small"
+                                    onClick={() =>
+                                      handleOpenUpdateDialog(
+                                        date,
+                                        slotId,
+                                        "CUSTOM"
+                                      )
+                                    }
+                                    disabled={!permissions?.update}
+                                    title="Update Order Count"
+                                    sx={{ marginLeft: 1 }}
+                                  >
+                                    <Edit />
+                                  </IconButton>
+                                  {/* Delete Button */}
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDeleteClick(slotId)}
+                                    title="Delete Slot"
+                                    sx={{ marginLeft: 1 }}
+                                    disabled={!permissions?.delete}
+                                  >
+                                    <Delete />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+                              {/* Slot Details */}
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                mt={1}
+                              >
+                                <strong>Max Orders:</strong> {slot.maxOrders}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                <strong>Received Orders:</strong>{" "}
+                                {slot.ordersReceived}
+                              </Typography>
+                            </CardContent>
+                          </Card>
                         )
                       )
                     ) : (
-                      <Typography variant="body2">No Custom Slots</Typography>
+                      <Typography variant="body2" textAlign="center">
+                        No Custom Slots
+                      </Typography>
                     )}
                   </TableCell>
 

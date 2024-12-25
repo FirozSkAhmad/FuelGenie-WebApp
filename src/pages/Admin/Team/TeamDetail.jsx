@@ -17,12 +17,13 @@ import { useParams, useLocation } from "react-router-dom";
 import api from "../../../utils/api";
 import { useTheme } from "@mui/material/styles";
 import { toast } from "react-toastify";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 const TeamDetail = () => {
   const { teamId } = useParams();
   const { state } = useLocation();
   const { teamName } = state;
-
+  const permissions = usePermissions();
   const [roles, setRoles] = useState([]);
   const [users, setUsers] = useState([]);
   const [assignedRoles, setAssignedRoles] = useState([]);
@@ -182,6 +183,7 @@ const TeamDetail = () => {
             variant="contained"
             color="primary"
             onClick={handleAssignItems}
+            disabled={!permissions.update}
           >
             Assign {isModalOpen.type}
           </Button>
@@ -216,6 +218,7 @@ const TeamDetail = () => {
           />
           <IconButton
             onClick={() => handleDelete(item.roleId || item.uid, type)}
+            disabled={!permissions.delete}
           >
             <Delete />
           </IconButton>
@@ -226,6 +229,7 @@ const TeamDetail = () => {
 
   return (
     <Box sx={{ padding: "2rem" }}>
+      <BreadcrumbNavigation />
       <Typography variant="h4" gutterBottom>
         {teamName} - Team Management
       </Typography>
@@ -240,6 +244,7 @@ const TeamDetail = () => {
           variant="contained"
           color="primary"
           onClick={() => setIsModalOpen({ open: true, type: "Roles" })}
+          disabled={!permissions.update}
         >
           Assign Roles
         </Button>
@@ -255,6 +260,7 @@ const TeamDetail = () => {
           variant="contained"
           color="primary"
           onClick={() => setIsModalOpen({ open: true, type: "Users" })}
+          disabled={!permissions.update}
         >
           Assign Users
         </Button>

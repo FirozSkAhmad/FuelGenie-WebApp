@@ -47,6 +47,7 @@ import {
   Person,
   Settings,
   Wallet,
+  CardGiftcard,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -272,7 +273,14 @@ function Sidebar({ open, toggleDrawer }) {
     {
       label: "Management",
       icon: <BusinessCenter />,
-      path: "/management",
+      items: [
+        {
+          label: "Coupons",
+          icon: <CardGiftcard />,
+          path: "/management/coupons",
+        },
+      ],
+      toggle: "management",
     },
     {
       label: "Profile",

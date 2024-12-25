@@ -1,4 +1,4 @@
-// utils/accessControl.js
+// utils/checkAccess.js
 
 export const checkAccess = (userData, requiredModule, requiredSubModule) => {
     // Check if userData exists

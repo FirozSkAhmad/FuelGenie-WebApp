@@ -30,6 +30,7 @@ import RoleModal from "../../../components/admin/RoleModal";
 import api from "../../../utils/api";
 import { useTheme } from "@mui/system";
 import { usePermissions } from "../../../utils/permissionssHelper";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 const Roles = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -182,6 +183,7 @@ const Roles = () => {
   return (
     <Box>
       {/* Header */}
+      <BreadcrumbNavigation />
       <Box
         display="flex"
         justifyContent="space-between"

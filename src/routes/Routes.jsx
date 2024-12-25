@@ -1,5 +1,5 @@
-import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import React, { useContext } from "react";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Setting";
@@ -31,7 +31,11 @@ import TeamDetail from "../pages/Admin/Team/TeamDetail";
 import Restricted from "../pages/Restricted";
 import ModuleAccessWrapper from "./ModuleAccessWrapper";
 import Wallets from "../pages/Admin/wallets/Wallets";
+import WalletDetails from "../pages/Admin/wallets/WalletDetails";
+import AuthContext from "../context/AuthContext";
+import Coupons from "../pages/Management/Coupons";
 function AppRoutes() {
+  const { isAuthenticated } = useContext(AuthContext);
   const location = useLocation();
   // Function to extract requiredModule and requiredSubModule from the path
   // Function to extract requiredModule and requiredSubModule from the path
@@ -61,7 +65,12 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        }
+      />
       <Route path="/signup" element={<SignupPage />} />
       <Route
         path="/dashboard"
@@ -264,6 +273,16 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/admin/wallets/wallet-details/:customerId"
+        element={
+          <ModuleAccessWrapper
+            element={<WalletDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
         path="/admin/approvals"
         element={
           <ModuleAccessWrapper
@@ -278,6 +297,16 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<Management />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/management/coupons"
+        element={
+          <ModuleAccessWrapper
+            element={<Coupons />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />
