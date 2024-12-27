@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  TablePagination,
 } from "@mui/material";
 import api from "../../utils/api";
 import { usePermissions } from "../../utils/permissionssHelper";
@@ -46,6 +47,9 @@ const Coupons = () => {
     usageLimit: "",
     expiresAt: "",
   });
+  // for pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const permissions = usePermissions();
   useEffect(() => {
     fetchCoupons();
@@ -142,6 +146,21 @@ const Coupons = () => {
       console.error("Error deleting coupon");
     }
   };
+  // Handlers for pagination
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page
+  };
+
+  // Sliced data for current page
+  const paginatedCoupons = coupons.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   const renderActiveCouponsTable = () => {
     if (loading.active) return <CircularProgress sx={{ m: 2 }} />;
@@ -151,42 +170,64 @@ const Coupons = () => {
       return <Typography>No active coupons available.</Typography>;
 
     return (
-      <TableContainer component={Paper} sx={{ mt: 2 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Discount</TableCell>
-              <TableCell>Code</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {coupons.map((coupon, index) => (
-              <TableRow key={index}>
-                <TableCell>{coupon.name}</TableCell>
-                <TableCell>{coupon.description}</TableCell>
-                <TableCell>{coupon.discountPercentage}%</TableCell>
-                <TableCell>{coupon.code}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={() => handleDelete(coupon.code)}
-                    disabled={!permissions.delete}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+      <>
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Usage Limit </TableCell>
+                <TableCell>Used</TableCell>
+                <TableCell>Expires At</TableCell>
+                <TableCell>Discount</TableCell>
+                <TableCell>Code</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {paginatedCoupons.map((coupon, index) => (
+                <TableRow key={index}>
+                  <TableCell>{coupon.name}</TableCell>
+                  <TableCell>{coupon.description}</TableCell>
+                  <TableCell>{coupon.usageLimit}</TableCell>
+                  <TableCell>{coupon.totalTimesUsed}</TableCell>
+                  <TableCell>
+                    {new Date(coupon.expiresAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>{coupon.discountPercentage}%</TableCell>
+                  <TableCell>{coupon.code}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => handleDelete(coupon.code)}
+                      disabled={!permissions.delete}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={coupons.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </>
     );
   };
-
+  const deletedCouponsdata = deletedCoupons.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
   const renderDeletedCouponsTable = () => {
     if (loading.deleted) return <CircularProgress sx={{ m: 2 }} />;
     if (error.deleted)
@@ -195,42 +236,53 @@ const Coupons = () => {
       return <Typography>No deleted coupons available.</Typography>;
 
     return (
-      <TableContainer component={Paper} sx={{ mt: 2 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Discount</TableCell>
-              <TableCell>Usage Limit</TableCell>
-              <TableCell>Expires At</TableCell>
-              <TableCell>Deleted At</TableCell>
-              <TableCell>Deleted By</TableCell>
-              <TableCell>Role Type</TableCell>
-              <TableCell>Code</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {deletedCoupons.map((coupon, index) => (
-              <TableRow key={index}>
-                <TableCell>{coupon.name}</TableCell>
-                <TableCell>{coupon.description}</TableCell>
-                <TableCell>{coupon.discountPercentage}%</TableCell>
-                <TableCell>{coupon.usageLimit}</TableCell>
-                <TableCell>
-                  {new Date(coupon.expiresAt).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  {new Date(coupon.deletedAt).toLocaleString()}
-                </TableCell>
-                <TableCell>{coupon.deletedBy}</TableCell>
-                <TableCell>{coupon.roleType}</TableCell>
-                <TableCell>{coupon.code}</TableCell>
+      <>
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Discount</TableCell>
+                <TableCell>Usage Limit</TableCell>
+                <TableCell>Expires At</TableCell>
+                <TableCell>Deleted At</TableCell>
+                <TableCell>Deleted By</TableCell>
+                <TableCell>Role Type</TableCell>
+                <TableCell>Code</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {deletedCouponsdata.map((coupon, index) => (
+                <TableRow key={index}>
+                  <TableCell>{coupon.name}</TableCell>
+                  <TableCell>{coupon.description}</TableCell>
+                  <TableCell>{coupon.discountPercentage}%</TableCell>
+                  <TableCell>{coupon.usageLimit}</TableCell>
+                  <TableCell>
+                    {new Date(coupon.expiresAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(coupon.deletedAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>{coupon.deletedBy}</TableCell>
+                  <TableCell>{coupon.roleType}</TableCell>
+                  <TableCell>{coupon.code}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={coupons.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </>
     );
   };
 
@@ -249,29 +301,51 @@ const Coupons = () => {
         </Typography>
       );
 
+    const paginatedCouponsData = coupons.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+
     return (
-      <TableContainer component={Paper} sx={{ mt: 2 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Discount</TableCell>
-              <TableCell>Code</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {coupons.map((coupon, index) => (
-              <TableRow key={index}>
-                <TableCell>{coupon.name}</TableCell>
-                <TableCell>{coupon.description}</TableCell>
-                <TableCell>{coupon.discountPercentage}%</TableCell>
-                <TableCell>{coupon.code}</TableCell>
+      <>
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Discount</TableCell>
+                <TableCell>Usage Limit</TableCell>
+                <TableCell>Expired At</TableCell>
+                <TableCell>Code</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {paginatedCouponsData.map((coupon, index) => (
+                <TableRow key={index}>
+                  <TableCell>{coupon.name}</TableCell>
+                  <TableCell>{coupon.description}</TableCell>
+                  <TableCell>{coupon.discountPercentage}%</TableCell>
+                  <TableCell>{coupon.usageLimit}</TableCell>
+                  <TableCell>
+                    {new Date(coupon.expiresAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>{coupon.code}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={coupons.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </>
     );
   };
 

@@ -190,7 +190,7 @@ const WalletDetails = () => {
                       variant="h6"
                       style={{ fontWeight: 500, color: "#4caf50" }}
                     >
-                      ₹{walletDetails.walletBalance}
+                      ₹ {walletDetails.walletBalance}
                     </Typography>
                   </Card>
                 </Grid>

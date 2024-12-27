@@ -107,6 +107,7 @@ const Wallets = () => {
                 <TableCell>Email</TableCell>
                 <TableCell>Customer Type</TableCell>
                 <TableCell>PAN Card</TableCell>
+                <TableCell>Wallet Balance</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -122,6 +123,7 @@ const Wallets = () => {
                   <TableCell>{customer.mailId}</TableCell>
                   <TableCell>{customer.customerType}</TableCell>
                   <TableCell>{customer.panCardNumber}</TableCell>
+                  <TableCell> ₹ {customer.walletBalance}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
