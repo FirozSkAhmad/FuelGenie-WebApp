@@ -34,6 +34,9 @@ import Wallets from "../pages/Admin/wallets/Wallets";
 import WalletDetails from "../pages/Admin/wallets/WalletDetails";
 import AuthContext from "../context/AuthContext";
 import Coupons from "../pages/Management/Coupons";
+import BowserCreation from "../pages/Admin/BowserCreation/Bowser-creation";
+import BowserCreationDetail from "../pages/Admin/BowserCreation/Bowser-Creation-Detail";
+
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
   const location = useLocation();
@@ -287,6 +290,26 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<Approvals />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/bowser-creation"
+        element={
+          <ModuleAccessWrapper
+            element={<BowserCreation />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/bowser-creation/:bowserId"
+        element={
+          <ModuleAccessWrapper
+            element={<BowserCreationDetail />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

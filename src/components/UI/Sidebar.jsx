@@ -262,6 +262,11 @@ function Sidebar({ open, toggleDrawer }) {
           path: "/admin/approvals",
         },
         {
+          label: "Bowser Creation",
+          icon: <LocalShipping />,
+          path: "/admin/bowser-creation",
+        },
+        {
           label: "Activity Logs",
           icon: <ReceiptLong />,
           path: "/admin/activity-logs",
