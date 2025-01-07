@@ -36,6 +36,8 @@ import AuthContext from "../context/AuthContext";
 import Coupons from "../pages/Management/Coupons";
 import BowserCreation from "../pages/Admin/BowserCreation/Bowser-creation";
 import BowserCreationDetail from "../pages/Admin/BowserCreation/Bowser-Creation-Detail";
+import DriverCreation from "../pages/Admin/DriverCreation/Driver-Creation";
+import DriverCreationDetail from "../pages/Admin/DriverCreation/Driver-Creation-Detail";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -310,6 +312,26 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<BowserCreationDetail />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/driver-creation"
+        element={
+          <ModuleAccessWrapper
+            element={<DriverCreation />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/driver-creation/:driverId"
+        element={
+          <ModuleAccessWrapper
+            element={<DriverCreationDetail />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

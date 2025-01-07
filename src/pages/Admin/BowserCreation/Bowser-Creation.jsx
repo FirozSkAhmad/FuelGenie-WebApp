@@ -16,6 +16,8 @@ import {
   TableRow,
   Paper,
   CircularProgress,
+  TablePagination,
+  Backdrop,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
@@ -37,7 +39,8 @@ const BowserCreation = () => {
     EmissionReport: null,
     customDocs: [], // Array to store multiple custom documents
   });
-
+  const [page, setPage] = useState(0); // Current page
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const navigate = useNavigate();
   const permissions = usePermissions();
   // Fetch Bowsers
@@ -72,11 +75,14 @@ const BowserCreation = () => {
     }
   };
 
-  const removeSelectedFile = (fieldName, index) => {
+  const removeSelectedFile = (fieldName) => {
     setFormData((prev) => {
-      const updatedDocs = [...prev.customDocs];
-      updatedDocs.splice(index, 1);
-      return { ...prev, customDocs: updatedDocs };
+      // Ensure fieldName exists in predefined fields
+      if (["RC", "Insurance", "EmissionReport"].includes(fieldName)) {
+        return { ...prev, [fieldName]: null }; // Set the field to null
+      }
+      console.warn(`Invalid field: ${fieldName}`); // Debugging
+      return prev; // Return unchanged state if field is not valid
     });
   };
 
@@ -86,22 +92,22 @@ const BowserCreation = () => {
     Object.entries(formData).forEach(([key, value]) => {
       if (key === "customDocs") {
         value.forEach((doc, index) => {
-          payload.append(`customDoc${index + 1}`, doc);
+          payload.append(`customDoc${index + 1}Name`, doc.name);
+          payload.append(`customDoc${index + 1}File`, doc.file);
         });
       } else {
         payload.append(key, value);
       }
     });
-
+    setLoading(true);
     api
       .post("/admin/bowser-creation/create-bowser", payload, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
+        setLoading(true);
         toast.success("Bowser created successfully!");
         setModalOpen(false);
-        setLoading(true);
-        // Refresh the bowsers list
         api.get("/admin/bowser-creation/get-bowsers").then((response) => {
           setBowsers(response.data.data);
           setLoading(false);
@@ -110,9 +116,17 @@ const BowserCreation = () => {
       .catch((error) => {
         toast.error("Failed to create bowser. Please try again.");
         console.error("Error creating bowser:", error);
+        setLoading(false);
       });
   };
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
   return (
     <Box sx={{ p: 3 }}>
       <BreadcrumbNavigation />
@@ -169,6 +183,15 @@ const BowserCreation = () => {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={bowsers.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+            />
           </TableContainer>
         )}
       </Box>
@@ -181,6 +204,15 @@ const BowserCreation = () => {
       >
         <DialogTitle>Create Bowser</DialogTitle>
         <DialogContent>
+          {loading && (
+            <Backdrop
+              sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+              open={loading}
+              color="#fff"
+            >
+              <CircularProgress color="inherit" />
+            </Backdrop>
+          )}
           <Box
             sx={{
               display: "flex",
@@ -257,6 +289,13 @@ const BowserCreation = () => {
                     <Typography variant="body2">
                       Selected: {formData.RC.name}
                     </Typography>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => removeSelectedFile("RC")}
+                    >
+                      Remove File
+                    </Button>
                   </Box>
                 )}
               </Box>
@@ -283,6 +322,13 @@ const BowserCreation = () => {
                     <Typography variant="body2">
                       Selected: {formData.Insurance.name}
                     </Typography>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => removeSelectedFile("Insurance")}
+                    >
+                      Remove File
+                    </Button>
                   </Box>
                 )}
               </Box>
@@ -308,42 +354,93 @@ const BowserCreation = () => {
                     <Typography variant="body2">
                       Selected: {formData.EmissionReport.name}
                     </Typography>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => removeSelectedFile("EmissionReport")}
+                    >
+                      Remove File
+                    </Button>
                   </Box>
                 )}
               </Box>
-              {/* Upload Custom Documents */}
+
+              {/* Custom Documents Section */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
                   Upload Custom Documents:
                 </Typography>
                 {formData.customDocs.map((doc, index) => (
                   <Box key={index} sx={{ mb: 2 }}>
-                    <Typography variant="body2">
-                      Custom Doc {index + 1}: {doc.name}
-                    </Typography>
+                    <TextField
+                      label={`Custom Document ${index + 1} Name`}
+                      value={doc.name || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => {
+                          const updatedDocs = [...prev.customDocs];
+                          updatedDocs[index].name = e.target.value;
+                          return { ...prev, customDocs: updatedDocs };
+                        })
+                      }
+                      fullWidth
+                      margin="normal"
+                    />
+                    <Button
+                      variant="contained"
+                      component="label"
+                      fullWidth
+                      sx={{ textTransform: "none", mb: 1 }}
+                    >
+                      Upload File
+                      <input
+                        type="file"
+                        hidden
+                        accept=".pdf"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          setFormData((prev) => {
+                            const updatedDocs = [...prev.customDocs];
+                            updatedDocs[index].file = file;
+                            return { ...prev, customDocs: updatedDocs };
+                          });
+                        }}
+                      />
+                    </Button>
+                    {doc.file && (
+                      <Typography variant="body2" sx={{ mb: 1 }}>
+                        Selected File: {doc.file.name}
+                      </Typography>
+                    )}
                     <Button
                       variant="outlined"
                       color="error"
-                      onClick={() => removeSelectedFile("customDocs", index)}
+                      onClick={() =>
+                        setFormData((prev) => {
+                          const updatedDocs = [...prev.customDocs];
+                          updatedDocs.splice(index, 1);
+                          return { ...prev, customDocs: updatedDocs };
+                        })
+                      }
                     >
-                      Remove File
+                      Remove Document
                     </Button>
                   </Box>
                 ))}
                 <Button
                   variant="contained"
-                  component="label"
                   fullWidth
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      customDocs: [
+                        ...prev.customDocs,
+                        { name: "", file: null },
+                      ],
+                    }))
+                  }
                   sx={{ textTransform: "none" }}
                 >
-                  Add Custom Document
-                  <input
-                    type="file"
-                    name="customDocs"
-                    hidden
-                    accept=".pdf"
-                    onChange={handleFileChange}
-                  />
+                  Add New Custom Document
                 </Button>
               </Box>
             </Box>

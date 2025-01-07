@@ -9,24 +9,26 @@ import {
   Button,
   Modal,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Divider,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
+  useTheme,
 } from "@mui/material";
+import {
+  // Delete as DeleteIcon,
+  // Edit as EditIcon,
+  // Upload as UploadIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
+import { RemoveCircleOutline, Edit, Save, Delete } from "@mui/icons-material";
 import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
-import RemoveIcon from "@mui/icons-material/Delete";
-import { toast } from "react-toastify"; // Import toast for notifications
+import { toast } from "react-toastify";
 import { usePermissions } from "../../../utils/permissionssHelper";
+
 const BowserCreationDetail = () => {
   const { bowserId } = useParams();
   const [bowserDetails, setBowserDetails] = useState(null);
@@ -36,28 +38,32 @@ const BowserCreationDetail = () => {
   const [updatedFields, setUpdatedFields] = useState({
     brand: "",
     model: "",
+    rcNumber: "",
     capacity: "",
   });
   const [removedDocs, setRemovedDocs] = useState([]);
-  const [newDocument, setNewDocument] = useState(null);
+  const [documents, setDocuments] = useState([{ docName: "", file: null }]);
   const [openDialog, setOpenDialog] = useState(false);
-  const permissions = usePermissions(); // Get permissions
-  // Fetch Bowser Details
-  useEffect(() => {
+  const permissions = usePermissions();
+  const theme = useTheme();
+  const fetchBowserDetails = async () => {
     setLoading(true);
-    api
-      .get(`/admin/bowser-creation/get-bowserInf/${bowserId}`)
-      .then((response) => {
-        setBowserDetails(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching bowser details:", error);
-        setLoading(false);
-      });
+    try {
+      const response = await api.get(
+        `/admin/bowser-creation/get-bowserInf/${bowserId}`
+      );
+      setBowserDetails(response.data.data);
+    } catch (error) {
+      console.error("Error fetching bowser details:", error);
+      toast.error("Failed to fetch bowser details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchBowserDetails();
   }, [bowserId]);
 
-  // Handle Edit Button Click
   const handleEditClick = () => {
     setEditMode(true);
     setUpdatedFields({
@@ -68,7 +74,6 @@ const BowserCreationDetail = () => {
     });
   };
 
-  // Handle Form Field Changes
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
     setUpdatedFields((prevFields) => ({
@@ -77,45 +82,36 @@ const BowserCreationDetail = () => {
     }));
   };
 
-  // Handle Submit Edit Form
-  const handleSubmitEdit = () => {
-    const data = {
-      updatedFields,
-      removedDocs,
-    };
-
-    setLoading(true); // Show loading while saving
-    api
-      .patch(`/admin/bowser-creation/edit-bowserDetails/${bowserId}`, data)
-      .then(() => {
-        setEditMode(false);
-        // Optionally, fetch new data after update
-        setBowserDetails({
-          ...bowserDetails,
-          ...updatedFields,
-        });
-        toast.success("Bowser details updated successfully!"); // Show success toast
-      })
-      .catch((error) => {
-        console.error("Error updating bowser details:", error);
-        toast.error("Failed to update bowser details."); // Show error toast
-      })
-      .finally(() => setLoading(false)); // Hide loading after API call
+  const handleSubmitEdit = async () => {
+    setLoading(true);
+    try {
+      await api.patch(`/admin/bowser-creation/edit-bowserDetails/${bowserId}`, {
+        updatedFields,
+        removedDocs,
+      });
+      setBowserDetails((prevDetails) => ({ ...prevDetails, ...updatedFields }));
+      setEditMode(false);
+      toast.success("Bowser details updated successfully!");
+      fetchBowserDetails();
+    } catch (error) {
+      console.error("Error updating bowser details:", error);
+      toast.error("Failed to update bowser details.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Handle Cancel Edit
   const handleCancelEdit = () => {
     setEditMode(false);
     setUpdatedFields({
       brand: bowserDetails.brand,
       model: bowserDetails.vehicleModel,
+      rcNumber: bowserDetails.rcNumber,
       capacity: bowserDetails.capacity,
     });
   };
 
-  // Handle Remove Document
   const handleRemoveDoc = (docId) => {
-    // Remove document from the Documents array
     setBowserDetails((prevDetails) => ({
       ...prevDetails,
       Documents: prevDetails.Documents.filter(
@@ -125,35 +121,74 @@ const BowserCreationDetail = () => {
     setRemovedDocs((prevDocs) => [...prevDocs, docId]);
   };
 
-  // Handle Add Document
-  const handleAddDocument = () => {
-    const formData = new FormData();
-    formData.append("document", newDocument);
-
-    setLoading(true); // Show loading while adding document
-    api
-      .patch(`/admin/bowser-creation/add-documents/${bowserId}`, formData)
-      .then(() => {
-        setOpenDialog(false);
-        toast.success("Document added successfully!"); // Success toast
-      })
-      .catch((error) => {
-        console.error("Error adding document:", error);
-        toast.error("Failed to add document."); // Error toast
-      })
-      .finally(() => setLoading(false)); // Hide loading after API call
+  const handleInputChange = (index, field, value) => {
+    const updatedDocuments = [...documents];
+    updatedDocuments[index][field] = value;
+    setDocuments(updatedDocuments);
   };
 
-  // Loading State
+  const handleAddNewDocField = () => {
+    setDocuments([...documents, { docName: "", file: null }]);
+  };
+
+  const handleRemoveDocField = (index) => {
+    const newDocuments = documents.filter((_, idx) => idx !== index);
+    setDocuments(newDocuments);
+  };
+  const handleAddDocument = async () => {
+    if (documents.length === 0) {
+      toast.error("No documents to add.");
+      return;
+    }
+
+    const formData = new FormData();
+
+    // Iterate through each document and append to the formData using the docName as the key
+    documents.forEach((document) => {
+      if (document.docName && document.file) {
+        // Use the docName directly as the key
+        formData.append(document.docName, document.file); // Append the file with the docName as the key
+      } else {
+        console.warn("A document is missing a name or file.");
+      }
+    });
+
+    setLoading(true); // Show loading indicator
+
+    try {
+      // Make the PATCH request to add documents
+      const response = await api.patch(
+        `/admin/bowser-creation/add-documents/${bowserId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // Ensure proper content type for file upload
+          },
+        }
+      );
+
+      // Handle successful response
+      if (response.status === 200) {
+        setOpenDialog(false); // Close the dialog
+        toast.success("Documents added successfully!"); // Show success message
+        fetchBowserDetails(); // Refetch the bowser details to update the UI
+      } else {
+        throw new Error("Unexpected response from the server.");
+      }
+    } catch (error) {
+      console.error("Error adding documents:", error);
+      toast.error("Failed to add documents. Please try again."); // Show error message
+    } finally {
+      setLoading(false); // Hide loading indicator
+    }
+  };
   if (loading) {
     return (
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
       >
         <CircularProgress />
       </Box>
@@ -178,8 +213,6 @@ const BowserCreationDetail = () => {
       <Typography variant="h4" gutterBottom>
         Bowser Details
       </Typography>
-
-      {/* Display Bowser Details */}
       <Card
         sx={{
           mb: 3,
@@ -191,26 +224,21 @@ const BowserCreationDetail = () => {
         <CardContent
           sx={{ display: "flex", flexDirection: "column", gap: 2, padding: 3 }}
         >
-          {/* Details Section */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               <strong>Brand:</strong> {brand}
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               <strong>Vehicle Model:</strong> {vehicleModel}
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               <strong>RC Number:</strong> {rcNumber}
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               <strong>Capacity:</strong> {capacity} Liters
             </Typography>
           </Box>
-
-          {/* Divider between details and action */}
           <Divider sx={{ my: 2 }} />
-
-          {/* Edit Button Section */}
           {!editMode && (
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
               <IconButton
@@ -221,21 +249,17 @@ const BowserCreationDetail = () => {
                   backgroundColor: "#1976D2",
                   color: "white",
                   padding: "8px",
-                  "&:hover": {
-                    backgroundColor: "#1565C0",
-                  },
+                  "&:hover": { backgroundColor: "#1565C0" },
                 }}
                 disabled={!permissions.update}
                 size="large"
               >
-                <EditIcon />
+                <Edit />
               </IconButton>
             </Box>
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Form */}
       {editMode && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -279,8 +303,6 @@ const BowserCreationDetail = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Documents List */}
       <Box
         sx={{
           display: "flex",
@@ -314,24 +336,13 @@ const BowserCreationDetail = () => {
             >
               <Typography variant="body1">{doc.documentName}</Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {/* View Button */}
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{
-                    padding: "10px 20px",
-                    borderRadius: 2,
-                    fontWeight: "600",
-                    "&:hover": {
-                      backgroundColor: "#1976D2",
-                    },
-                  }}
                   onClick={() => setSelectedDoc(doc.filePath)}
                 >
                   View
                 </Button>
-
-                {/* Download Button */}
                 <Button
                   variant="outlined"
                   color="primary"
@@ -339,50 +350,28 @@ const BowserCreationDetail = () => {
                   href={doc.filePath}
                   target="_blank"
                   rel="noopener noreferrer"
-                  sx={{
-                    padding: "10px 20px",
-                    borderRadius: 2,
-                    fontWeight: "600",
-                    borderColor: "#1976D2",
-                    "&:hover": {
-                      borderColor: "#1565C0",
-                      backgroundColor: "#E3F2FD",
-                    },
-                  }}
                 >
                   Download
                 </Button>
-
-                {/* Remove Button - Only visible in edit mode */}
                 {editMode && (
                   <Button
                     variant="outlined"
                     color="error"
-                    sx={{
-                      padding: "10px 16px",
-                      borderRadius: 2,
-                      fontWeight: "600",
-                      "&:hover": {
-                        backgroundColor: "#F44336",
-                        borderColor: "#D32F2F",
-                      },
-                    }}
                     onClick={() => handleRemoveDoc(doc.documentId)}
                   >
-                    <RemoveIcon sx={{ fontSize: "20px" }} />
+                    <Delete />
                   </Button>
                 )}
               </Box>
             </CardContent>
           </Card>
         ))}
-        {/* Save Changes and Cancel Buttons */}
         {editMode && (
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Button
               variant="contained"
               color="primary"
-              startIcon={<SaveIcon />}
+              startIcon={<Save />}
               onClick={handleSubmitEdit}
               sx={{ mt: 2 }}
             >
@@ -399,8 +388,7 @@ const BowserCreationDetail = () => {
           </Box>
         )}
       </Box>
-
-      {/* Modal for Document Preview */}
+      {/* Document Preview Modal */}
       <Modal
         open={!!selectedDoc}
         onClose={() => setSelectedDoc(null)}
@@ -408,49 +396,122 @@ const BowserCreationDetail = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          backdropFilter: "blur(5px)",
         }}
       >
         <Box
           sx={{
-            width: "80%",
-            height: "80%",
-            backgroundColor: "white",
+            width: "90%",
+            maxWidth: "800px",
+            height: "90%",
+            maxHeight: "600px",
+            backgroundColor: theme.palette.background.paper, // Use theme background color
             boxShadow: 24,
-            p: 2,
+            borderRadius: 2,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
         >
-          <iframe
-            src={selectedDoc}
-            title="Document Preview"
-            style={{ width: "100%", height: "100%" }}
-          ></iframe>
+          {/* Title Bar */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              backgroundColor: theme.palette.primary.main, // Use theme primary color
+              color: theme.palette.primary.contrastText, // Use theme contrast text color
+              p: 2,
+            }}
+          >
+            <Typography variant="h6">Document Preview</Typography>
+            <IconButton
+              onClick={() => setSelectedDoc(null)}
+              sx={{ color: theme.palette.primary.contrastText }} // Use theme contrast text color
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Document Preview */}
+          <Box
+            sx={{
+              flex: 1,
+              p: 2,
+              overflow: "hidden",
+              backgroundColor: theme.palette.background.default, // Use theme background color
+            }}
+          >
+            <iframe
+              src={selectedDoc}
+              title="Document Preview"
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+                borderRadius: 4,
+              }}
+            />
+          </Box>
         </Box>
       </Modal>
-
-      {/* Add Document Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Add New Document</DialogTitle>
+        <DialogTitle>Add New Documents</DialogTitle>
         <DialogContent>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Document</InputLabel>
-            <Select
-              value={newDocument}
-              onChange={(e) => setNewDocument(e.target.value)}
+          {documents.map((document, index) => (
+            <Box
+              key={index}
+              sx={{ mb: 2 }}
+              display="flex"
+              flexDirection="column"
             >
-              {/* Optionally, list file types */}
-            </Select>
-          </FormControl>
+              <TextField
+                label={`Document Name ${index + 1}`}
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                value={document.docName}
+                onChange={(e) =>
+                  handleInputChange(index, "docName", e.target.value)
+                }
+              />
+              <input
+                type="file"
+                onChange={(e) =>
+                  handleInputChange(index, "file", e.target.files[0])
+                }
+                style={{ marginBottom: "10px" }}
+              />
+              {documents.length > 1 && (
+                <IconButton
+                  onClick={() => handleRemoveDocField(index)}
+                  color="error"
+                  sx={{ alignSelf: "flex-end" }}
+                >
+                  <RemoveCircleOutline />
+                </IconButton>
+              )}
+            </Box>
+          ))}
           <Button
-            variant="contained"
+            variant="outlined"
             color="primary"
-            onClick={handleAddDocument}
+            onClick={handleAddNewDocField}
+            sx={{ mb: 2 }}
           >
-            Add Document
+            Add New Document Field
           </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="secondary">
             Cancel
+          </Button>
+          <Button
+            onClick={handleAddDocument}
+            variant="contained"
+            color="primary"
+          >
+            Add Documents
           </Button>
         </DialogActions>
       </Dialog>

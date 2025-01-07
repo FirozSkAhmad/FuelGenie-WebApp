@@ -27,6 +27,10 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 403) {
             // Redirect to the restricted page
             window.location.href = '/restricted';
+        } else if (error.response && error.response.status === 401) {
+            // If the token is expired , logout and redirect the user to the login page
+            localStorage.removeItem('user');
+            window.location.href = '/';
         }
         return Promise.reject(error);
     }

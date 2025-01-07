@@ -48,6 +48,7 @@ import {
   Settings,
   Wallet,
   CardGiftcard,
+  DriveEta,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -265,6 +266,11 @@ function Sidebar({ open, toggleDrawer }) {
           label: "Bowser Creation",
           icon: <LocalShipping />,
           path: "/admin/bowser-creation",
+        },
+        {
+          label: "Driver Creation",
+          icon: <DriveEta />,
+          path: "/admin/driver-creation",
         },
         {
           label: "Activity Logs",
