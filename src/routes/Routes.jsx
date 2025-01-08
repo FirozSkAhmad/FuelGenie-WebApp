@@ -38,6 +38,8 @@ import BowserCreation from "../pages/Admin/BowserCreation/Bowser-creation";
 import BowserCreationDetail from "../pages/Admin/BowserCreation/Bowser-Creation-Detail";
 import DriverCreation from "../pages/Admin/DriverCreation/Driver-Creation";
 import DriverCreationDetail from "../pages/Admin/DriverCreation/Driver-Creation-Detail";
+import Orders from "../pages/Operations/Orders";
+import OrdersDetails from "../pages/Operations/OrdersDetails";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -212,6 +214,26 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<Operations />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/operations/orders"
+        element={
+          <ModuleAccessWrapper
+            element={<Orders />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/operations/orders/:orderId"
+        element={
+          <ModuleAccessWrapper
+            element={<OrdersDetails />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

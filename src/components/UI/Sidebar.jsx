@@ -223,9 +223,9 @@ function Sidebar({ open, toggleDrawer }) {
           path: "/operations/order-swapping",
         },
         {
-          label: "Operation Orders",
+          label: " Orders",
           icon: <Inventory />,
-          path: "/operations/operation-orders",
+          path: "/operations/orders",
         },
         {
           label: "Bowser Deliveries",
@@ -248,7 +248,7 @@ function Sidebar({ open, toggleDrawer }) {
           path: "/operations/refill",
         },
       ],
-      toggle: "operation",
+      toggle: "operations",
     },
     {
       label: "Admin",

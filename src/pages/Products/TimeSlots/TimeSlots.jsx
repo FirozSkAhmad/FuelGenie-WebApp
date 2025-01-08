@@ -23,20 +23,23 @@ import {
   CircularProgress,
   Card,
   CardContent,
-  InputAdornment,
 } from "@mui/material";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+
 import { Edit, AddCircle, Delete } from "@mui/icons-material";
 import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import { toast } from "react-toastify";
 import { useTheme } from "@mui/system";
 import { usePermissions } from "../../../utils/permissionssHelper";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { format, parseISO, set } from "date-fns";
 const TimeSlots = () => {
   const [loading, setLoading] = useState(false);
   const [slots, setSlots] = useState({});
   const [customSlots, setCustomSlots] = useState({});
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState({});
   const [activeSlotType, setActiveSlotType] = useState({});
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
@@ -130,12 +133,26 @@ const TimeSlots = () => {
     fetchSlots(selectedWeek); // Fetch the slots for the selected week
   };
 
-  const handleDateChange = (event) => {
-    const date = event.target.value;
-    setSelectedDate(date); // Update the selected date
-    fetchSlots(date); // Fetch the slots for the selected date
+  const handleDateChange = (newValue) => {
+    if (!newValue) {
+      setError("Please select a valid date.");
+      return;
+    }
+    setError(null); // Reset the error message
+    const formattedDate = format(newValue, "yyyy-MM-dd");
+    setSelectedDate(newValue); // Update the selected date
+    fetchSlots(formattedDate); // Fetch slots for the selected date
   };
-
+  const handleResetDateFilter = () => {
+    setSelectedDate(null); // Reset the selected date
+    fetchSlots("current"); // Fetch slots for the current week
+  };
+  // Convert initial selectedDate from string to Date object
+  useEffect(() => {
+    if (selectedDate && typeof selectedDate === "string") {
+      setSelectedDate(parseISO(selectedDate)); // Convert string to Date object
+    }
+  }, [selectedDate]);
   // Open update max orders dialog
   const handleOpenUpdateDialog = (date, slotId, type) => {
     setSelectedDate(date);
@@ -149,18 +166,22 @@ const TimeSlots = () => {
   // Update max orders API
   const handleUpdateMaxOrders = async () => {
     try {
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
       const { slotId, type } = selectedSlot;
+
+      // Update max orders via API
       await api.patch(`/products/time-slots/update-max-orders/${slotId}`, {
         maxOrders: parseInt(slotMaxOrders, 10),
       });
 
+      // Update state based on slot type
       if (type === "DEFAULT") {
         setSlots((prev) => ({
           ...prev,
-          [selectedDate]: {
-            ...prev[selectedDate],
+          [formattedDate]: {
+            ...prev[formattedDate],
             [slotId]: {
-              ...prev[selectedDate][slotId],
+              ...prev[formattedDate][slotId],
               maxOrders: parseInt(slotMaxOrders, 10),
             },
           },
@@ -168,16 +189,17 @@ const TimeSlots = () => {
       } else {
         setCustomSlots((prev) => ({
           ...prev,
-          [selectedDate]: {
-            ...prev[selectedDate],
+          [formattedDate]: {
+            ...prev[formattedDate],
             [slotId]: {
-              ...prev[selectedDate][slotId],
+              ...prev[formattedDate][slotId],
               maxOrders: parseInt(slotMaxOrders, 10),
             },
           },
         }));
       }
 
+      // Close the dialog and reset the input
       setUpdateDialogOpen(false);
       setSlotMaxOrders("");
     } catch (error) {
@@ -195,18 +217,25 @@ const TimeSlots = () => {
   // Update active slot type API
   const handleUpdateToShow = async () => {
     try {
-      await api.patch(`/products/time-slots/update-to-show/${selectedDate}`, {
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
+      await api.patch(`/products/time-slots/update-to-show/${formattedDate}`, {
         toShow: toShowValue,
       });
 
       setActiveSlotType((prev) => ({
         ...prev,
-        [selectedDate]: toShowValue,
+        [formattedDate]: toShowValue,
       }));
 
       setToShowDialogOpen(false);
     } catch (error) {
       console.error("Error updating active slot type:", error);
+      // Extract the error message from the API response
+      const errorMessage =
+        error.response?.data?.message || "Failed to update active slot type.";
+
+      // Display the error message in the toast
+      toast.error(errorMessage);
     }
   };
   // Add this function to handle opening the Add Custom Slot dialog
@@ -219,8 +248,9 @@ const TimeSlots = () => {
   const handleAddCustomSlot = async () => {
     try {
       // Ensure the selectedDate is passed in the body
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
       const requestBody = {
-        date: selectedDate, // Pass the date explicitly
+        date: formattedDate, // Pass the date explicitly
         fromTime: newCustomSlot.fromTime,
         toTime: newCustomSlot.toTime,
         maxOrders: parseInt(newCustomSlot.maxOrders, 10),
@@ -246,6 +276,7 @@ const TimeSlots = () => {
       fetchSlots(selectedWeek);
     } catch (error) {
       console.error("Error adding custom slot:", error);
+      toast.error("Failed to add custom slot.", error.response.data.message);
     }
   };
 
@@ -304,33 +335,46 @@ const TimeSlots = () => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <TextField
-              label="Date"
-              type="date"
-              InputLabelProps={{
-                shrink: true, // Ensures the label does not overlap the input
-              }}
-              variant="outlined"
-              value={selectedDate}
-              onChange={handleDateChange} // Use your existing function
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarTodayIcon
-                      sx={{ color: theme.palette.text.primary }}
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <Box display="flex" gap={2}>
+                <DatePicker
+                  label="Select Date"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      error={!!error} // Only set error if there's an error message
+                      helperText={error} // Display the error message below the input
+                      // InputProps={{
+                      //   ...params.InputProps,
+                      //   startAdornment: (
+                      //     <InputAdornment position="start">
+                      //       <CalendarTodayIcon
+                      //         sx={{ color: theme.palette.text.primary }}
+                      //       />
+                      //     </InputAdornment>
+                      //   ),
+                      // }}
+                      // sx={{
+                      //   minWidth: 180,
+                      //   "& .MuiInputBase-root": {
+                      //     color: theme.palette.text.primary,
+                      //   },
+                      // }}
                     />
-                  </InputAdornment>
-                ),
-                // To remove the default date input icon, override it
-                disableUnderline: true, // Disable underline for the input field
-              }}
-              sx={{
-                minWidth: 180,
-                "& .MuiInputBase-root": {
-                  color: theme.palette.text.primary, // Adjust text color based on the current theme
-                },
-              }}
-            />
+                  )}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={handleResetDateFilter}
+                  disabled={!selectedDate} // Disable the button if no date is selected
+                >
+                  Reset Date
+                </Button>
+              </Box>
+            </LocalizationProvider>
           </FormControl>
         </Grid>
       </Grid>
