@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../../utils/api";
+import api from "../../../utils/api";
 import {
   Container,
   Typography,
@@ -25,7 +25,7 @@ import {
   Assignment as OrderIcon,
   Inventory as AssetIcon,
 } from "@mui/icons-material";
-import BreadcrumbNavigation from "../../components/addProduct/utils/BreadcrumbNavigation";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 
 const OrdersDetails = () => {
   const [orderDetails, setOrderDetails] = useState(null);

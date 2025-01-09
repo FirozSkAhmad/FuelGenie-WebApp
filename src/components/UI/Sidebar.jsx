@@ -228,6 +228,11 @@ function Sidebar({ open, toggleDrawer }) {
           path: "/operations/orders",
         },
         {
+          label: " Assign Bowsers",
+          icon: <LocalShipping />,
+          path: "/operations/assign-bowsers",
+        },
+        {
           label: "Bowser Deliveries",
           icon: <LocalShipping />,
           path: "/operations/bowser-deliveries",

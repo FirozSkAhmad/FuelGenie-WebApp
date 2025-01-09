@@ -5,7 +5,7 @@ import Profile from "../pages/Profile";
 import Settings from "../pages/Setting";
 import PrivateRoute from "./PrivateRoute";
 import Operations from "../pages/Operations";
-import Admin from "../pages/admin";
+import Admin from "../pages/Admin";
 import Management from "../pages/Management";
 import VendorManagement from "../pages/Vendor-Management";
 import NotFoundPage from "../pages/NotFound";
@@ -38,13 +38,14 @@ import BowserCreation from "../pages/Admin/BowserCreation/Bowser-creation";
 import BowserCreationDetail from "../pages/Admin/BowserCreation/Bowser-Creation-Detail";
 import DriverCreation from "../pages/Admin/DriverCreation/Driver-Creation";
 import DriverCreationDetail from "../pages/Admin/DriverCreation/Driver-Creation-Detail";
-import Orders from "../pages/Operations/Orders";
-import OrdersDetails from "../pages/Operations/OrdersDetails";
+import Orders from "../pages/Operations/Orders/Orders";
+import OrdersDetails from "../pages/Operations/Orders/OrdersDetails";
+import AssignBowsers from "../pages/Operations/Assign-bowsers/AssignBowsers";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
   const location = useLocation();
-  // Function to extract requiredModule and requiredSubModule from the path
+
   // Function to extract requiredModule and requiredSubModule from the path
   const getModuleAndSubModule = (path) => {
     const segments = path.split("/").filter(Boolean); // Split path and remove empty segments
@@ -234,6 +235,16 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<OrdersDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/operations/assign-bowsers"
+        element={
+          <ModuleAccessWrapper
+            element={<AssignBowsers />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

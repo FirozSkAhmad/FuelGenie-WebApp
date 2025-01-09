@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../../utils/api";
+import api from "../../../utils/api";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -24,7 +24,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import SearchIcon from "@mui/icons-material/Search";
-import BreadcrumbNavigation from "../../components/addProduct/utils/BreadcrumbNavigation";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
