@@ -34,7 +34,7 @@ import Wallets from "../pages/Admin/wallets/Wallets";
 import WalletDetails from "../pages/Admin/wallets/WalletDetails";
 import AuthContext from "../context/AuthContext";
 import Coupons from "../pages/Management/Coupons";
-import BowserCreation from "../pages/Admin/BowserCreation/Bowser-creation";
+import BowserCreation from "../pages/Admin/BowserCreation/Bowser-Creation";
 import BowserCreationDetail from "../pages/Admin/BowserCreation/Bowser-Creation-Detail";
 import DriverCreation from "../pages/Admin/DriverCreation/Driver-Creation";
 import DriverCreationDetail from "../pages/Admin/DriverCreation/Driver-Creation-Detail";
