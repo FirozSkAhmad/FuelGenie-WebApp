@@ -15,6 +15,7 @@ import {
   Box,
 } from "@mui/material";
 import api from "../../../utils/api";
+import { toast } from "react-toastify";
 
 const Approvals = () => {
   const [activeTab, setActiveTab] = useState(0); // 0: Pending, 1: Approved
@@ -43,29 +44,46 @@ const Approvals = () => {
     try {
       const response = await api.post(`/admin/approvals/approve-user/${uid}`);
       if (response.status === 200) {
-        alert("User approved successfully!");
+        toast.success("User approved successfully!");
+
         fetchUsers(false); // Refresh pending approvals
       } else {
         alert("Failed to approve user.");
       }
     } catch (error) {
       console.error("Error approving user:", error);
-      alert("An error occurred.");
+      toast.error("An error occurred.");
+    }
+  };
+  const handleReject = async (uid) => {
+    try {
+      const response = await api.post(`/admin/approvals/reject-user/${uid}`);
+      if (response.status === 200) {
+        toast.success("User rejected successfully!");
+        fetchUsers(false);
+      } else {
+        alert("Failed to reject user.");
+      }
+    } catch (error) {
+      console.error("Error rejecting user:", error);
+      toast.error("An error occurred.");
     }
   };
 
   const handleDelete = async (uid) => {
     try {
-      const response = await api.delete(`/admin/team/delete-user/${uid}`);
+      const response = await api.delete(`/admin/approvals/delete-user/${uid}`);
       if (response.status === 200) {
-        alert("User deleted successfully!");
+        toast.success("User deleted successfully!");
+
         fetchUsers(true); // Refresh approved users
       } else {
         alert("Failed to delete user.");
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("An error occurred.");
+
+      toast.error("An error occurred.");
     }
   };
 
@@ -89,7 +107,7 @@ const Approvals = () => {
           <Button
             variant="outlined"
             color="error"
-            onClick={() => handleDelete(user.uid)}
+            onClick={() => handleReject(user.uid)}
           >
             Reject
           </Button>

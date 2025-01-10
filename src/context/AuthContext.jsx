@@ -38,11 +38,15 @@ export const AuthProvider = ({ children }) => {
         phoneNumber,
         password,
       });
-      const user = response.data.user[0];
-      localStorage.setItem("user", JSON.stringify(user)); // Persist user data
-      dispatch({ type: "SIGNUP", payload: user });
+
+      // Do not store user data in localStorage or dispatch a SIGNUP action
+      // Simply return the response data for further processing
+      return response.data; // Return the response data (e.g., success message or user data)
     } catch (error) {
       console.error("Signup failed:", error);
+      throw new Error(
+        error.response?.data?.message || "Signup failed. Please try again."
+      );
     }
   };
 

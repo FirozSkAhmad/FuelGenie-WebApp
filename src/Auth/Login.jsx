@@ -66,6 +66,10 @@ const LoginPage = () => {
     }
   };
 
+  const handleSignupRedirect = () => {
+    navigate("/signup"); // Redirect to the signup page
+  };
+
   return (
     <Grid container sx={{ height: "100vh" }}>
       {/* Left panel with branding */}
@@ -172,6 +176,20 @@ const LoginPage = () => {
               )}
             </Button>
           </form>
+
+          {/* Signup Section */}
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Don't have an account?
+            </Typography>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleSignupRedirect}
+            >
+              Sign Up
+            </Button>
+          </Box>
         </FormContainer>
       </Grid>
     </Grid>
