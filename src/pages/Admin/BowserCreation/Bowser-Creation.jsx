@@ -18,7 +18,10 @@ import {
   CircularProgress,
   TablePagination,
   Backdrop,
+  Tabs,
+  Tab,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import api from "../../../utils/api";
@@ -29,6 +32,9 @@ const BowserCreation = () => {
   const [bowsers, setBowsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedBowserId, setSelectedBowserId] = useState(null);
+  const [remarks, setRemarks] = useState("");
   const [formData, setFormData] = useState({
     brand: "",
     rcNumber: "",
@@ -41,21 +47,35 @@ const BowserCreation = () => {
   });
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
+  const [tabValue, setTabValue] = useState(0); // Tab value (0 for active, 1 for deleted)
   const navigate = useNavigate();
   const permissions = usePermissions();
-  // Fetch Bowsers
+
+  // Fetch Bowsers based on deletion status
+  const fetchBowsers = async () => {
+    try {
+      const response = await api.get(
+        `/admin/bowser-creation/get-bowsers/${tabValue === 1}` // Use tabValue to determine isDeleted
+      );
+      setBowsers(response.data.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching bowsers:", error);
+      setLoading(false);
+    }
+  };
+
+  // Call fetchBowsers in useEffect
   useEffect(() => {
-    api
-      .get("/admin/bowser-creation/get-bowsers")
-      .then((response) => {
-        setBowsers(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching bowsers:", error);
-        setLoading(false);
-      });
-  }, []);
+    fetchBowsers();
+  }, [tabValue]);
+
+  // Handle Tab Change
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+    setBowsers([]); // Reset bowsers state to empty array
+    setPage(0); // Reset pagination to the first page
+  };
 
   // Handle Form Input Change
   const handleChange = (e) => {
@@ -108,10 +128,7 @@ const BowserCreation = () => {
         setLoading(true);
         toast.success("Bowser created successfully!");
         setModalOpen(false);
-        api.get("/admin/bowser-creation/get-bowsers").then((response) => {
-          setBowsers(response.data.data);
-          setLoading(false);
-        });
+        fetchBowsers();
       })
       .catch((error) => {
         toast.error("Failed to create bowser. Please try again.");
@@ -119,6 +136,28 @@ const BowserCreation = () => {
         setLoading(false);
       });
   };
+
+  // Handle Delete Bowser
+  const handleDelete = (bowserId, remarks) => {
+    setLoading(true);
+    api
+      .delete("/admin/bowser-creation/delete-bowser", {
+        data: { bowserId, remarks }, // Pass both bowserId and remarks in the body
+      })
+      .then(() => {
+        toast.success("Bowser deleted successfully!");
+        setDeleteDialogOpen(false);
+        setRemarks("");
+        // Refresh the bowsers list
+        fetchBowsers();
+      })
+      .catch((error) => {
+        toast.error("Failed to delete bowser. Please try again.");
+        console.error("Error deleting bowser:", error);
+        setLoading(false);
+      });
+  };
+
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
   };
@@ -127,6 +166,7 @@ const BowserCreation = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
   return (
     <Box sx={{ p: 3 }}>
       <BreadcrumbNavigation />
@@ -148,6 +188,14 @@ const BowserCreation = () => {
         </Button>
       </Box>
 
+      {/* Tabs for Active and Deleted Bowsers */}
+      <Box sx={{ mb: 2 }}>
+        <Tabs value={tabValue} onChange={handleTabChange}>
+          <Tab label="Active Bowsers" />
+          <Tab label="Deleted Bowsers" />
+        </Tabs>
+      </Box>
+
       {/* Bowsers Table */}
       <Box sx={{ height: 400, mb: 2 }}>
         {loading ? (
@@ -162,25 +210,66 @@ const BowserCreation = () => {
                   <TableCell>Model</TableCell>
                   <TableCell>RC Number</TableCell>
                   <TableCell>Capacity</TableCell>
+                  {tabValue === 1 && ( // Show additional columns for deleted bowsers
+                    <>
+                      <TableCell>Deleted By</TableCell>
+                      <TableCell>UID</TableCell>
+                      <TableCell>Deletion Date</TableCell>
+                    </>
+                  )}
+                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {bowsers.map((bowser) => (
-                  <TableRow
-                    key={bowser.bowserId}
-                    hover
-                    onClick={() =>
-                      navigate(`/admin/bowser-creation/${bowser.bowserId}`)
-                    }
-                    style={{ cursor: "pointer" }}
-                  >
-                    <TableCell>{bowser.bowserId}</TableCell>
-                    <TableCell>{bowser.brand}</TableCell>
-                    <TableCell>{bowser.model}</TableCell>
-                    <TableCell>{bowser.rcNumber}</TableCell>
-                    <TableCell>{bowser.capacity} Liters</TableCell>
+                {bowsers.length === 0 ? ( // Check if bowsers array is empty
+                  <TableRow>
+                    <TableCell colSpan={tabValue === 1 ? 8 : 5} align="center">
+                      <Typography variant="body1" sx={{ fontStyle: "italic" }}>
+                        No data available
+                      </Typography>
+                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  bowsers.map((bowser) => (
+                    <TableRow
+                      key={bowser.bowserId}
+                      hover
+                      onClick={() =>
+                        navigate(`/admin/bowser-creation/${bowser.bowserId}`)
+                      }
+                      style={{ cursor: "pointer" }}
+                    >
+                      <TableCell>{bowser.bowserId}</TableCell>
+                      <TableCell>{bowser.brand}</TableCell>
+                      <TableCell>{bowser.model}</TableCell>
+                      <TableCell>{bowser.rcNumber}</TableCell>
+                      <TableCell>{bowser.capacity} Liters</TableCell>
+                      {tabValue === 1 && ( // Show additional data for deleted bowsers
+                        <>
+                          <TableCell>{bowser.deletedBy}</TableCell>
+                          <TableCell>{bowser.uid}</TableCell>
+                          <TableCell>
+                            {new Date(bowser.deletionDate).toLocaleString()}
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click event
+                            setSelectedBowserId(bowser.bowserId);
+                            setDeleteDialogOpen(true);
+                          }}
+                          disabled={!permissions?.delete || tabValue === 1} // Disable delete for deleted bowsers
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
             <TablePagination
@@ -452,6 +541,42 @@ const BowserCreation = () => {
           </Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
             Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Bowser Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Bowser</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Remarks"
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            fullWidth
+            margin="normal"
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              if (!remarks) {
+                toast.error("Please enter remarks.");
+                return;
+              }
+              handleDelete(selectedBowserId, remarks);
+            }}
+            variant="contained"
+            color="error"
+          >
+            Confirm Delete
           </Button>
         </DialogActions>
       </Dialog>

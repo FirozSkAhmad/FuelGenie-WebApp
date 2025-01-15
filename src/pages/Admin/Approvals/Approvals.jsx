@@ -13,23 +13,35 @@ import {
   Typography,
   CircularProgress,
   Box,
+  TablePagination,
 } from "@mui/material";
 import api from "../../../utils/api";
 import { toast } from "react-toastify";
 
 const Approvals = () => {
-  const [activeTab, setActiveTab] = useState(0); // 0: Pending, 1: Approved
+  const [activeTab, setActiveTab] = useState(0); // 0: Pending, 1: Approved, 2: Rejected
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0); // Current page
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Rows per page
 
-  const fetchUsers = async (isApproved) => {
+  const fetchUsers = async (tabIndex) => {
     try {
       setLoading(true);
-      const response = await api.get(
-        `/admin/approvals/users?isApproved=${isApproved}`
-      );
+      let response;
+      if (tabIndex === 0) {
+        // Fetch pending users
+        response = await api.get(`/admin/approvals/users?isApproved=false`);
+      } else if (tabIndex === 1) {
+        // Fetch approved users
+        response = await api.get(`/admin/approvals/users?isApproved=true`);
+      } else if (tabIndex === 2) {
+        // Fetch rejected users
+        response = await api.get(`/admin/approvals/rejected-users`);
+      }
+
       if (response.status === 200) {
-        setUsers(response.data.data);
+        setUsers(response.data.data); // Store all users
       } else {
         console.error("Failed to fetch users");
       }
@@ -45,8 +57,7 @@ const Approvals = () => {
       const response = await api.post(`/admin/approvals/approve-user/${uid}`);
       if (response.status === 200) {
         toast.success("User approved successfully!");
-
-        fetchUsers(false); // Refresh pending approvals
+        fetchUsers(activeTab); // Refresh current tab data
       } else {
         alert("Failed to approve user.");
       }
@@ -55,12 +66,13 @@ const Approvals = () => {
       toast.error("An error occurred.");
     }
   };
+
   const handleReject = async (uid) => {
     try {
       const response = await api.post(`/admin/approvals/reject-user/${uid}`);
       if (response.status === 200) {
         toast.success("User rejected successfully!");
-        fetchUsers(false);
+        fetchUsers(activeTab); // Refresh current tab data
       } else {
         alert("Failed to reject user.");
       }
@@ -75,21 +87,28 @@ const Approvals = () => {
       const response = await api.delete(`/admin/approvals/delete-user/${uid}`);
       if (response.status === 200) {
         toast.success("User deleted successfully!");
-
-        fetchUsers(true); // Refresh approved users
+        fetchUsers(activeTab); // Refresh current tab data
       } else {
         alert("Failed to delete user.");
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-
       toast.error("An error occurred.");
     }
   };
 
   useEffect(() => {
-    fetchUsers(activeTab === 0 ? false : true); // Load initial tab data
+    fetchUsers(activeTab); // Load data for the active tab
   }, [activeTab]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page
+  };
 
   const renderActions = (user) => {
     if (activeTab === 0) {
@@ -113,7 +132,7 @@ const Approvals = () => {
           </Button>
         </>
       );
-    } else {
+    } else if (activeTab === 1) {
       // Approved Tab: Delete Action
       return (
         <Button
@@ -124,8 +143,17 @@ const Approvals = () => {
           Delete
         </Button>
       );
+    } else {
+      // Rejected Tab: No actions
+      return null;
     }
   };
+
+  // Calculate paginated users
+  const paginatedUsers = users.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   if (loading) {
     return (
@@ -149,43 +177,64 @@ const Approvals = () => {
       </Typography>
       <Tabs
         value={activeTab}
-        onChange={(e, newValue) => setActiveTab(newValue)}
+        onChange={(e, newValue) => {
+          setActiveTab(newValue);
+          setPage(0); // Reset to the first page when switching tabs
+        }}
         sx={{ marginBottom: "1rem" }}
       >
         <Tab label="Pending Approvals" />
         <Tab label="Approved Users" />
+        <Tab label="Rejected Users" />
       </Tabs>
       {users.length === 0 ? (
         <Typography variant="body1">
           {activeTab === 0
             ? "No users pending approval."
-            : "No approved users available."}
+            : activeTab === 1
+            ? "No approved users available."
+            : "No rejected users available."}
         </Typography>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Phone Number</TableCell>
-                <TableCell>Gender</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.uid}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.phoneNumber}</TableCell>
-                  <TableCell>{user.gender}</TableCell>
-                  <TableCell>{renderActions(user)}</TableCell>
+        <>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone Number</TableCell>
+                  <TableCell>Gender</TableCell>
+                  {activeTab !== 2 && <TableCell>Actions</TableCell>}{" "}
+                  {/* Hide Actions column for Rejected tab */}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {paginatedUsers.map((user) => (
+                  <TableRow key={user.uid}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.phoneNumber}</TableCell>
+                    <TableCell>{user.gender}</TableCell>
+                    {activeTab !== 2 && (
+                      <TableCell>{renderActions(user)}</TableCell>
+                    )}{" "}
+                    {/* Hide Actions column for Rejected tab */}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={users.length} // Total number of rows
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </>
       )}
     </Box>
   );

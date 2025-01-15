@@ -41,6 +41,7 @@ import DriverCreationDetail from "../pages/Admin/DriverCreation/Driver-Creation-
 import Orders from "../pages/Operations/Orders/Orders";
 import OrdersDetails from "../pages/Operations/Orders/OrdersDetails";
 import AssignBowsers from "../pages/Operations/Assign-bowsers/AssignBowsers";
+import BDAssignmentHistory from "../pages/Operations/bd-assignment-history/BDAssignmentHistory";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -245,6 +246,16 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<AssignBowsers />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/operations/bd-assignment-history"
+        element={
+          <ModuleAccessWrapper
+            element={<BDAssignmentHistory />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

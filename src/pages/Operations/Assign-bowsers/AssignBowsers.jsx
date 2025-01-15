@@ -21,10 +21,18 @@ import {
   TablePagination,
   IconButton,
 } from "@mui/material";
+import AssignmentIcon from "@mui/icons-material/Assignment"; // Icon for assigned orders
+import PersonIcon from "@mui/icons-material/Person"; // Icon for driver name
+import BadgeIcon from "@mui/icons-material/Badge"; // Icon for driver ID
+import PhoneIcon from "@mui/icons-material/Phone"; // Icon for contact
+import LocalGasStationIcon from "@mui/icons-material/LocalGasStation"; // Icon for capacity
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"; // Icon for RC number
+import AccessTimeIcon from "@mui/icons-material/AccessTime"; // Icon for shift
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ClearIcon from "@mui/icons-material/Clear";
+import { usePermissions } from "../../../utils/permissionssHelper";
 
 const AssignBowsers = () => {
   const [drivers, setDrivers] = useState([]);
@@ -37,7 +45,7 @@ const AssignBowsers = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
+  const permissions = usePermissions();
   // Pagination states
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -218,7 +226,15 @@ const AssignBowsers = () => {
               Unassigned Drivers
             </Typography>
             {loading ? (
-              <CircularProgress />
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : drivers.length === 0 ? (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                <Typography variant="body1" color="textSecondary">
+                  No Drivers Available
+                </Typography>
+              </Box>
             ) : (
               <TableContainer>
                 <Table>
@@ -245,8 +261,36 @@ const AssignBowsers = () => {
                           }}
                           style={{ cursor: "pointer" }}
                         >
-                          <TableCell>{driver.driverName}</TableCell>
-                          <TableCell>{driver.driverId}</TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <PersonIcon fontSize="small" />{" "}
+                              {/* Icon for driver name */}
+                              <Typography variant="body1">
+                                {driver.driverName}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <BadgeIcon fontSize="small" />{" "}
+                              {/* Icon for driver ID */}
+                              <Typography variant="body1">
+                                {driver.driverId}
+                              </Typography>
+                            </Box>
+                          </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
@@ -264,15 +308,21 @@ const AssignBowsers = () => {
             )}
           </Paper>
         </Grid>
-
-        {/* Assigned Drivers Section */}
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ padding: 2 }}>
             <Typography variant="h6" gutterBottom>
               Assigned Drivers
             </Typography>
             {loading ? (
-              <CircularProgress />
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : assignedDrivers.length === 0 ? (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                <Typography variant="body1" color="textSecondary">
+                  No Assigned Drivers
+                </Typography>
+              </Box>
             ) : (
               <TableContainer>
                 <Table>
@@ -319,12 +369,81 @@ const AssignBowsers = () => {
                             }}
                             style={{ cursor: "pointer" }}
                           >
-                            <TableCell>{driver.driverName}</TableCell>
-                            <TableCell>{driver.driverId}</TableCell>
-                            <TableCell>{driver.bowserNo}</TableCell>
-                            {/* Render formatted shift */}
-                            <TableCell>{formatShift(driver.shift)}</TableCell>
-                            <TableCell>{driver.orders}</TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <PersonIcon fontSize="small" />{" "}
+                                {/* Icon for driver name */}
+                                <Typography variant="body1">
+                                  {driver.driverName}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <BadgeIcon fontSize="small" />{" "}
+                                {/* Icon for driver ID */}
+                                <Typography variant="body1">
+                                  {driver.driverId}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <LocalGasStationIcon fontSize="small" />{" "}
+                                {/* Icon for bowser */}
+                                <Typography variant="body1">
+                                  {driver.bowserNo}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <AccessTimeIcon fontSize="small" />{" "}
+                                {/* Icon for shift */}
+                                <Typography variant="body1">
+                                  {formatShift(driver.shift)}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <AssignmentIcon fontSize="small" />{" "}
+                                {/* Icon for assigned orders */}
+                                <Typography variant="body1">
+                                  {driver.orders}
+                                </Typography>
+                              </Box>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -363,37 +482,82 @@ const AssignBowsers = () => {
                 <ClearIcon />
               </IconButton>
             </Box>
-            <Typography>Name: {driverDetails.driverName}</Typography>
-            <Typography>Contact: {driverDetails.contactDetails}</Typography>
-            {isAssignedDriver && (
-              <>
-                <Typography>
-                  Bowser:{" "}
-                  {
-                    assignedDrivers.find(
-                      (driver) => driver.driverId === selectedDriver
-                    ).bowserNo
-                  }
-                </Typography>
-                <Typography>
-                  Shift:{" "}
-                  {
-                    assignedDrivers.find(
-                      (driver) => driver.driverId === selectedDriver
-                    ).shift
-                  }
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={handleUnassignBowser}
-                  disabled={loading}
-                  sx={{ marginTop: 2 }}
-                >
-                  Unassign Bowser
-                </Button>
-              </>
-            )}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {/* Name */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <PersonIcon fontSize="small" /> {/* Icon for name */}
+                <Typography>Name: {driverDetails.driverName}</Typography>
+              </Box>
+
+              {/* Contact */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <PhoneIcon fontSize="small" /> {/* Icon for contact */}
+                <Typography>Contact: {driverDetails.contactDetails}</Typography>
+              </Box>
+
+              {/* Bowser and Shift (if assigned) */}
+              {isAssignedDriver && (
+                <>
+                  {/* Bowser */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <LocalGasStationIcon fontSize="small" />{" "}
+                    {/* Icon for bowser */}
+                    <Typography>
+                      Bowser:{" "}
+                      {
+                        assignedDrivers.find(
+                          (driver) => driver.driverId === selectedDriver
+                        ).bowserNo
+                      }
+                    </Typography>
+                  </Box>
+
+                  {/* Shift */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <AccessTimeIcon fontSize="small" /> {/* Icon for shift */}
+                    <Typography>
+                      Shift:{" "}
+                      {(() => {
+                        const shift = assignedDrivers.find(
+                          (driver) => driver.driverId === selectedDriver
+                        ).shift;
+
+                        if (!shift) return "No Shift Assigned"; // Handle empty shift
+
+                        // Split the shift into start and end hours
+                        const [startHour, endHour] = shift
+                          .split("-")
+                          .map(Number);
+
+                        // Convert hours to AM/PM format
+                        const formatTime = (hour) => {
+                          const period = hour < 12 ? "AM" : "PM"; // Determine AM or PM
+                          const formattedHour =
+                            hour % 12 === 0 ? 12 : hour % 12; // Convert to 12-hour format
+                          return `${formattedHour} ${period}`; // Return formatted time
+                        };
+
+                        // Return formatted shift
+                        return `${formatTime(startHour)} - ${formatTime(
+                          endHour
+                        )}`;
+                      })()}
+                    </Typography>
+                  </Box>
+
+                  {/* Unassign Button */}
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={handleUnassignBowser}
+                    disabled={loading || !permissions.update}
+                    sx={{ marginTop: 2 }}
+                  >
+                    Unassign Bowser
+                  </Button>
+                </>
+              )}
+            </Box>
           </Paper>
         </Box>
       )}
@@ -410,14 +574,49 @@ const AssignBowsers = () => {
                   onChange={(e) => setSelectedBowser(e.target.value)}
                   label="Select a Bowser"
                   disabled={!selectedDriver || unassignedBowsers.length === 0}
+                  renderValue={(selected) => {
+                    if (!selected) return "Select a Bowser";
+                    const selectedBowserData = unassignedBowsers.find(
+                      (bowser) => bowser.bowserId === selected
+                    );
+                    return (
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <DirectionsCarIcon fontSize="small" />
+                        <Typography variant="body1">
+                          RC: {selectedBowserData.rcNumber}
+                        </Typography>
+                        <LocalGasStationIcon fontSize="small" />
+                        <Typography variant="body1">
+                          (Capacity: {selectedBowserData.currentCapacity}/
+                          {selectedBowserData.bowserLimit})
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                 >
                   {unassignedBowsers.length === 0 ? (
-                    <MenuItem disabled>No Unassigned Bowsers</MenuItem>
+                    <MenuItem disabled>
+                      <Typography variant="body2" color="textSecondary">
+                        No Unassigned Bowsers Available
+                      </Typography>
+                    </MenuItem>
                   ) : (
                     unassignedBowsers.map((bowser) => (
                       <MenuItem key={bowser.bowserId} value={bowser.bowserId}>
-                        {bowser.bowserId} (Capacity: {bowser.currentCapacity}/
-                        {bowser.bowserLimit})
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
+                          <DirectionsCarIcon fontSize="small" />
+                          <Typography variant="body1" sx={{ flexGrow: 1 }}>
+                            RC: {bowser.rcNumber}
+                          </Typography>
+                          <LocalGasStationIcon fontSize="small" />
+                          <Typography variant="body1">
+                            {bowser.currentCapacity}/{bowser.bowserLimit}
+                          </Typography>
+                        </Box>
                       </MenuItem>
                     ))
                   )}
@@ -435,10 +634,38 @@ const AssignBowsers = () => {
                   onChange={(e) => setShift(e.target.value)}
                   label="Select a Shift"
                   disabled={!selectedDriver}
+                  renderValue={(selected) => {
+                    if (!selected) return "Select a Shift";
+                    return (
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <AccessTimeIcon fontSize="small" />{" "}
+                        {/* Icon for shift */}
+                        <Typography variant="body1">
+                          {selected === "9-21" ? "9 AM - 9 PM" : "9 PM - 9 AM"}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                 >
-                  <MenuItem value="">Select a Shift</MenuItem>
-                  <MenuItem value="9-21">9 AM - 9 PM</MenuItem>
-                  <MenuItem value="21-9">9 PM - 9 AM</MenuItem>
+                  <MenuItem value="">
+                    <Typography variant="body2" color="textSecondary">
+                      Select a Shift
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem value="9-21">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AccessTimeIcon fontSize="small" />
+                      <Typography variant="body1">9 AM - 9 PM</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="21-9">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AccessTimeIcon fontSize="small" />
+                      <Typography variant="body1">9 PM - 9 AM</Typography>
+                    </Box>
+                  </MenuItem>
                 </Select>
               </FormControl>
             </Paper>
@@ -457,7 +684,8 @@ const AssignBowsers = () => {
             !selectedBowser ||
             !shift ||
             loading ||
-            isAssignedDriver
+            isAssignedDriver ||
+            !permissions.update
           }
           sx={{ marginRight: 2 }}
         >
@@ -472,7 +700,8 @@ const AssignBowsers = () => {
             !selectedBowser ||
             !shift ||
             loading ||
-            !isAssignedDriver
+            !isAssignedDriver ||
+            !permissions.update
           }
           sx={{ marginRight: 2 }}
         >

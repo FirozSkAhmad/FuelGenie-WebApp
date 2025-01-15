@@ -205,7 +205,8 @@ const BowserCreationDetail = () => {
     );
   }
 
-  const { brand, vehicleModel, rcNumber, capacity, Documents } = bowserDetails;
+  const { brand, vehicleModel, rcNumber, capacity, isDeleted, Documents } =
+    bowserDetails;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -237,6 +238,14 @@ const BowserCreationDetail = () => {
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               <strong>Capacity:</strong> {capacity} Liters
             </Typography>
+            <Typography>
+              <strong>Is Deleted:</strong>{" "}
+              {isDeleted ? (
+                <span style={{ color: "red" }}>Yes</span> // Red text for "Yes"
+              ) : (
+                <span style={{ color: "green" }}>No</span> // Green text for "No"
+              )}
+            </Typography>
           </Box>
           <Divider sx={{ my: 2 }} />
           {!editMode && (
@@ -251,7 +260,7 @@ const BowserCreationDetail = () => {
                   padding: "8px",
                   "&:hover": { backgroundColor: "#1565C0" },
                 }}
-                disabled={!permissions.update}
+                disabled={!permissions.update || isDeleted}
                 size="large"
               >
                 <Edit />
@@ -319,7 +328,7 @@ const BowserCreationDetail = () => {
           color="primary"
           onClick={() => setOpenDialog(true)}
           sx={{ mt: 2 }}
-          disabled={!permissions.update}
+          disabled={!permissions.update || isDeleted}
         >
           Add Document
         </Button>

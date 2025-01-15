@@ -201,7 +201,10 @@ const DriverCreationDetail = () => {
               variant="contained"
               startIcon={<EditIcon />}
               onClick={() => setEditMode(!editMode)}
-              disabled={!permissions?.update} // Disable the button based on user permissions
+              disabled={
+                !permissions?.update ||
+                driverDetails.driverInformation.isDeleted
+              } // Disable the button based on user permissions
             >
               {editMode ? "Cancel Edit" : "Edit Details"}
             </Button>
@@ -331,6 +334,14 @@ const DriverCreationDetail = () => {
                 <strong>Driving License Number:</strong>{" "}
                 {driverDetails.driverInformation.drivingLicenseNumber}
               </Typography>
+              <Typography>
+                <strong>Is Deleted:</strong>{" "}
+                {driverDetails.driverInformation.isDeleted ? (
+                  <span style={{ color: "red" }}>Yes</span> // Red text for "Yes"
+                ) : (
+                  <span style={{ color: "green" }}>No</span> // Green text for "No"
+                )}
+              </Typography>
             </>
           )}
         </CardContent>
@@ -409,7 +420,11 @@ const DriverCreationDetail = () => {
               variant="contained"
               startIcon={<UploadIcon />}
               onClick={() => setAddDocModalOpen(true)}
-              disabled={!permissions.update || editMode} // Disable the button in edit mode
+              disabled={
+                !permissions.update ||
+                editMode ||
+                driverDetails.driverInformation.isDeleted
+              } // Disable the button in edit mode
             >
               Add Document
             </Button>

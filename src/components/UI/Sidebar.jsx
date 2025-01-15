@@ -49,6 +49,7 @@ import {
   Wallet,
   CardGiftcard,
   DriveEta,
+  History,
 } from "@mui/icons-material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -231,6 +232,11 @@ function Sidebar({ open, toggleDrawer }) {
           label: " Assign Bowsers",
           icon: <LocalShipping />,
           path: "/operations/assign-bowsers",
+        },
+        {
+          label: "Bowser & Driver Assignment",
+          icon: <History />,
+          path: "/operations/bd-assignment-history",
         },
         {
           label: "Bowser Deliveries",

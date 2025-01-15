@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   Button,
   Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   TextField,
   Table,
   TableBody,
@@ -17,6 +21,8 @@ import {
   CardContent,
   IconButton,
   CircularProgress,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import { Delete as DeleteIcon } from "@mui/icons-material"; // Import delete icon
 import UploadIcon from "@mui/icons-material/Upload";
@@ -29,6 +35,7 @@ import { usePermissions } from "../../../utils/permissionssHelper";
 const DriverCreation = () => {
   const [open, setOpen] = useState(false); // State for modal
   const [drivers, setDrivers] = useState([]); // State for driver list
+  const [remarks, setRemarks] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -50,17 +57,21 @@ const DriverCreation = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const permissions = usePermissions();
   const navigate = useNavigate();
-
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState(null);
+  const [tabValue, setTabValue] = useState(0);
   // Fetch drivers on component mount
   useEffect(() => {
     fetchDrivers();
   }, []);
 
-  // Fetch drivers from API
+  // Fetch drivers based on tab value
   const fetchDrivers = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/admin/driver-creation/get-drivers");
+      const response = await api.get(
+        `/admin/driver-creation/get-drivers/${tabValue === 1}` // Use tabValue to determine isDeleted
+      );
       setDrivers(response.data.data);
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -70,6 +81,16 @@ const DriverCreation = () => {
     }
   };
 
+  // Call fetchDrivers when tabValue changes
+  useEffect(() => {
+    fetchDrivers();
+  }, [tabValue]);
+
+  // Handle tab change
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+    setDrivers([]); // Reset drivers state to avoid flickering
+  };
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -114,6 +135,26 @@ const DriverCreation = () => {
       const updatedDocs = customDocs.filter((_, i) => i !== index);
       setCustomDocs(updatedDocs);
     }
+  };
+  // Handle Delete Bowser
+  const handleDelete = (driverId, remarks) => {
+    setLoading(true);
+    api
+      .delete("/admin/driver-creation/delete-driver", {
+        data: { driverId, remarks }, // Pass both DriverId and remarks in the body
+      })
+      .then(() => {
+        toast.success("Driver deleted successfully!");
+        setDeleteDialogOpen(false);
+        setRemarks("");
+        // Refresh the bowsers list
+        fetchDrivers();
+      })
+      .catch((error) => {
+        toast.error("Failed to delete Driver. Please try again.");
+        console.error("Error deleting Driver:", error);
+        setLoading(false);
+      });
   };
 
   // Handle form submission
@@ -568,6 +609,13 @@ const DriverCreation = () => {
         </Box>
       </Modal>
 
+      {/* Tabs for Active and Deleted Drivers */}
+      <Box sx={{ mb: 2 }}>
+        <Tabs value={tabValue} onChange={handleTabChange}>
+          <Tab label="Active Drivers" />
+          <Tab label="Deleted Drivers" />
+        </Tabs>
+      </Box>
       {/* Driver List Table */}
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
@@ -580,12 +628,19 @@ const DriverCreation = () => {
               <TableCell>Email</TableCell>
               <TableCell>Blood Group</TableCell>
               <TableCell>Date of Joining</TableCell>
+              {tabValue === 1 && ( // Show additional columns for deleted drivers
+                <>
+                  <TableCell>Deleted By</TableCell>
+                  <TableCell>Deletion Date</TableCell>
+                </>
+              )}
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? ( // Show loading spinner if data is being fetched
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={tabValue === 1 ? 9 : 7} align="center">
                   <CircularProgress />
                 </TableCell>
               </TableRow>
@@ -603,12 +658,34 @@ const DriverCreation = () => {
                   <TableCell>{driver.email}</TableCell>
                   <TableCell>{driver.bloodGroup}</TableCell>
                   <TableCell>{driver.dateOfJoining}</TableCell>
+                  {tabValue === 1 && ( // Show additional data for deleted drivers
+                    <>
+                      <TableCell>{driver.deletedBy}</TableCell>
+                      <TableCell>
+                        {new Date(driver.deletionDate).toLocaleString()}
+                      </TableCell>
+                    </>
+                  )}
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click event
+                        setSelectedDriverId(driver.driverId);
+                        setDeleteDialogOpen(true);
+                      }}
+                      disabled={!permissions?.delete || tabValue === 1} // Disable delete for deleted drivers
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               // Show a message if no data is available
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={tabValue === 1 ? 9 : 7} align="center">
                   No drivers found.
                 </TableCell>
               </TableRow>
@@ -616,6 +693,42 @@ const DriverCreation = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Delete Driver Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Driver</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Remarks"
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            fullWidth
+            margin="normal"
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              if (!remarks) {
+                toast.error("Please enter remarks.");
+                return;
+              }
+              handleDelete(selectedDriverId, remarks);
+            }}
+            variant="contained"
+            color="error"
+          >
+            Confirm Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
