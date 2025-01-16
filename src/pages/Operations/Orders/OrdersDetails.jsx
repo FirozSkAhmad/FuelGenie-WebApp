@@ -410,7 +410,8 @@ const OrdersDetails = () => {
         </CardContent>
       </Card>
 
-      {/* Payment Details */}
+      {/* Payment Details  */}
+
       <Card sx={{ mb: 4 }}>
         <CardHeader
           avatar={
@@ -447,44 +448,75 @@ const OrdersDetails = () => {
                     }
                   />
                 </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Transaction ID"
-                    secondary={
-                      paymentDetails.razorpayTransaction?.transactionId || "N/A"
-                    }
-                    secondaryTypographyProps={{ color: "text.secondary" }}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Razorpay Order ID"
-                    secondary={
-                      paymentDetails.razorpayTransaction?.razorpayOrderId ||
-                      "N/A"
-                    }
-                    secondaryTypographyProps={{ color: "text.secondary" }}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Razorpay Payment ID"
-                    secondary={
-                      paymentDetails.razorpayTransaction?.razorpayPaymentId ||
-                      "N/A"
-                    }
-                    secondaryTypographyProps={{ color: "text.secondary" }}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Amount Paid"
-                    secondary={`₹${paymentDetails.razorpayTransaction?.amountPaid}`}
-                    secondaryTypographyProps={{ color: "text.secondary" }}
-                  />
-                </ListItem>
+
+                {/* Wallet Transaction Details */}
+                {paymentDetails.paymentMode.includes("WALLET") && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary="Wallet Transaction ID"
+                        secondary={
+                          paymentDetails.walletTransaction?.transactionId ||
+                          "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Debited from Wallet"
+                        secondary={`₹${paymentDetails.walletTransaction?.amountDebited}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                  </>
+                )}
+
+                {/* Razorpay Transaction Details */}
+                {paymentDetails.paymentMode.includes("RAZORPAY") && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary="Transaction ID"
+                        secondary={
+                          paymentDetails.razorpayTransaction?.transactionId ||
+                          "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Razorpay Order ID"
+                        secondary={
+                          paymentDetails.razorpayTransaction?.razorpayOrderId ||
+                          "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Razorpay Payment ID"
+                        secondary={
+                          paymentDetails.razorpayTransaction
+                            ?.razorpayPaymentId || "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Paid via Razorpay"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.amountPaid}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                  </>
+                )}
               </List>
             </Grid>
+
             <Grid item xs={12} md={6}>
               <List>
                 <ListItem>
@@ -522,6 +554,118 @@ const OrdersDetails = () => {
                     secondaryTypographyProps={{ color: "text.secondary" }}
                   />
                 </ListItem>
+
+                {/* Fee Breakdown for RAZORPAY+WALLET */}
+                {paymentDetails.paymentMode === "RAZORPAY+WALLET" && (
+                  <>
+                    {/* Wallet Payment Section */}
+                    <ListItem>
+                      <ListItemText
+                        primary="Wallet Payment"
+                        primaryTypographyProps={{
+                          fontWeight: "bold",
+                          color: "primary.main",
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Paid from Wallet"
+                        secondary={`₹${paymentDetails.walletTransaction?.amountDebited}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+
+                    {/* Razorpay Payment Section */}
+                    <ListItem>
+                      <ListItemText
+                        primary="Razorpay Payment"
+                        primaryTypographyProps={{
+                          fontWeight: "bold",
+                          color: "primary.main",
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Paid via Razorpay"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.amountPaid}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Transaction Fee 2% By Razorpay"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.feeBreakup?.transactionFee}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="GST on Fee 18% By Razorpay on the 2% Fee"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.feeBreakup?.gstOnFee}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Total Amount Paid via Razorpay"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.feeBreakup?.totalAmountPaid}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+
+                    {/* Combined Total Section */}
+                    <ListItem>
+                      <ListItemText
+                        primary="Combined Total"
+                        primaryTypographyProps={{
+                          fontWeight: "bold",
+                          color: "primary.main",
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Total Amount Paid"
+                        secondary={`₹${
+                          (paymentDetails.walletTransaction?.amountDebited ||
+                            0) +
+                          (paymentDetails.razorpayTransaction?.feeBreakup
+                            ?.totalAmountPaid || 0)
+                        }`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                  </>
+                )}
+
+                {/* Fee Breakdown for RAZORPAY */}
+                {paymentDetails.paymentMode === "RAZORPAY" && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary="Transaction Fee"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.feeBreakup?.transactionFee}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="GST on Fee"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.feeBreakup?.gstOnFee}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Total Amount Paid"
+                        secondary={`₹${paymentDetails.razorpayTransaction?.feeBreakup?.totalAmountPaid}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                  </>
+                )}
               </List>
             </Grid>
           </Grid>
