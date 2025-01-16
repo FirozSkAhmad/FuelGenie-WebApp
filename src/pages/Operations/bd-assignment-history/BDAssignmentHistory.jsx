@@ -17,13 +17,17 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person"; // Icon for driver name
+import BadgeIcon from "@mui/icons-material/Badge"; // Icon for driver ID
+import PhoneIcon from "@mui/icons-material/Phone"; // Icon for contact
+import LocalGasStationIcon from "@mui/icons-material/LocalGasStation"; // Icon for capacity
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"; // Icon for RC number
 
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
-import OnlineIcon from "@mui/icons-material/FiberManualRecord"; // Online icon
-import OfflineIcon from "@mui/icons-material/RadioButtonUnchecked"; // Offline icon
+
 import CategoryIcon from "@mui/icons-material/Category"; // Icon for Type filter
 import LocalShippingIcon from "@mui/icons-material/LocalShipping"; // Icon for Bowser ID filter
-import PersonIcon from "@mui/icons-material/Person"; // Icon for Driver ID filte
+
 const BDAssignmentHistory = () => {
   const [history, setHistory] = useState([]); // All data fetched from the API
   const [filteredHistory, setFilteredHistory] = useState([]); // Data after applying filters
@@ -168,7 +172,7 @@ const BDAssignmentHistory = () => {
         </FormControl>
 
         {/* Bowser ID Filter */}
-        <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
+        <FormControl variant="outlined" size="small" sx={{ minWidth: 250 }}>
           <TextField
             select
             label="Bowser ID"
@@ -184,17 +188,32 @@ const BDAssignmentHistory = () => {
           >
             <MenuItem value="">All</MenuItem>
             {Array.from(new Set(history.map((item) => item.bowserId))).map(
-              (id) => (
-                <MenuItem key={id} value={id}>
-                  {id}
-                </MenuItem>
-              )
+              (id) => {
+                // Find the first item with this bowserId to get rcNumber and capacity
+                const item = history.find((item) => item.bowserId === id);
+                return (
+                  <MenuItem key={id} value={id}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarIcon fontSize="small" />{" "}
+                      {/* Icon for RC Number */}
+                      <Typography variant="body1">
+                        RC: {item.rcNumber}
+                      </Typography>
+                      <LocalGasStationIcon fontSize="small" />{" "}
+                      {/* Icon for Capacity */}
+                      <Typography variant="body1">
+                        (Capacity: {item.capacity})
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                );
+              }
             )}
           </TextField>
         </FormControl>
 
         {/* Driver ID Filter */}
-        <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
+        <FormControl variant="outlined" size="small" sx={{ minWidth: 250 }}>
           <TextField
             select
             label="Driver ID"
@@ -210,11 +229,23 @@ const BDAssignmentHistory = () => {
           >
             <MenuItem value="">All</MenuItem>
             {Array.from(new Set(history.map((item) => item.driverId))).map(
-              (id) => (
-                <MenuItem key={id} value={id}>
-                  {id}
-                </MenuItem>
-              )
+              (id) => {
+                // Find the first item with this driverId to get driverName and contactNumber
+                const item = history.find((item) => item.driverId === id);
+                return (
+                  <MenuItem key={id} value={id}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <BadgeIcon fontSize="small" /> {/* Icon for Driver */}
+                      <Typography variant="body1">{item.driverName}</Typography>
+                      <PhoneIcon fontSize="small" />{" "}
+                      {/* Icon for Phone Number */}
+                      <Typography variant="body1">
+                        {item.contactNumber}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                );
+              }
             )}
           </TextField>
         </FormControl>
@@ -226,17 +257,21 @@ const BDAssignmentHistory = () => {
             <TableRow>
               <TableCell>Bowser ID</TableCell>
               <TableCell>Driver ID</TableCell>
+              <TableCell>Driver Name</TableCell>
+              <TableCell>Contact Number</TableCell>
+              <TableCell>RC Number</TableCell>
+              <TableCell>Capacity</TableCell>
               <TableCell>Shift</TableCell>
-              <TableCell>Assigned By</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell>Updated By</TableCell>
+
               <TableCell>Action</TableCell>
-              <TableCell>Date</TableCell>
+              <TableCell>Updated Date</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredHistory.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={11} align="center">
                   <Typography variant="h6">No data found.</Typography>
                 </TableCell>
               </TableRow>
@@ -245,19 +280,21 @@ const BDAssignmentHistory = () => {
                 <TableRow key={item._id}>
                   <TableCell>{item.bowserId}</TableCell>
                   <TableCell>{item.driverId}</TableCell>
+                  <TableCell>{item.driverName}</TableCell>
+                  <TableCell>{item.contactNumber}</TableCell>
+                  <TableCell>{item.rcNumber}</TableCell>
+                  <TableCell>{item.capacity} liters</TableCell>
                   <TableCell>{formatShift(item.shift)}</TableCell>
-                  <TableCell>{item.assignedBy || item.unAssignedBy}</TableCell>
                   <TableCell>
-                    {item.isLogged ? (
-                      <OnlineIcon style={{ color: "green" }} />
-                    ) : (
-                      <OfflineIcon style={{ color: "red" }} />
-                    )}
+                    {item.assignedBy || item.unAssignedBy || item.reAssignedBy}
                   </TableCell>
+
                   <TableCell>{item.action}</TableCell>
                   <TableCell>
                     {new Date(
-                      item.assignmentDate || item.unAssignmentDate
+                      item.assignmentDate ||
+                        item.unAssignmentDate ||
+                        item.reAssignmentDate
                     ).toLocaleString()}
                   </TableCell>
                 </TableRow>

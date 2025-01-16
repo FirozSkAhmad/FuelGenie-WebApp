@@ -20,6 +20,7 @@ import {
   TableRow,
   TablePagination,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment"; // Icon for assigned orders
 import PersonIcon from "@mui/icons-material/Person"; // Icon for driver name
@@ -207,6 +208,16 @@ const AssignBowsers = () => {
   const isAssignedDriver = selectedDriver
     ? assignedDrivers.some((driver) => driver.driverId === selectedDriver)
     : false;
+  // Format shift function
+  const formatShift = (shift) => {
+    const [startHour, endHour] = shift.split("-").map(Number);
+    const formatTime = (hour) => {
+      const period = hour < 12 ? "A.M" : "P.M";
+      const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+      return `${formattedHour} ${period}`;
+    };
+    return `${formatTime(startHour)} - ${formatTime(endHour)}`;
+  };
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -333,6 +344,7 @@ const AssignBowsers = () => {
                       <TableCell>Bowser</TableCell>
                       <TableCell>Shift</TableCell>
                       <TableCell>Assigned Orders</TableCell>
+                      <TableCell>Assigned By</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -341,112 +353,139 @@ const AssignBowsers = () => {
                         page * rowsPerPage,
                         page * rowsPerPage + rowsPerPage
                       )
-                      .map((driver) => {
-                        // Format shift function
-                        const formatShift = (shift) => {
-                          const [startHour, endHour] = shift
-                            .split("-")
-                            .map(Number);
-                          const formatTime = (hour) => {
-                            const period = hour < 12 ? "A.M" : "P.M";
-                            const formattedHour =
-                              hour % 12 === 0 ? 12 : hour % 12;
-                            return `${formattedHour} ${period}`;
-                          };
-                          return `${formatTime(startHour)} - ${formatTime(
-                            endHour
-                          )}`;
-                        };
-
-                        return (
-                          <TableRow
-                            key={driver.driverId}
-                            hover
-                            onClick={() => {
-                              setSelectedDriver(driver.driverId);
-                              fetchDriverDetails(driver.driverId);
-                              fetchUnassignedBowsers();
-                            }}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
+                      .map((driver) => (
+                        <TableRow
+                          key={driver.driverId}
+                          hover
+                          onClick={() => {
+                            setSelectedDriver(driver.driverId);
+                            fetchDriverDetails(driver.driverId);
+                            fetchUnassignedBowsers();
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {/* Tooltip for logged-in/logged-out status */}
+                              <Tooltip
+                                title={driver.isLoggedIn ? "Online" : "Offline"}
+                                placement="top"
+                                arrow
                               >
-                                <PersonIcon fontSize="small" />{" "}
-                                {/* Icon for driver name */}
-                                <Typography variant="body1">
-                                  {driver.driverName}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
+                                {/* Dot for logged-in/logged-out status */}
+                                {driver.isLoggedIn ? (
+                                  <Box
+                                    sx={{
+                                      width: 10,
+                                      height: 10,
+                                      borderRadius: "50%",
+                                      backgroundColor: "green",
+                                    }}
+                                  />
+                                ) : (
+                                  <Box
+                                    sx={{
+                                      width: 10,
+                                      height: 10,
+                                      borderRadius: "50%",
+                                      backgroundColor: "red",
+                                    }}
+                                  />
+                                )}
+                              </Tooltip>
+                              <PersonIcon fontSize="small" />
+                              <Typography
+                                variant="body1"
+                                sx={{ fontSize: "0.875rem" }}
                               >
-                                <BadgeIcon fontSize="small" />{" "}
-                                {/* Icon for driver ID */}
-                                <Typography variant="body1">
-                                  {driver.driverId}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
+                                {driver.driverName}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <BadgeIcon fontSize="small" />
+                              <Typography
+                                variant="body1"
+                                sx={{ fontSize: "0.875rem" }}
                               >
-                                <LocalGasStationIcon fontSize="small" />{" "}
-                                {/* Icon for bowser */}
-                                <Typography variant="body1">
-                                  {driver.bowserNo}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
+                                {driver.driverId}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <LocalGasStationIcon fontSize="small" />
+                              <Typography
+                                variant="body1"
+                                sx={{ fontSize: "0.875rem" }}
                               >
-                                <AccessTimeIcon fontSize="small" />{" "}
-                                {/* Icon for shift */}
-                                <Typography variant="body1">
-                                  {formatShift(driver.shift)}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
+                                {driver.bowserNo}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <AccessTimeIcon fontSize="small" />
+                              <Typography
+                                variant="body1"
+                                sx={{ fontSize: "0.875rem" }}
                               >
-                                <AssignmentIcon fontSize="small" />{" "}
-                                {/* Icon for assigned orders */}
-                                <Typography variant="body1">
-                                  {driver.orders}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                                {formatShift(driver.shift)}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <AssignmentIcon fontSize="small" />
+                              <Typography
+                                variant="body1"
+                                sx={{ fontSize: "0.875rem" }}
+                              >
+                                {driver.orders}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              variant="body1"
+                              sx={{ fontSize: "0.875rem" }}
+                            >
+                              {driver.assignedBy}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
                 <TablePagination
@@ -464,7 +503,6 @@ const AssignBowsers = () => {
         </Grid>
       </Grid>
 
-      {/* Driver Details Section */}
       {driverDetails && (
         <Box sx={{ marginTop: 3 }}>
           <Paper elevation={3} sx={{ padding: 2 }}>
@@ -483,8 +521,36 @@ const AssignBowsers = () => {
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {/* Name */}
+              {/* Name with Online/Offline Status */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {isAssignedDriver && (
+                  <Tooltip
+                    title={driverDetails.isLoggedIn ? "Online" : "Offline"}
+                    placement="top"
+                    arrow
+                  >
+                    {/* Dot for logged-in/logged-out status */}
+                    {driverDetails.isLoggedIn ? (
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          backgroundColor: "green",
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          backgroundColor: "red",
+                        }}
+                      />
+                    )}
+                  </Tooltip>
+                )}
                 <PersonIcon fontSize="small" /> {/* Icon for name */}
                 <Typography>Name: {driverDetails.driverName}</Typography>
               </Box>
