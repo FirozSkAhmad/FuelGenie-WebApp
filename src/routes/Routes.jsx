@@ -42,6 +42,8 @@ import Orders from "../pages/Operations/Orders/Orders";
 import OrdersDetails from "../pages/Operations/Orders/OrdersDetails";
 import AssignBowsers from "../pages/Operations/Assign-bowsers/AssignBowsers";
 import BDAssignmentHistory from "../pages/Operations/bd-assignment-history/BDAssignmentHistory";
+import B2BApprovals from "../pages/Management/b2b-approvals/B2b-Approvals";
+import B2BApprovalsDetails from "../pages/Management/b2b-approvals/B2b-approvals-details";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -396,6 +398,26 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<Coupons />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/management/b2b-approvals"
+        element={
+          <ModuleAccessWrapper
+            element={<B2BApprovals />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/management/b2b-approvals/:cid"
+        element={
+          <ModuleAccessWrapper
+            element={<B2BApprovalsDetails />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

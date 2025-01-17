@@ -301,6 +301,11 @@ function Sidebar({ open, toggleDrawer }) {
           icon: <CardGiftcard />,
           path: "/management/coupons",
         },
+        {
+          label: "B2B Approvals",
+          icon: <AssignmentTurnedIn />,
+          path: "/management/b2b-approvals",
+        },
       ],
       toggle: "management",
     },
