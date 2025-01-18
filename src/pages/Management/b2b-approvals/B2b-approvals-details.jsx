@@ -23,6 +23,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Chip,
 } from "@mui/material";
 import {
   Person,
@@ -109,7 +110,7 @@ const B2BApprovalsDetails = () => {
           "listOfPartnersPdfUrl",
           "partnershipLetterPdfUrl",
         ];
-      case "PRIVATELTD":
+      case "PRIVATE LTD / LTD.":
         return [
           "auditedFinancialItrNumber",
           "auditedFinancialItrPdfUrl",
@@ -296,7 +297,7 @@ const B2BApprovalsDetails = () => {
 
       // Append firmType if it has been touched
       if (touchedFields.firmType) {
-        formData.append("firmType", updatedCustomer.firmType);
+        formData.append("firmType", firmType);
       }
 
       // Append only the required and touched document fields
@@ -492,24 +493,44 @@ const B2BApprovalsDetails = () => {
             marginTop: "20px",
           }}
         >
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={<CheckCircle />} // Approve icon
-            onClick={() => handleApproveReject(true)} // Pass `true` for Approve
-            disabled={loading} // Disable while API call is in progress
-          >
-            Approve
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<Cancel />} // Reject icon
-            onClick={() => handleApproveReject(false)} // Pass `false` for Reject
-            disabled={loading} // Disable while API call is in progress
-          >
-            Reject
-          </Button>
+          {customer.isAccepted === true && (
+            <Chip
+              label="Accepted"
+              color="success"
+              icon={<CheckCircle />} // Add an icon for better visual feedback
+              variant="outlined"
+            />
+          )}
+          {customer.isAccepted === false && (
+            <Chip
+              label="Rejected"
+              color="error"
+              icon={<Cancel />} // Add an icon for better visual feedback
+              variant="outlined"
+            />
+          )}
+          {customer.isAccepted === null && (
+            <>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CheckCircle />} // Approve icon
+                onClick={() => handleApproveReject(true)} // Pass `true` for Approve
+                disabled={loading} // Disable while API call is in progress
+              >
+                Approve
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<Cancel />} // Reject icon
+                onClick={() => handleApproveReject(false)} // Pass `false` for Reject
+                disabled={loading} // Disable while API call is in progress
+              >
+                Reject
+              </Button>
+            </>
+          )}
         </Box>
       </Paper>
       {/* Edit Button for Customer Info */}
@@ -879,7 +900,7 @@ const B2BApprovalsDetails = () => {
             >
               <MenuItem value="PROPRIETORSHIP">Proprietorship</MenuItem>
               <MenuItem value="PARTNERSHIP">Partnership</MenuItem>
-              <MenuItem value="PRIVATELTD">Private Limited</MenuItem>
+              <MenuItem value="PRIVATE LTD / LTD.">Private Limited</MenuItem>
             </Select>
           </FormControl>
 
