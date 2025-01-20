@@ -20,18 +20,20 @@ import {
 import api from "../../../utils/api";
 import { toast } from "react-toastify";
 import DocumentViewerModal from "./DocumentViewerModal"; // Import the modal
-
+import { usePermissions } from "../../../utils/permissionssHelper";
+import { is } from "date-fns/locale";
 const OtherDocumentsSection = ({
   customerId,
   otherDocs = [],
   fetchCustomerDetails,
+  isAccepted,
 }) => {
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [openViewModal, setOpenViewModal] = useState(false); // State to control the modal
   const [documentUrl, setDocumentUrl] = useState(""); // State to store the document URL
-
+  const permissions = usePermissions(); // Get the permissions
   const handleUploadOtherDoc = () => {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -111,7 +113,9 @@ const OtherDocumentsSection = ({
         variant="contained"
         startIcon={<CloudUploadIcon />}
         onClick={handleUploadOtherDoc}
-        disabled={loading}
+        disabled={
+          loading || !permissions.update || isAccepted || isAccepted === "false"
+        }
         style={{ marginBottom: "20px" }}
       >
         Upload Other Document
@@ -151,7 +155,12 @@ const OtherDocumentsSection = ({
                   <IconButton
                     color="error"
                     onClick={() => handleDeleteOtherDoc(doc.name)}
-                    disabled={loading}
+                    disabled={
+                      loading ||
+                      !permissions.delete ||
+                      isAccepted ||
+                      isAccepted === "false"
+                    }
                   >
                     <DeleteIcon />
                   </IconButton>

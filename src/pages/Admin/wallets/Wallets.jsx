@@ -19,7 +19,7 @@ import BreadcrumbNavigation from "../../../components/addProduct/utils/Breadcrum
 
 const Wallets = () => {
   const [customers, setCustomers] = useState([]);
-  const [customerType, setCustomerType] = useState("INDIVIDUAL");
+  const [customerType, setCustomerType] = useState("B2C");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -74,8 +74,8 @@ const Wallets = () => {
         variant="fullWidth"
         style={{ marginBottom: "16px" }}
       >
-        <Tab value="INDIVIDUAL" label="Individual" />
-        <Tab value="BUSINESS" label="Business" />
+        <Tab value="B2C" label="Individual" />
+        <Tab value="B2B" label="Business" />
       </Tabs>
 
       {/* Loader */}

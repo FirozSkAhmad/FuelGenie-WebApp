@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Box, Button, Chip } from "@mui/material";
 import { CheckCircle, Cancel } from "@mui/icons-material";
 import ApproveRejectModal from "./ApproveRejectModal";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApproval, setIsApproval] = useState(true); // true for approve, false for reject
-
+  const permissions = usePermissions(); // Get the permissions
   const handleOpenModal = (isApprovalAction) => {
     setIsApproval(isApprovalAction); // Set whether it's an approval or rejection
     setIsModalOpen(true); // Open the modal
@@ -52,7 +52,7 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
             color="success"
             startIcon={<CheckCircle />}
             onClick={() => handleOpenModal(true)} // Open modal for approval
-            disabled={loading}
+            disabled={loading || !permissions.update}
           >
             Approve
           </Button>
@@ -61,7 +61,7 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
             color="error"
             startIcon={<Cancel />}
             onClick={() => handleOpenModal(false)} // Open modal for rejection
-            disabled={loading}
+            disabled={loading || !permissions.update}
           >
             Reject
           </Button>

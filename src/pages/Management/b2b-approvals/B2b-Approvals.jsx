@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -15,13 +14,19 @@ import {
   TablePagination,
   Snackbar,
   Alert,
+  Chip,
+  Box,
+  MenuItem,
+  FormControl,
+  Select,
 } from "@mui/material";
 import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 
 const B2BApprovals = () => {
   const [customers, setCustomers] = useState([]);
-  const [filter, setFilter] = useState("PENDING");
+  const [filter, setFilter] = useState("PENDING"); // Status filter
+  const [firmTypeFilter, setFirmTypeFilter] = useState("ALL"); // Firm type filter
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
@@ -30,7 +35,7 @@ const B2BApprovals = () => {
 
   useEffect(() => {
     fetchCustomers();
-  }, [filter]);
+  }, [filter]); // Fetch data when filter changes
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -65,8 +70,21 @@ const B2BApprovals = () => {
     setError(null);
   };
 
+  const handleClearFilters = () => {
+    setFilter("PENDING");
+    setFirmTypeFilter("ALL");
+  };
+
+  // Client-side filtering based on firmType
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesFirmType =
+      firmTypeFilter === "ALL" || customer.firmType === firmTypeFilter;
+
+    return matchesFirmType;
+  });
+
   // Calculate the customers to display for the current page
-  const paginatedCustomers = customers.slice(
+  const paginatedCustomers = filteredCustomers.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
@@ -77,18 +95,25 @@ const B2BApprovals = () => {
       <Typography variant="h4" gutterBottom>
         B2B Approvals
       </Typography>
-      <div style={{ marginBottom: "20px" }}>
+
+      {/* Filters Section */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+        }}
+      >
         <Button
           variant={filter === "PENDING" ? "contained" : "outlined"}
           onClick={() => setFilter("PENDING")}
-          style={{ marginRight: "10px" }}
         >
           Pending
         </Button>
         <Button
           variant={filter === "ACCEPTED" ? "contained" : "outlined"}
           onClick={() => setFilter("ACCEPTED")}
-          style={{ marginRight: "10px" }}
         >
           Accepted
         </Button>
@@ -98,7 +123,25 @@ const B2BApprovals = () => {
         >
           Rejected
         </Button>
-      </div>
+
+        <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+          <Select
+            value={firmTypeFilter}
+            onChange={(e) => setFirmTypeFilter(e.target.value)}
+          >
+            <MenuItem value="ALL">All Firm Types</MenuItem>
+            <MenuItem value="PROPRIETORSHIP">Proprietorship</MenuItem>
+            <MenuItem value="PARTNERSHIP">Partnership</MenuItem>
+            <MenuItem value="PRIVATE LTD / LTD.">Private Limited</MenuItem>
+            {/* Add more firm types as needed */}
+          </Select>
+        </FormControl>
+
+        <Button variant="outlined" onClick={handleClearFilters}>
+          Clear Filters
+        </Button>
+      </Box>
+
       {loading ? (
         <CircularProgress />
       ) : (
@@ -108,12 +151,14 @@ const B2BApprovals = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Business Name</TableCell>
+                  <TableCell>Firm Type</TableCell>
                   <TableCell>Business Type</TableCell>
                   <TableCell>Contact Number</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Full Name</TableCell>
                   <TableCell>PAN Number</TableCell>
                   <TableCell>GST Number</TableCell>
+                  <TableCell>Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -126,17 +171,30 @@ const B2BApprovals = () => {
                       style={{ cursor: "pointer" }}
                     >
                       <TableCell>{customer.businessName}</TableCell>
+                      <TableCell>{customer.firmType}</TableCell>
                       <TableCell>{customer.businessType}</TableCell>
                       <TableCell>{customer.businessContactNumber}</TableCell>
                       <TableCell>{customer.businessEmail}</TableCell>
                       <TableCell>{customer.fullName}</TableCell>
                       <TableCell>{customer.panNumber}</TableCell>
                       <TableCell>{customer.gstNumber}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={filter}
+                          color={
+                            filter === "PENDING"
+                              ? "warning"
+                              : filter === "ACCEPTED"
+                              ? "success"
+                              : "error"
+                          }
+                        />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={9} align="center">
                       No data found
                     </TableCell>
                   </TableRow>
@@ -147,7 +205,7 @@ const B2BApprovals = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={customers.length}
+            count={filteredCustomers.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

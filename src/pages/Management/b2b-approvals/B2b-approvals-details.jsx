@@ -21,7 +21,7 @@ import {
   Delete as DeleteIcon,
 } from "@mui/icons-material";
 import OtherDocumentsSection from "../../../components/management/B2BApprovals/OtherDocumentsSection";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 const B2BApprovalsDetails = () => {
   const { cid } = useParams();
   const [customer, setCustomer] = useState(null);
@@ -39,6 +39,7 @@ const B2BApprovalsDetails = () => {
   const [editMode, setEditMode] = useState(false);
   const [imageError, setImageError] = useState(false);
 
+  const permissions = usePermissions();
   useEffect(() => {
     fetchCustomerDetails();
   }, [cid]);
@@ -338,6 +339,11 @@ const B2BApprovalsDetails = () => {
         startIcon={<Edit />}
         onClick={handleEditClick}
         style={{ marginBottom: "20px" }}
+        disabled={
+          !permissions.update ||
+          customer.isAccepted === true ||
+          customer.isAccepted === false
+        }
       >
         Edit Customer Info
       </Button>
@@ -346,6 +352,11 @@ const B2BApprovalsDetails = () => {
         startIcon={<Edit />}
         onClick={() => setOpenModal(true)}
         style={{ marginBottom: "20px", marginLeft: "10px" }}
+        disabled={
+          !permissions.update ||
+          customer.isAccepted === true ||
+          customer.isAccepted === false
+        }
       >
         Edit Documents
       </Button>
@@ -359,6 +370,7 @@ const B2BApprovalsDetails = () => {
         customerId={cid}
         otherDocs={customer?.otherDocs || []}
         fetchCustomerDetails={fetchCustomerDetails}
+        isAccepted={customer.isAccepted}
       />
       <EditCustomerInfoModal
         editMode={editMode}
