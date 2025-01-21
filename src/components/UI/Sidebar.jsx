@@ -284,6 +284,11 @@ function Sidebar({ open, toggleDrawer }) {
           path: "/admin/driver-creation",
         },
         {
+          label: "Business Profiles",
+          icon: <AccountBalance />,
+          path: "/admin/business-profiles",
+        },
+        {
           label: "Activity Logs",
           icon: <ReceiptLong />,
           path: "/admin/activity-logs",

@@ -44,6 +44,8 @@ import AssignBowsers from "../pages/Operations/Assign-bowsers/AssignBowsers";
 import BDAssignmentHistory from "../pages/Operations/bd-assignment-history/BDAssignmentHistory";
 import B2BApprovals from "../pages/Management/b2b-approvals/B2b-Approvals";
 import B2BApprovalsDetails from "../pages/Management/b2b-approvals/B2b-approvals-details";
+import BusinessProfiles from "../pages/Admin/Business-Profiles/BusinessProfiles";
+import BusinessProfilesDetails from "../pages/Admin/Business-Profiles/BusinessProfilesDetails";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -378,6 +380,26 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<DriverCreationDetail />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/business-profiles"
+        element={
+          <ModuleAccessWrapper
+            element={<BusinessProfiles />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/admin/business-profiles/:cid"
+        element={
+          <ModuleAccessWrapper
+            element={<BusinessProfilesDetails />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />
