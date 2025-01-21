@@ -448,6 +448,69 @@ const OrdersDetails = () => {
                     }
                   />
                 </ListItem>
+                {/* Credit Transaction Details */}
+                {paymentDetails.paymentMode.includes("CREDIT") && (
+                  <>
+                    <ListItem>
+                      <ListItemText
+                        primary="Credit Transaction ID"
+                        secondary={
+                          paymentDetails.creditTransaction?.transactionId ||
+                          "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Debited via Credit"
+                        secondary={`₹${paymentDetails.creditTransaction?.amountDebited}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Interest Rate"
+                        secondary={`${paymentDetails.creditTransaction?.interestRate}%`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Credit Period"
+                        secondary={`${paymentDetails.creditTransaction?.creditPeriod} months`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Due Date"
+                        secondary={
+                          new Date(
+                            paymentDetails.creditTransaction?.dueDate
+                          ).toLocaleDateString() || "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Credit Status"
+                        secondary={
+                          <Chip
+                            label={paymentDetails.creditTransaction?.status}
+                            color={
+                              paymentDetails.creditTransaction?.status ===
+                              "PENDING"
+                                ? "warning"
+                                : "success"
+                            }
+                          />
+                        }
+                      />
+                    </ListItem>
+                  </>
+                )}
 
                 {/* Wallet Transaction Details */}
                 {paymentDetails.paymentMode.includes("WALLET") && (
@@ -554,7 +617,93 @@ const OrdersDetails = () => {
                     secondaryTypographyProps={{ color: "text.secondary" }}
                   />
                 </ListItem>
+                {/* Fee Breakdown for CREDIT + WALLET */}
+                {paymentDetails.paymentMode === "CREDIT+WALLET" && (
+                  <>
+                    {/* Wallet Payment Section */}
+                    <ListItem>
+                      <ListItemText
+                        primary="Wallet Payment"
+                        primaryTypographyProps={{
+                          fontWeight: "bold",
+                          color: "primary.main",
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Paid from Wallet"
+                        secondary={`₹${paymentDetails.walletTransaction?.amountDebited}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
 
+                    {/* Credit Payment Section */}
+                    <ListItem>
+                      <ListItemText
+                        primary="Credit Payment"
+                        primaryTypographyProps={{
+                          fontWeight: "bold",
+                          color: "primary.main",
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Amount Paid via Credit"
+                        secondary={`₹${paymentDetails.creditTransaction?.amountDebited}`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Interest Rate"
+                        secondary={`${paymentDetails.creditTransaction?.interestRate}%`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Credit Period"
+                        secondary={`${paymentDetails.creditTransaction?.creditPeriod} months`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Due Date"
+                        secondary={
+                          new Date(
+                            paymentDetails.creditTransaction?.dueDate
+                          ).toLocaleDateString() || "N/A"
+                        }
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+
+                    {/* Combined Total Section */}
+                    <ListItem>
+                      <ListItemText
+                        primary="Combined Total"
+                        primaryTypographyProps={{
+                          fontWeight: "bold",
+                          color: "primary.main",
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Total Amount Paid"
+                        secondary={`₹${
+                          (paymentDetails.walletTransaction?.amountDebited ||
+                            0) +
+                          (paymentDetails.creditTransaction?.amountDebited || 0)
+                        }`}
+                        secondaryTypographyProps={{ color: "text.secondary" }}
+                      />
+                    </ListItem>
+                  </>
+                )}
                 {/* Fee Breakdown for RAZORPAY+WALLET */}
                 {paymentDetails.paymentMode === "RAZORPAY+WALLET" && (
                   <>
