@@ -29,6 +29,7 @@ import {
 import ProfileImage from "../../UI/ProfileImage";
 import DocumentViewerModal from "../../UI/DocViewModal";
 import api from "../../../utils/api";
+import FirmType from "../../UI/FirmType";
 
 const CustomerDetails = ({ customerDetails }) => {
   if (!customerDetails) return null;
@@ -130,15 +131,61 @@ const CustomerDetails = ({ customerDetails }) => {
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
-
+  const getRequiredDocuments = (firmType) => {
+    switch (firmType) {
+      case "PROPRIETORSHIP":
+        return [
+          "auditedFinancialItrNumber",
+          "auditedFinancialItrPdfUrl",
+          "gstNumber",
+          "gstCertificatePdfUrl",
+          "bankStatementPdfUrl",
+          "aadhaarNumber",
+          "aadhaarCardPdfUrl",
+          "gstr3bPdfUrl",
+        ];
+      case "PARTNERSHIP":
+        return [
+          "auditedFinancialItrNumber",
+          "auditedFinancialItrPdfUrl",
+          "gstNumber",
+          "gstCertificatePdfUrl",
+          "bankStatementPdfUrl",
+          "aadhaarNumber",
+          "aadhaarCardPdfUrl",
+          "partnershipDeedPdfUrl",
+          "listOfPartnersPdfUrl",
+          "partnershipLetterPdfUrl",
+          "gstr3bPdfUrl",
+        ];
+      case "PRIVATE LTD / LTD.":
+        return [
+          "auditedFinancialItrNumber",
+          "auditedFinancialItrPdfUrl",
+          "gstNumber",
+          "gstCertificatePdfUrl",
+          "bankStatementPdfUrl",
+          "aadhaarNumber",
+          "aadhaarCardPdfUrl",
+          "boardResolutionPdfUrl",
+          "listOfDirectorsPdfUrl",
+          "companyPanNumber",
+          "companyPanPdfUrl",
+          "certificateOfIncorporationPdfUrl",
+          "moaAoaPdfUrl",
+          "gstr3bPdfUrl",
+        ];
+      default:
+        return [];
+    }
+  };
   return (
     <Paper sx={{ padding: 2, marginTop: 2 }}>
       {/* Profile Image and Firm Type */}
       <Box sx={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
         <ProfileImage profileImage={customerDetails.profileImage} />
         <Box>
-          <Typography variant="h6">Firm Type</Typography>
-          <Typography>{customerDetails.firmType}</Typography>
+          <FirmType firmType={customerDetails.firmType} />
         </Box>
       </Box>
       {/* Approve and Reject Buttons */}
@@ -288,15 +335,103 @@ const CustomerDetails = ({ customerDetails }) => {
         Documents
       </Typography>
       <Grid container spacing={3} sx={{ marginBottom: 3 }}>
-        {Object.entries(customerDetails.documents).map(([key, value]) => {
-          const isPdfField = key.endsWith("PdfUrl");
-          const documentName = key
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())
-            .replace(/PdfUrl/g, " PDF");
+        {Object.entries(customerDetails.documents)
+          .filter(([key]) =>
+            getRequiredDocuments(customerDetails.firmType).includes(key)
+          ) // Filter based on firmType
+          .map(([key, value]) => {
+            const isPdfField = key.endsWith("PdfUrl");
+            const documentName = key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase())
+              .replace(/PdfUrl/g, " PDF");
 
-          return (
-            <Grid item xs={12} sm={6} md={4} key={key}>
+            return (
+              <Grid item xs={12} sm={6} md={4} key={key}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    border: "1px solid #e0e0e0",
+                    "&:hover": {
+                      boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+                    },
+                  }}
+                >
+                  <CardContent>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: 1,
+                      }}
+                    >
+                      {isPdfField ? (
+                        <PictureAsPdf fontSize="small" />
+                      ) : (
+                        <Description fontSize="small" />
+                      )}
+                      <Typography variant="subtitle1" sx={{ marginLeft: 1 }}>
+                        <strong>{documentName}</strong>
+                      </Typography>
+                    </Box>
+                    {value ? (
+                      isPdfField ? (
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
+                          sx={{ fontStyle: "italic" }}
+                        >
+                          {value.split("/").pop()}
+                        </Typography>
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">
+                          {value}
+                        </Typography>
+                      )
+                    ) : (
+                      <Typography variant="body2" color="error">
+                        {isPdfField ? "Not Uploaded" : "Not Provided"}
+                      </Typography>
+                    )}
+                  </CardContent>
+                  {isPdfField && value && (
+                    <CardActions sx={{ marginTop: "auto" }}>
+                      <Button
+                        size="small"
+                        startIcon={<InsertDriveFile />}
+                        onClick={() => handleViewDocument(value)}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<Download />}
+                        onClick={() => handleDownloadDocument(value)}
+                      >
+                        Download
+                      </Button>
+                    </CardActions>
+                  )}
+                </Card>
+              </Grid>
+            );
+          })}
+      </Grid>
+
+      {/* Other Documents */}
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
+        <InsertDriveFile
+          fontSize="small"
+          sx={{ marginRight: 1, verticalAlign: "middle" }}
+        />
+        Other Documents
+      </Typography>
+      {customerDetails.otherDocs.length > 0 ? (
+        <Grid container spacing={3}>
+          {customerDetails.otherDocs.map((doc) => (
+            <Grid item xs={12} sm={6} md={4} key={doc._id}>
               <Card
                 sx={{
                   height: "100%",
@@ -316,118 +451,40 @@ const CustomerDetails = ({ customerDetails }) => {
                       marginBottom: 1,
                     }}
                   >
-                    {isPdfField ? (
-                      <PictureAsPdf fontSize="small" />
-                    ) : (
-                      <Description fontSize="small" />
-                    )}
+                    <InsertDriveFile fontSize="small" />
                     <Typography variant="subtitle1" sx={{ marginLeft: 1 }}>
-                      <strong>{documentName}</strong>
+                      <strong>{doc.name}</strong>
                     </Typography>
                   </Box>
-                  {value ? (
-                    isPdfField ? (
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        sx={{ fontStyle: "italic" }}
-                      >
-                        {value.split("/").pop()}
-                      </Typography>
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        {value}
-                      </Typography>
-                    )
-                  ) : (
-                    <Typography variant="body2" color="error">
-                      {isPdfField ? "Not Uploaded" : "Not Provided"}
-                    </Typography>
-                  )}
+                  <Typography variant="body2" color="textSecondary">
+                    Type: {doc.type}
+                  </Typography>
                 </CardContent>
-                {isPdfField && value && (
-                  <CardActions sx={{ marginTop: "auto" }}>
-                    <Button
-                      size="small"
-                      startIcon={<InsertDriveFile />}
-                      onClick={() => handleViewDocument(value)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<Download />}
-                      onClick={() => handleDownloadDocument(value)}
-                    >
-                      Download
-                    </Button>
-                  </CardActions>
-                )}
+                <CardActions sx={{ marginTop: "auto" }}>
+                  <Button
+                    size="small"
+                    startIcon={<InsertDriveFile />}
+                    onClick={() => handleViewDocument(doc.url)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    size="small"
+                    startIcon={<Download />}
+                    onClick={() => handleDownloadDocument(doc.url)}
+                  >
+                    Download
+                  </Button>
+                </CardActions>
               </Card>
             </Grid>
-          );
-        })}
-      </Grid>
-
-      {/* Other Documents */}
-      <Typography variant="h6" sx={{ marginBottom: 2 }}>
-        <InsertDriveFile
-          fontSize="small"
-          sx={{ marginRight: 1, verticalAlign: "middle" }}
-        />
-        Other Documents
-      </Typography>
-      <Grid container spacing={3}>
-        {customerDetails.otherDocs.map((doc) => (
-          <Grid item xs={12} sm={6} md={4} key={doc._id}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid #e0e0e0",
-                "&:hover": {
-                  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardContent>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 1,
-                  }}
-                >
-                  <InsertDriveFile fontSize="small" />
-                  <Typography variant="subtitle1" sx={{ marginLeft: 1 }}>
-                    <strong>{doc.name}</strong>
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="textSecondary">
-                  Type: {doc.type}
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ marginTop: "auto" }}>
-                <Button
-                  size="small"
-                  startIcon={<InsertDriveFile />}
-                  onClick={() => handleViewDocument(doc.url)}
-                >
-                  View
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<Download />}
-                  onClick={() => handleDownloadDocument(doc.url)}
-                >
-                  Download
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Typography variant="body2" color="textSecondary">
+          No extra documents uploaded.
+        </Typography>
+      )}
 
       {/* Approve Modal */}
       <Modal
@@ -461,7 +518,7 @@ const CustomerDetails = ({ customerDetails }) => {
             sx={{ mb: 2 }}
           />
           <TextField
-            label="Credit Period (Months)"
+            label="Credit Period (Days)"
             type="number"
             fullWidth
             value={creditPeriod}

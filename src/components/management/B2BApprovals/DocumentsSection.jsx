@@ -29,6 +29,7 @@ const DocumentsSection = ({ customer, handleViewDocument }) => {
           "bankStatementPdfUrl",
           "aadhaarNumber",
           "aadhaarCardPdfUrl",
+          "gstr3bPdfUrl",
         ];
       case "PARTNERSHIP":
         return [
@@ -42,6 +43,7 @@ const DocumentsSection = ({ customer, handleViewDocument }) => {
           "partnershipDeedPdfUrl",
           "listOfPartnersPdfUrl",
           "partnershipLetterPdfUrl",
+          "gstr3bPdfUrl",
         ];
       case "PRIVATE LTD / LTD.":
         return [
@@ -58,6 +60,7 @@ const DocumentsSection = ({ customer, handleViewDocument }) => {
           "companyPanPdfUrl",
           "certificateOfIncorporationPdfUrl",
           "moaAoaPdfUrl",
+          "gstr3bPdfUrl",
         ];
       default:
         return [];

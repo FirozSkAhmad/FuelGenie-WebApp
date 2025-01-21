@@ -108,8 +108,20 @@ const BusinessProfilesDetails = () => {
       </Typography>
       <Tabs value={activeTab} onChange={handleTabChange}>
         <Tab label="Customer Details" />
-        <Tab label="Transaction History" />
-        <Tab label="Credit Info" />
+        <Tab
+          label="Transaction History"
+          disabled={
+            customerDetails?.isApproved === null ||
+            customerDetails?.isApproved === false
+          } // Disable if isApproved is null
+        />
+        <Tab
+          label="Credit Info"
+          disabled={
+            customerDetails?.isApproved === null ||
+            customerDetails?.isApproved === false
+          } // Disable if isApproved is null
+        />
       </Tabs>
       {loading ? (
         <CircularProgress />

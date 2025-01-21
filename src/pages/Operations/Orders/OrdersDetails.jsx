@@ -478,7 +478,7 @@ const OrdersDetails = () => {
                     <ListItem>
                       <ListItemText
                         primary="Credit Period"
-                        secondary={`${paymentDetails.creditTransaction?.creditPeriod} months`}
+                        secondary={`${paymentDetails.creditTransaction?.creditPeriod} days`}
                         secondaryTypographyProps={{ color: "text.secondary" }}
                       />
                     </ListItem>
@@ -665,7 +665,7 @@ const OrdersDetails = () => {
                     <ListItem>
                       <ListItemText
                         primary="Credit Period"
-                        secondary={`${paymentDetails.creditTransaction?.creditPeriod} months`}
+                        secondary={`${paymentDetails.creditTransaction?.creditPeriod} days`}
                         secondaryTypographyProps={{ color: "text.secondary" }}
                       />
                     </ListItem>
