@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Typography,
   Paper,
+  TableContainer,
   Table,
   TableHead,
   TableBody,
@@ -19,6 +20,8 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   AccountBalanceWallet as CreditAmountIcon,
@@ -63,6 +66,8 @@ const CreditInfo = ({ creditInfo }) => {
     severity: "success",
   });
   const { cid } = useParams();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (!creditInfo) return null;
 
@@ -81,12 +86,17 @@ const CreditInfo = ({ creditInfo }) => {
   useEffect(() => {
     if (openUpgradeModal) {
       setUpgradeData({
-        upgradedCreditAmount: currentCreditAmount,
+        upgradedCreditAmount: creditAmount,
         upgradedCreditPeriod: creditPeriod,
         upgradedInterestRate: interestRate,
       });
     }
   }, [openUpgradeModal, currentCreditAmount, creditPeriod, interestRate]);
+
+  // Extract only the date part (YYYY-MM-DD) from the ISO string
+  const extractDatePart = (isoString) => {
+    return isoString.split("T")[0];
+  };
 
   // Handle pagination for transaction history
   const handleChangePage = (event, newPage) => {
@@ -249,11 +259,12 @@ const CreditInfo = ({ creditInfo }) => {
         </ListItem>
       </List>
 
-      <Box sx={{ display: "flex", gap: 2, marginTop: 2 }}>
+      <Box sx={{ display: "flex", gap: 2, marginTop: 2, flexWrap: "wrap" }}>
         <Button
           variant="contained"
           startIcon={<UpgradeIcon />}
           onClick={handleOpenUpgradeModal}
+          sx={{ mb: isSmallScreen ? 1 : 0 }}
         >
           Upgrade/Downgrade Credit
         </Button>
@@ -262,6 +273,7 @@ const CreditInfo = ({ creditInfo }) => {
           startIcon={<AddIcon />}
           onClick={handleOpenExtraCreditModal}
           disabled={status === "ACTIVE"}
+          sx={{ mb: isSmallScreen ? 1 : 0 }}
         >
           Add Extra Credit
         </Button>
@@ -275,7 +287,7 @@ const CreditInfo = ({ creditInfo }) => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
+            width: isSmallScreen ? "90%" : 400,
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
@@ -326,7 +338,7 @@ const CreditInfo = ({ creditInfo }) => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
+            width: isSmallScreen ? "90%" : 400,
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
@@ -369,7 +381,7 @@ const CreditInfo = ({ creditInfo }) => {
         </Box>
       </Modal>
 
-      {/* Transaction History */}
+      {/* Transaction History Section */}
       <Typography variant="h6" gutterBottom sx={{ marginTop: 2 }}>
         Transaction History
       </Typography>
@@ -380,101 +392,138 @@ const CreditInfo = ({ creditInfo }) => {
             No data available
           </Typography>
         </Box>
+      ) : isSmallScreen ? (
+        // Mobile-friendly layout for transaction history
+        <Box>
+          {paginatedTransactions.map((transaction) => {
+            const date = extractDatePart(transaction.date);
+            return (
+              <Box
+                key={transaction.transactionId}
+                sx={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 1,
+                  padding: 2,
+                  marginBottom: 2,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  {transaction.description}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Amount:</strong> ₹
+                  {transaction.amount.toLocaleString("en-IN")}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Date:</strong> {date}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Previous Credit Amount:</strong>{" "}
+                  {transaction.previousCreditAmount
+                    ? `₹${transaction.previousCreditAmount.toLocaleString(
+                        "en-IN"
+                      )}`
+                    : "Initial"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Upgraded Credit Amount:</strong>{" "}
+                  {transaction.upgradedCreditAmount
+                    ? `₹${transaction.upgradedCreditAmount.toLocaleString(
+                        "en-IN"
+                      )}`
+                    : "Initial"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Previous Interest Rate:</strong>{" "}
+                  {transaction.previousInterestRate ?? "Initial"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Upgraded Interest Rate:</strong>{" "}
+                  {transaction.upgradedInterestRate ?? "Initial"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Previous Credit Period:</strong>{" "}
+                  {transaction.previousCreditPeriod ?? "Initial"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Upgraded Credit Period:</strong>{" "}
+                  {transaction.upgradedCreditPeriod ?? "Initial"}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
       ) : (
-        <>
+        // Desktop layout for transaction history
+        <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>
-                  <DescriptionIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Description
-                </TableCell>
-                <TableCell>
-                  <AmountIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Amount (₹)
-                </TableCell>
-                <TableCell>
-                  <DateIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Date
-                </TableCell>
-                <TableCell>
-                  <PreviousIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Previous Credit Amount
-                </TableCell>
-                <TableCell>
-                  <UpgradedIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Upgraded Credit Amount
-                </TableCell>
-                <TableCell>
-                  <PreviousIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Previous Interest Rate
-                </TableCell>
-                <TableCell>
-                  <UpgradedIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Upgraded Interest Rate
-                </TableCell>
-                <TableCell>
-                  <PreviousIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Previous Credit Period
-                </TableCell>
-                <TableCell>
-                  <UpgradedIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-                  Upgraded Credit Period
-                </TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Amount (₹)</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Previous Credit Amount</TableCell>
+                <TableCell>Upgraded Credit Amount</TableCell>
+                <TableCell>Previous Interest Rate</TableCell>
+                <TableCell>Upgraded Interest Rate</TableCell>
+                <TableCell>Previous Credit Period</TableCell>
+                <TableCell>Upgraded Credit Period</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedTransactions.map((transaction) => (
-                <TableRow key={transaction.transactionId}>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>
-                    ₹{transaction.amount.toLocaleString("en-IN")}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(transaction.date).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.previousCreditAmount
-                      ? `₹${transaction.previousCreditAmount.toLocaleString(
-                          "en-IN"
-                        )}`
-                      : "Initial"}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.upgradedCreditAmount
-                      ? `₹${transaction.upgradedCreditAmount.toLocaleString(
-                          "en-IN"
-                        )}`
-                      : "Initial"}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.previousInterestRate ?? "Initial"}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.upgradedInterestRate ?? "Initial"}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.previousCreditPeriod ?? "Initial"}
-                  </TableCell>
-                  <TableCell>
-                    {transaction.upgradedCreditPeriod ?? "Initial"}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {paginatedTransactions.map((transaction) => {
+                const date = extractDatePart(transaction.date);
+                return (
+                  <TableRow key={transaction.transactionId}>
+                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell>
+                      ₹{transaction.amount.toLocaleString("en-IN")}
+                    </TableCell>
+                    <TableCell>{date}</TableCell>
+                    <TableCell>
+                      {transaction.previousCreditAmount
+                        ? `₹${transaction.previousCreditAmount.toLocaleString(
+                            "en-IN"
+                          )}`
+                        : "Initial"}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.upgradedCreditAmount
+                        ? `₹${transaction.upgradedCreditAmount.toLocaleString(
+                            "en-IN"
+                          )}`
+                        : "Initial"}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.previousInterestRate ?? "Initial"}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.upgradedInterestRate ?? "Initial"}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.previousCreditPeriod ?? "Initial"}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.upgradedCreditPeriod ?? "Initial"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={transactions.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </>
+        </TableContainer>
       )}
+
+      {/* Pagination for Transaction History */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={transactions.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
 
       {/* Extra Credit Section */}
       <Typography variant="h6" gutterBottom sx={{ marginTop: 2 }}>
@@ -487,8 +536,35 @@ const CreditInfo = ({ creditInfo }) => {
             No extra credit assigned.
           </Typography>
         </Box>
+      ) : isSmallScreen ? (
+        // Mobile-friendly layout for extra credits
+        <Box>
+          {paginatedExtraCredits.map((extraCredit, index) => (
+            <Box
+              key={index}
+              sx={{
+                border: "1px solid #e0e0e0",
+                borderRadius: 1,
+                padding: 2,
+                marginBottom: 2,
+              }}
+            >
+              <Typography variant="body2">
+                <strong>Credit Amount:</strong> ₹
+                {extraCredit.creditAmount.toLocaleString("en-IN")}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Credit Period:</strong> {extraCredit.creditPeriod} days
+              </Typography>
+              <Typography variant="body2">
+                <strong>Interest Rate:</strong> {extraCredit.interestRate}%
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       ) : (
-        <>
+        // Desktop layout for extra credits
+        <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
@@ -509,18 +585,19 @@ const CreditInfo = ({ creditInfo }) => {
               ))}
             </TableBody>
           </Table>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={extraCredits.length}
-            rowsPerPage={extraCreditRowsPerPage}
-            page={extraCreditPage}
-            onPageChange={handleExtraCreditPageChange}
-            onRowsPerPageChange={handleExtraCreditRowsPerPageChange}
-          />
-        </>
+        </TableContainer>
       )}
+
+      {/* Pagination for Extra Credits */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={extraCredits.length}
+        rowsPerPage={extraCreditRowsPerPage}
+        page={extraCreditPage}
+        onPageChange={handleExtraCreditPageChange}
+        onRowsPerPageChange={handleExtraCreditRowsPerPageChange}
+      />
 
       {/* Snackbar for notifications */}
       <Snackbar
