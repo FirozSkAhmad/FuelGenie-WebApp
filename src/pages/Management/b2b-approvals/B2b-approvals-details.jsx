@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+
+import { Box, Grid } from "@mui/material";
 import { CircularProgress, Button, Typography, Paper } from "@mui/material";
 import { toast } from "react-toastify";
 import api from "../../../utils/api";
@@ -22,6 +24,8 @@ import {
 } from "@mui/icons-material";
 import OtherDocumentsSection from "../../../components/management/B2BApprovals/OtherDocumentsSection";
 import { usePermissions } from "../../../utils/permissionssHelper";
+import RemarkDialog from "../../../components/management/B2BApprovals/RemarkDialog";
+
 const B2BApprovalsDetails = () => {
   const { cid } = useParams();
   const [customer, setCustomer] = useState(null);
@@ -38,6 +42,8 @@ const B2BApprovalsDetails = () => {
   const [requiredDocuments, setRequiredDocuments] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isRemarkDialogOpen, setIsRemarkDialogOpen] = useState(false);
+  const [remarkType, setRemarkType] = useState(null); // To track which save function triggered the remark dialog
 
   const permissions = usePermissions();
   useEffect(() => {
@@ -52,7 +58,7 @@ const B2BApprovalsDetails = () => {
         `/management/b2b-approvals/get-b2b-registered-customer-info/${cid}`
       );
       setCustomer(response.data.data);
-      setUpdatedCustomer(response.data.data);
+      setUpdatedCustomer(response.data.data); // Initialize updatedCustomer with fetched data
       setFirmType(response.data.data.firmType || "PROPRIETORSHIP");
       setRequiredDocuments(getRequiredDocuments(response.data.data.firmType));
     } catch (error) {
@@ -119,6 +125,7 @@ const B2BApprovalsDetails = () => {
     setOpenModal(false);
     setOpenViewModal(false);
     setDocumentUrl("");
+    setUpdatedCustomer(customer); // Reset updatedCustomer when closing the modal
   };
 
   const handleInputChange = (e) => {
@@ -210,73 +217,77 @@ const B2BApprovalsDetails = () => {
 
   const handleCancelEdit = () => {
     setEditMode(false);
-    setUpdatedCustomer(customer);
+    setUpdatedCustomer(customer); // Reset updatedCustomer when canceling edit
   };
 
   const handleSaveCustomerInfo = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = {};
-      for (const key in updatedCustomer) {
-        if (updatedCustomer[key] !== customer[key]) {
-          payload[key] = updatedCustomer[key];
-        }
-      }
-      const response = await api.put(
-        `/management/b2b-approvals/update-b2b-registered-customer-info/${cid}`,
-        payload
-      );
-      fetchCustomerDetails();
-      setEditMode(false);
-      setSnackbarMessage("Customer details updated successfully!");
-      toast.success("Customer details updated successfully!");
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error("Error updating customer details:", error);
-      toast.error("Failed to update customer details. Please try again later.");
-      setError("Failed to update customer details. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
+    setRemarkType("customerInfo"); // Set remark type for customer info
+    setIsRemarkDialogOpen(true); // Open the remark dialog
   };
 
   const handleSaveDocuments = async () => {
+    setRemarkType("documents"); // Set remark type for documents
+    setIsRemarkDialogOpen(true); // Open the remark dialog
+  };
+
+  const handleRemarkSubmit = async (remark) => {
+    setIsRemarkDialogOpen(false); // Close the remark dialog
     setLoading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      if (touchedFields.firmType) {
-        formData.append("firmType", firmType);
-      }
-      for (const docKey of requiredDocuments) {
-        if (touchedFields[docKey]) {
-          const docValue = updatedCustomer.documents?.[docKey];
-          if (docKey.endsWith("PdfUrl") && docValue instanceof File) {
-            formData.append(docKey, docValue);
-          } else {
-            formData.append(docKey, docValue);
+      if (remarkType === "customerInfo") {
+        const payload = {};
+        for (const key in updatedCustomer) {
+          if (updatedCustomer[key] !== customer[key]) {
+            payload[key] = updatedCustomer[key];
           }
         }
-      }
-      const response = await api.put(
-        `/management/b2b-approvals/update-b2b-registered-customer-documents/${cid}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        payload.remarks = remark; // Add remark to the payload
+        const response = await api.put(
+          `/management/b2b-approvals/update-b2b-registered-customer-info/${cid}`,
+          payload
+        );
+        fetchCustomerDetails();
+        setEditMode(false);
+        setSnackbarMessage("Customer details updated successfully!");
+        toast.success("Customer details updated successfully!");
+        setSnackbarOpen(true);
+      } else if (remarkType === "documents") {
+        const formData = new FormData();
+        if (touchedFields.firmType) {
+          formData.append("firmType", firmType);
         }
-      );
-      fetchCustomerDetails();
-      setOpenModal(false);
-      setSnackbarMessage("Documents updated successfully!");
-      toast.success("Documents updated successfully!");
-      setSnackbarOpen(true);
+        for (const docKey of requiredDocuments) {
+          if (touchedFields[docKey]) {
+            const docValue = updatedCustomer.documents?.[docKey];
+            if (docKey.endsWith("PdfUrl") && docValue instanceof File) {
+              formData.append(docKey, docValue);
+            } else {
+              formData.append(docKey, docValue);
+            }
+          }
+        }
+        formData.append("remarks", remark); // Add remark to the formData
+        const response = await api.put(
+          `/management/b2b-approvals/update-b2b-registered-customer-documents/${cid}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        fetchCustomerDetails();
+        setOpenModal(false);
+        setSnackbarMessage("Documents updated successfully!");
+        toast.success("Documents updated successfully!");
+        setSnackbarOpen(true);
+      }
     } catch (error) {
-      console.error("Error updating documents:", error);
-      toast.error("Failed to update documents. Please try again later.");
-      setError("Failed to update documents. Please try again later.");
+      console.error("Error updating details:", error);
+      toast.error("Failed to update details. Please try again later.");
+      setError("Failed to update details. Please try again later.");
+      setUpdatedCustomer(customer); // Reset updatedCustomer on error
     } finally {
       setLoading(false);
     }
@@ -313,6 +324,7 @@ const B2BApprovalsDetails = () => {
       setLoading(false);
     }
   };
+
   if (loading) {
     return <CircularProgress />;
   }
@@ -324,26 +336,57 @@ const B2BApprovalsDetails = () => {
   return (
     <div style={{ padding: "20px" }}>
       <BreadcrumbNavigation />
-      <Paper elevation={3} style={{ padding: "20px", marginBottom: "20px" }}>
-        <CustomerDetailsHeader />
-        <FirmTypeSection firmType={customer.firmType} />
-        <ProfileImageSection profileImage={customer.profileImage} />
-        <ApproveRejectSection
-          customer={customer}
-          loading={loading}
-          handleApproveReject={handleApproveReject}
-        />
+      <Paper
+        elevation={3}
+        sx={{
+          padding: "24px",
+          marginBottom: "24px",
+          borderRadius: "8px",
+        }}
+      >
+        {/* Grid Layout for Two Columns */}
+        <Grid container spacing={3}>
+          {/* Left Column: Customer Details Header, Firm Type, Profile Image */}
+          <Grid item xs={12} md={7}>
+            {" "}
+            {/* Reduced width from md={8} to md={7} */}
+            <Box sx={{ marginBottom: "24px" }}>
+              <CustomerDetailsHeader />
+            </Box>
+            <Box sx={{ marginBottom: "24px" }}>
+              <FirmTypeSection firmType={customer.firmType} />
+            </Box>
+            <Box sx={{ marginBottom: "24px" }}>
+              <ProfileImageSection profileImage={customer.profileImage} />
+            </Box>
+          </Grid>
+
+          {/* Right Column: Approve/Reject Section */}
+          <Grid item xs={12} md={5}>
+            {" "}
+            {/* Increased width from md={4} to md={5} */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                height: "100%",
+              }}
+            >
+              <ApproveRejectSection
+                customer={customer}
+                loading={loading}
+                handleApproveReject={handleApproveReject}
+              />
+            </Box>
+          </Grid>
+        </Grid>
       </Paper>
       <Button
         variant="contained"
         startIcon={<Edit />}
         onClick={handleEditClick}
         style={{ marginBottom: "20px" }}
-        disabled={
-          !permissions.update ||
-          customer.isAccepted === true ||
-          customer.isAccepted === false
-        }
+        disabled={!permissions.update}
       >
         Edit Customer Info
       </Button>
@@ -352,11 +395,7 @@ const B2BApprovalsDetails = () => {
         startIcon={<Edit />}
         onClick={() => setOpenModal(true)}
         style={{ marginBottom: "20px", marginLeft: "10px" }}
-        disabled={
-          !permissions.update ||
-          customer.isAccepted === true ||
-          customer.isAccepted === false
-        }
+        disabled={!permissions.update}
       >
         Edit Documents
       </Button>
@@ -400,6 +439,11 @@ const B2BApprovalsDetails = () => {
         snackbarOpen={snackbarOpen}
         handleCloseSnackbar={handleCloseSnackbar}
         snackbarMessage={snackbarMessage}
+      />
+      <RemarkDialog
+        isOpen={isRemarkDialogOpen}
+        onClose={() => setIsRemarkDialogOpen(false)}
+        onSubmit={handleRemarkSubmit}
       />
     </div>
   );

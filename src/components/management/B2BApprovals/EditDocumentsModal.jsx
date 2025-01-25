@@ -82,89 +82,102 @@ const EditDocumentsModal = ({
             const docValue = updatedCustomer.documents?.[docKey];
             const isPdfField = docKey.endsWith("PdfUrl");
 
-            // Extract the file name for display
+            // Extract the file name for PDF fields
             const fileName =
-              docValue instanceof File
-                ? docValue.name // Use the file name if it's a File object
-                : typeof docValue === "string" && docValue.startsWith("http")
-                ? docValue.split("/").pop() // Extract the file name from the URL
+              isPdfField && docValue
+                ? docValue instanceof File
+                  ? docValue.name // Use the file name if it's a File object
+                  : docValue.split("/").pop() // Extract the file name from the URL
                 : ""; // Default to empty string
 
             return (
               <div key={docKey}>
-                <TextField
-                  name={docKey}
-                  label={docKey
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/^./, (str) => str.toUpperCase())
-                    .replace(/PdfUrl/g, " PDF")
-                    .replace(/Number/g, "")}
-                  value={fileName} // Display the file name
-                  onChange={handleDocumentChange}
-                  fullWidth
-                  margin="normal"
-                  disabled={isPdfField} // Disable for PDF fields
-                  InputProps={{
-                    readOnly: true, // Make the field read-only
-                  }}
-                />
-                {isPdfField && (
-                  <Box
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    {fileName && (
-                      <Typography
-                        variant="body1"
-                        style={{ fontStyle: "italic" }}
-                      >
-                        {fileName}
-                      </Typography>
-                    )}
-                    <Button
-                      variant="contained"
-                      startIcon={<PictureAsPdf />}
-                      onClick={() => handleViewDocument(docValue)} // Open the DocumentViewerModal
-                      disabled={!docValue} // Disable if no file or URL is available
-                    >
-                      {docValue ? "View PDF" : "Not Uploaded"}
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<CloudUploadIcon />}
-                      onClick={() => handleUploadNewDocument(docKey)}
-                    >
-                      Upload New
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<DeleteIcon />}
-                      onClick={() => {
-                        // Clear the file or URL for this field
-                        setUpdatedCustomer((prev) => ({
-                          ...prev,
-                          documents: {
-                            ...prev.documents,
-                            [docKey]: null,
-                          },
-                        }));
-                        // Mark the field as touched
-                        setTouchedFields((prev) => ({
-                          ...prev,
-                          [docKey]: true,
-                        }));
+                {isPdfField ? (
+                  <>
+                    <TextField
+                      name={docKey}
+                      label={docKey
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())
+                        .replace(/PdfUrl/g, " PDF")
+                        .replace(/Number/g, "")}
+                      value={fileName} // Display the file name
+                      fullWidth
+                      margin="normal"
+                      InputProps={{
+                        readOnly: true, // Make the field read-only
                       }}
-                      disabled={!docValue} // Disable if no file or URL is available
+                    />
+                    <Box
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "16px",
+                      }}
                     >
-                      Clear
-                    </Button>
-                  </Box>
+                      {fileName && (
+                        <Typography
+                          variant="body1"
+                          style={{ fontStyle: "italic" }}
+                        >
+                          {fileName}
+                        </Typography>
+                      )}
+                      <Button
+                        variant="contained"
+                        startIcon={<PictureAsPdf />}
+                        onClick={() => handleViewDocument(docValue)} // Open the DocumentViewerModal
+                        disabled={!docValue} // Disable if no file or URL is available
+                      >
+                        {docValue ? "View PDF" : "Not Uploaded"}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        startIcon={<CloudUploadIcon />}
+                        onClick={() => handleUploadNewDocument(docKey)}
+                      >
+                        Upload New
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => {
+                          // Clear the file or URL for this field
+                          setUpdatedCustomer((prev) => ({
+                            ...prev,
+                            documents: {
+                              ...prev.documents,
+                              [docKey]: null,
+                            },
+                          }));
+                          // Mark the field as touched
+                          setTouchedFields((prev) => ({
+                            ...prev,
+                            [docKey]: true,
+                          }));
+                        }}
+                        disabled={!docValue} // Disable if no file or URL is available
+                      >
+                        Clear
+                      </Button>
+                    </Box>
+                  </>
+                ) : (
+                  // Non-PDF fields (e.g., gstNumber, aadhaarNumber)
+                  <TextField
+                    name={docKey}
+                    label={docKey
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())
+                      .replace(/Number/g, "")}
+                    value={docValue || ""} // Use the actual value
+                    onChange={handleDocumentChange}
+                    fullWidth
+                    margin="normal"
+                  />
                 )}
               </div>
             );
