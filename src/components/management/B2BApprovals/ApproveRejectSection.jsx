@@ -15,7 +15,9 @@ import {
   Cancel as CancelIcon,
   History as HistoryIcon,
   Person as PersonIcon,
+  Autorenew as AutorenewIcon,
 } from "@mui/icons-material"; // All icons imported
+
 import ApproveRejectModal from "./ApproveRejectModal";
 import { usePermissions } from "../../../utils/permissionssHelper";
 import ApprovedAndReviewed from "./ApprovedAndReviewed";
@@ -64,9 +66,8 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
   return (
     <Box>
       {/* Approved and Reviewed Section */}
-      {customer?.isAccepted !== null && (
-        <ApprovedAndReviewed customer={customer} />
-      )}
+
+      <ApprovedAndReviewed customer={customer} />
 
       {/* Approval/Rejection Buttons or Status Chips */}
       <Box
@@ -85,7 +86,6 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
           variant="outlined"
           onClick={fetchUpdateHistory} // Fetch history on click
           clickable
-          disabled={customer?.isAccepted === null}
         />
 
         {customer.isAccepted === true && (
@@ -99,11 +99,20 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
         )}
         {customer.isAccepted === false && (
           <Chip
-            label="Rejected"
-            color="error"
-            icon={<CancelIcon />} // Cancel icon
+            label="Re-Approve"
+            color="primary" // Use "primary" or a custom color
+            icon={<AutorenewIcon />} // Use the Autorenew icon
             variant="outlined"
             clickable
+            onClick={() => handleOpenModal(true)} // Open modal for re-approval
+            sx={{
+              borderRadius: "4px",
+              borderColor: "primary.main", // Customize border color
+              color: "primary.main", // Customize text color
+              "&:hover": {
+                backgroundColor: "primary.light", // Add hover effect
+              },
+            }}
           />
         )}
         {customer.isAccepted === null && (

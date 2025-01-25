@@ -53,39 +53,27 @@ const ApprovedAndReviewed = ({ customer }) => {
     return null;
   };
 
-  // If isAccepted is false, show a message
-  if (!isAccepted) {
-    return (
-      <Card
-        sx={{
-          borderRadius: "8px",
+  // Determine the icon and title based on the isAccepted prop
+  let statusIcon;
+  let statusTitle;
 
-          marginBottom: "24px",
-        }}
-      >
-        <CardContent sx={{ padding: "16px" }}>
-          <Typography
-            variant="h6"
-            gutterBottom
-            sx={{ display: "flex", alignItems: "center", fontWeight: "bold" }}
-          >
-            <CancelIcon sx={{ mr: 1, color: "red", fontSize: "20px" }} />
-            Not Approved
-          </Typography>
-          <Typography variant="body1" sx={{ color: "text.secondary" }}>
-            This customer has not been approved yet.
-          </Typography>
-        </CardContent>
-      </Card>
+  if (isAccepted === null) {
+    statusIcon = <InfoIcon sx={{ mr: 1, color: "yellow", fontSize: "20px" }} />;
+    statusTitle = "Pending Approval";
+  } else if (isAccepted === false) {
+    statusIcon = <CancelIcon sx={{ mr: 1, color: "red", fontSize: "20px" }} />;
+    statusTitle = "Not Approved";
+  } else {
+    statusIcon = (
+      <CheckCircleIcon sx={{ mr: 1, color: "green", fontSize: "20px" }} />
     );
+    statusTitle = "Approved and Reviewed";
   }
 
-  // If isAccepted is true, show the Approved and Reviewed details
   return (
     <Card
       sx={{
         borderRadius: "8px",
-
         marginBottom: "24px",
       }}
     >
@@ -95,21 +83,21 @@ const ApprovedAndReviewed = ({ customer }) => {
           gutterBottom
           sx={{ display: "flex", alignItems: "center", fontWeight: "bold" }}
         >
-          <CheckCircleIcon sx={{ mr: 1, color: "green", fontSize: "20px" }} />
-          Approved and Reviewed
+          {statusIcon}
+          {statusTitle}
         </Typography>
 
         <Grid container spacing={3}>
           {/* Reviewed By Section */}
-          {reviewedBy && (
-            <Grid item xs={12} md={4}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", marginBottom: "16px" }}
-              >
-                <PersonIcon sx={{ mr: 1, fontSize: "18px" }} />
-                Reviewed By
-              </Typography>
+          <Grid item xs={12} md={4}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: "bold", marginBottom: "16px" }}
+            >
+              <PersonIcon sx={{ mr: 1, fontSize: "18px" }} />
+              Reviewed By
+            </Typography>
+            {reviewedBy?.uid ? ( // Check if uid is not null
               <List>
                 {renderField(
                   "UID",
@@ -136,8 +124,26 @@ const ApprovedAndReviewed = ({ customer }) => {
                   <GroupIcon />
                 )}
               </List>
-            </Grid>
-          )}
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <InfoIcon
+                  sx={{ color: "text.secondary", fontSize: "32px", mb: 1 }}
+                />
+                <Typography variant="body2" color="text.secondary">
+                  No reviewed data available.
+                </Typography>
+              </Box>
+            )}
+          </Grid>
 
           {/* Previously Reviewed By Section */}
           <Grid item xs={12} md={4}>
@@ -185,7 +191,6 @@ const ApprovedAndReviewed = ({ customer }) => {
                   alignItems: "center",
                   justifyContent: "center",
                   padding: "16px",
-
                   textAlign: "center",
                 }}
               >
@@ -200,15 +205,15 @@ const ApprovedAndReviewed = ({ customer }) => {
           </Grid>
 
           {/* Last Updated By Section */}
-          {lastUpdatedBy && (
-            <Grid item xs={12} md={4}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", marginBottom: "16px" }}
-              >
-                <PersonIcon sx={{ mr: 1, fontSize: "18px" }} />
-                Last Updated By
-              </Typography>
+          <Grid item xs={12} md={4}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: "bold", marginBottom: "16px" }}
+            >
+              <PersonIcon sx={{ mr: 1, fontSize: "18px" }} />
+              Last Updated By
+            </Typography>
+            {lastUpdatedBy?.uid ? ( // Check if uid is not null
               <List>
                 {renderField(
                   "UID",
@@ -240,8 +245,26 @@ const ApprovedAndReviewed = ({ customer }) => {
                   <GroupIcon />
                 )}
               </List>
-            </Grid>
-          )}
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <InfoIcon
+                  sx={{ color: "text.secondary", fontSize: "32px", mb: 1 }}
+                />
+                <Typography variant="body2" color="text.secondary">
+                  No last updated data available.
+                </Typography>
+              </Box>
+            )}
+          </Grid>
         </Grid>
       </CardContent>
     </Card>
