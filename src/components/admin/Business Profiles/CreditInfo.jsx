@@ -41,6 +41,7 @@ import {
 } from "@mui/icons-material";
 import api from "../../../utils/api";
 import { useParams } from "react-router-dom";
+import { usePermissions } from "../../../utils/permissionssHelper";
 
 const CreditInfo = ({ creditInfo }) => {
   const [page, setPage] = useState(0);
@@ -68,6 +69,7 @@ const CreditInfo = ({ creditInfo }) => {
   const { cid } = useParams();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const permissions = usePermissions();
 
   if (!creditInfo) return null;
 
@@ -78,8 +80,8 @@ const CreditInfo = ({ creditInfo }) => {
     creditPeriod,
     interestRate,
     status,
-    transactions,
-    extraCredits,
+    transactions = [],
+    extraCredits = [],
   } = creditInfo;
 
   // Pre-fill upgradeData with current credit details when modal opens
@@ -265,6 +267,7 @@ const CreditInfo = ({ creditInfo }) => {
           startIcon={<UpgradeIcon />}
           onClick={handleOpenUpgradeModal}
           sx={{ mb: isSmallScreen ? 1 : 0 }}
+          disabled={!permissions.update}
         >
           Upgrade/Downgrade Credit
         </Button>
@@ -272,7 +275,7 @@ const CreditInfo = ({ creditInfo }) => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenExtraCreditModal}
-          disabled={status === "ACTIVE"}
+          disabled={status === "ACTIVE" || !permissions.update}
           sx={{ mb: isSmallScreen ? 1 : 0 }}
         >
           Add Extra Credit

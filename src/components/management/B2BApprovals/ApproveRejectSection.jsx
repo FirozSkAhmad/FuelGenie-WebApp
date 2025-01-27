@@ -9,6 +9,7 @@ import {
   ListItem,
   ListItemText,
   Avatar,
+  TextField,
 } from "@mui/material";
 import {
   CheckCircle as CheckCircleIcon,
@@ -16,20 +17,25 @@ import {
   History as HistoryIcon,
   Person as PersonIcon,
   Autorenew as AutorenewIcon,
-} from "@mui/icons-material"; // All icons imported
+} from "@mui/icons-material";
 
 import ApproveRejectModal from "./ApproveRejectModal";
 import { usePermissions } from "../../../utils/permissionssHelper";
 import ApprovedAndReviewed from "./ApprovedAndReviewed";
 import api from "../../../utils/api";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApproval, setIsApproval] = useState(true); // true for approve, false for reject
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false); // For update history modal
-  const [updateHistory, setUpdateHistory] = useState([]); // To store update history
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [updateHistory, setUpdateHistory] = useState([]);
+  const [isReApproveModalOpen, setIsReApproveModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
+
   const { cid } = useParams();
+  const navigate = useNavigate();
   const permissions = usePermissions();
 
   const handleOpenModal = (isApprovalAction) => {
@@ -41,35 +47,73 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
     setIsModalOpen(false);
   };
 
-  const handleConfirm = (remarks) => {
-    handleApproveReject(isApproval, remarks);
+  const handleConfirm = async (remarks) => {
+    try {
+      await handleApproveReject(isApproval, remarks);
+      toast.success(
+        isApproval
+          ? "Customer successfully approved!"
+          : "Customer successfully rejected!"
+      );
+    } catch (error) {
+      toast.error(
+        `Error ${isApproval ? "approving" : "rejecting"} customer: ${
+          error.message || "Unexpected error"
+        }`
+      );
+    } finally {
+      setIsModalOpen(false);
+    }
   };
 
-  // Fetch update history when the chip is clicked
   const fetchUpdateHistory = async () => {
     try {
       const response = await api.get(
         `/management/b2b-approvals/get-update-history/${cid}`
       );
-      setUpdateHistory(response.data.data); // Set the fetched history
-      setIsHistoryModalOpen(true); // Open the history modal
+      setUpdateHistory(response.data.data);
+      setIsHistoryModalOpen(true);
     } catch (error) {
-      console.error("Error fetching update history:", error);
+      toast.error(
+        `Failed to fetch update history: ${error.message || "Unexpected error"}`
+      );
     }
   };
 
-  // Close the history modal
   const handleCloseHistoryModal = () => {
     setIsHistoryModalOpen(false);
   };
 
+  const handleOpenReApproveModal = () => {
+    setIsReApproveModalOpen(true);
+  };
+
+  const handleCloseReApproveModal = () => {
+    setIsReApproveModalOpen(false);
+    setRemarks("");
+  };
+
+  const handleResetRejection = async () => {
+    try {
+      await api.put(`/management/b2b-approvals/reset-is-rejected/${cid}`, {
+        remarks,
+      });
+      toast.success("Rejection reset successfully!");
+      navigate("/management/b2b-approvals");
+    } catch (error) {
+      toast.error(
+        `Error resetting rejection: ${error.message || "Unexpected error"}`
+      );
+    } finally {
+      setIsReApproveModalOpen(false);
+      setRemarks("");
+    }
+  };
+
   return (
     <Box>
-      {/* Approved and Reviewed Section */}
-
       <ApprovedAndReviewed customer={customer} />
 
-      {/* Approval/Rejection Buttons or Status Chips */}
       <Box
         style={{
           display: "flex",
@@ -78,13 +122,12 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
           marginTop: "20px",
         }}
       >
-        {/* Update History Chip */}
         <Chip
           label="Update History"
           color="primary"
-          icon={<HistoryIcon />} // History icon
+          icon={<HistoryIcon />}
           variant="outlined"
-          onClick={fetchUpdateHistory} // Fetch history on click
+          onClick={fetchUpdateHistory}
           clickable
         />
 
@@ -92,25 +135,26 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
           <Chip
             label="Accepted"
             color="success"
-            icon={<CheckCircleIcon />} // CheckCircle icon
+            icon={<CheckCircleIcon />}
             variant="outlined"
             clickable
           />
         )}
         {customer.isAccepted === false && (
           <Chip
-            label="Re-Approve"
-            color="primary" // Use "primary" or a custom color
-            icon={<AutorenewIcon />} // Use the Autorenew icon
+            label="Reset Rejection"
+            color="primary"
+            icon={<AutorenewIcon />}
             variant="outlined"
             clickable
-            onClick={() => handleOpenModal(true)} // Open modal for re-approval
+            onClick={handleOpenReApproveModal}
+            disabled={loading || !permissions.update}
             sx={{
               borderRadius: "4px",
-              borderColor: "primary.main", // Customize border color
-              color: "primary.main", // Customize text color
+              borderColor: "primary.main",
+              color: "primary.main",
               "&:hover": {
-                backgroundColor: "primary.light", // Add hover effect
+                backgroundColor: "primary.light",
               },
             }}
           />
@@ -120,7 +164,7 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
             <Button
               variant="contained"
               color="success"
-              startIcon={<CheckCircleIcon />} // CheckCircle icon
+              startIcon={<CheckCircleIcon />}
               onClick={() => handleOpenModal(true)}
               disabled={loading || !permissions.update}
             >
@@ -129,7 +173,7 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
             <Button
               variant="contained"
               color="error"
-              startIcon={<CancelIcon />} // Cancel icon
+              startIcon={<CancelIcon />}
               onClick={() => handleOpenModal(false)}
               disabled={loading || !permissions.update}
             >
@@ -139,7 +183,6 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
         )}
       </Box>
 
-      {/* Modal for Approval/Rejection Remarks */}
       <ApproveRejectModal
         open={isModalOpen}
         onClose={handleCloseModal}
@@ -147,7 +190,6 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
         isApproval={isApproval}
       />
 
-      {/* Modal for Update History */}
       <Modal
         open={isHistoryModalOpen}
         onClose={handleCloseHistoryModal}
@@ -169,14 +211,12 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
             flexDirection: "column",
           }}
         >
-          {/* Fixed Header */}
           <Box sx={{ p: 3, borderBottom: "1px solid #eee" }}>
             <Typography variant="h6" gutterBottom>
               Update History
             </Typography>
           </Box>
 
-          {/* Scrollable List */}
           <Box sx={{ overflowY: "auto", flex: 1, p: 3 }}>
             <List>
               {updateHistory.map((history, index) => (
@@ -200,6 +240,53 @@ const ApproveRejectSection = ({ customer, loading, handleApproveReject }) => {
                 </ListItem>
               ))}
             </List>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal
+        open={isReApproveModalOpen}
+        onClose={handleCloseReApproveModal}
+        aria-labelledby="reapprove-modal"
+        aria-describedby="reapprove-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            borderRadius: "8px",
+            p: 3,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Reset Rejection
+          </Typography>
+          <TextField
+            label="Remarks"
+            fullWidth
+            multiline
+            rows={4}
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            sx={{ mt: 2, mb: 2 }}
+          />
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+            <Button onClick={handleCloseReApproveModal} color="error">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleResetRejection}
+              color="primary"
+              variant="contained"
+              disabled={!remarks.trim()}
+            >
+              Save
+            </Button>
           </Box>
         </Box>
       </Modal>
