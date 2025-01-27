@@ -130,7 +130,10 @@ const BusinessProfilesDetails = () => {
       ) : (
         <>
           {activeTab === 0 && (
-            <CustomerDetails customerDetails={customerDetails} />
+            <CustomerDetails
+              customerDetails={customerDetails}
+              fetchCustomer={fetchCustomerDetails}
+            />
           )}
           {activeTab === 1 && (
             <TransactionHistory transactionHistory={transactionHistory} />

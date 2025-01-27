@@ -31,7 +31,7 @@ import DocumentViewerModal from "../../UI/DocViewModal";
 import api from "../../../utils/api";
 import FirmType from "../../UI/FirmType";
 
-const CustomerDetails = ({ customerDetails }) => {
+const CustomerDetails = ({ customerDetails, fetchCustomer }) => {
   if (!customerDetails) return null;
 
   // State for document viewer modal
@@ -86,7 +86,9 @@ const CustomerDetails = ({ customerDetails }) => {
           interestRate,
         }
       );
-      if (response.data.success) {
+
+      // Check the status code to determine success
+      if (response.status === 200) {
         setSnackbarMessage("Customer approved successfully!");
         setSnackbarSeverity("success");
       } else {
@@ -94,11 +96,21 @@ const CustomerDetails = ({ customerDetails }) => {
         setSnackbarSeverity("error");
       }
     } catch (error) {
-      setSnackbarMessage("An error occurred while approving the customer.");
+      // Handle specific error responses if needed
+      if (error.response && error.response.status) {
+        setSnackbarMessage(
+          `Error ${error.response.status}: Unable to approve customer.`
+        );
+      } else {
+        setSnackbarMessage(
+          "An unexpected error occurred while approving the customer."
+        );
+      }
       setSnackbarSeverity("error");
     } finally {
       setOpenApproveModal(false);
       setSnackbarOpen(true);
+      fetchCustomer();
     }
   };
 
@@ -111,7 +123,7 @@ const CustomerDetails = ({ customerDetails }) => {
           adminRemarks,
         }
       );
-      if (response.data.success) {
+      if (response.status === 200) {
         setSnackbarMessage("Customer rejected successfully!");
         setSnackbarSeverity("success");
       } else {
@@ -124,6 +136,7 @@ const CustomerDetails = ({ customerDetails }) => {
     } finally {
       setOpenRejectModal(false);
       setSnackbarOpen(true);
+      fetchCustomer();
     }
   };
 
@@ -181,11 +194,70 @@ const CustomerDetails = ({ customerDetails }) => {
   };
   return (
     <Paper sx={{ padding: 2, marginTop: 2 }}>
-      {/* Profile Image and Firm Type */}
       <Box sx={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
+        {/* Profile Image */}
         <ProfileImage profileImage={customerDetails.profileImage} />
-        <Box>
+
+        {/* Firm Type and Review Sections */}
+        <Box sx={{ marginLeft: 2, flexGrow: 1 }}>
+          {/* Firm Type */}
           <FirmType firmType={customerDetails.firmType} />
+
+          {/* Review Sections */}
+          <Grid container spacing={2} sx={{ marginTop: 1 }}>
+            {/* Reviewed By */}
+            <Grid item xs={12} sm={4}>
+              <Typography variant="body2" color="textSecondary">
+                Reviewed By
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Chip
+                  label={customerDetails.reviewedBy?.name || "N/A"}
+                  size="small"
+                  color="primary"
+                />
+                <Typography variant="body2" color="textSecondary">
+                  {customerDetails.reviewedBy?.managementRemarks ||
+                    "No remarks"}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Previously Reviewed By */}
+            <Grid item xs={12} sm={4}>
+              <Typography variant="body2" color="textSecondary">
+                Previously Reviewed By
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Chip
+                  label={customerDetails.previouslyReviewedBy?.name || "N/A"}
+                  size="small"
+                  color="secondary"
+                />
+                <Typography variant="body2" color="textSecondary">
+                  {customerDetails.previouslyReviewedBy?.managementRemarks ||
+                    "No remarks"}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Last Updated By */}
+            <Grid item xs={12} sm={4}>
+              <Typography variant="body2" color="textSecondary">
+                Last Updated By
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Chip
+                  label={customerDetails.lastUpdatedBy?.name || "N/A"}
+                  size="small"
+                  color="info"
+                />
+                <Typography variant="body2" color="textSecondary">
+                  {customerDetails.lastUpdatedBy?.remarks || "No remarks"}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
         </Box>
       </Box>
       {/* Approve and Reject Buttons */}
