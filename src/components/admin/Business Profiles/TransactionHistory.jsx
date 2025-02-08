@@ -28,17 +28,19 @@ import {
 const TransactionHistory = ({ transactionHistory }) => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
-  const [page, setPage] = useState(0); // Pagination page
-  const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const navigate = useNavigate();
 
   const getStatusIcon = (status) => {
     switch (status) {
       case "PENDING":
         return <PendingIcon color="warning" />;
-      case "SUCCESS":
+      case "PROCESSING":
+        return <PendingIcon color="info" />;
+      case "PAID":
         return <SuccessIcon color="success" />;
-      case "FAILED":
+      case "OVERDUE":
         return <FailedIcon color="error" />;
       default:
         return null;
@@ -49,34 +51,30 @@ const TransactionHistory = ({ transactionHistory }) => {
     navigate(`/operations/orders/${orderId}`);
   };
 
-  // Extract only the date part (YYYY-MM-DD) from the ISO string
   const extractDatePart = (isoString) => {
+    if (!isoString) return "N/A";
     return isoString.split("T")[0];
   };
 
-  // Calculate the difference in days between the due date and the current date
-  const getDueDateColor = (dueDate) => {
-    const today = new Date();
-    const todayDatePart = extractDatePart(today.toISOString()); // Current date part
-    const dueDatePart = extractDatePart(dueDate); // Due date part
+  const getDueDateColor = (dueDate, status) => {
+    if (status === "PAID") return "inherit";
+    if (!dueDate) return "inherit";
 
-    // Convert to Date objects for comparison
+    const today = new Date();
+    const todayDatePart = extractDatePart(today.toISOString());
+    const dueDatePart = extractDatePart(dueDate);
+
     const todayDate = new Date(todayDatePart);
     const dueDateObj = new Date(dueDatePart);
 
     const timeDifference = dueDateObj - todayDate;
     const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
 
-    if (daysDifference < 1) {
-      return "red"; // Less than 1 days
-    } else if (daysDifference < 4) {
-      return "orange"; // Less than 4 days
-    } else {
-      return "green"; // More than 5 days
-    }
+    if (daysDifference < 1) return "red";
+    if (daysDifference < 4) return "orange";
+    return "green";
   };
 
-  // Filter transactions based on status and type
   const filteredTransactions = transactionHistory.filter((transaction) => {
     const statusMatch =
       statusFilter === "ALL" || transaction.status === statusFilter;
@@ -84,17 +82,12 @@ const TransactionHistory = ({ transactionHistory }) => {
     return statusMatch && typeMatch;
   });
 
-  // Pagination handlers
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
+  const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when rows per page changes
+    setPage(0);
   };
 
-  // Paginated transactions
   const paginatedTransactions = filteredTransactions.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
@@ -106,7 +99,6 @@ const TransactionHistory = ({ transactionHistory }) => {
         Transaction History
       </Typography>
 
-      {/* Filters */}
       <Box sx={{ display: "flex", gap: 2, padding: 2 }}>
         <FormControl variant="outlined" sx={{ minWidth: 120 }}>
           <InputLabel>Status</InputLabel>
@@ -117,8 +109,9 @@ const TransactionHistory = ({ transactionHistory }) => {
           >
             <MenuItem value="ALL">All</MenuItem>
             <MenuItem value="PENDING">Pending</MenuItem>
-            <MenuItem value="SUCCESS">Success</MenuItem>
-            <MenuItem value="FAILED">Failed</MenuItem>
+            <MenuItem value="PROCESSING">Processing</MenuItem>
+            <MenuItem value="PAID">Paid</MenuItem>
+            <MenuItem value="OVERDUE">Overdue</MenuItem>
           </Select>
         </FormControl>
 
@@ -136,7 +129,6 @@ const TransactionHistory = ({ transactionHistory }) => {
         </FormControl>
       </Box>
 
-      {/* Show message if no transactions are found */}
       {filteredTransactions.length === 0 ? (
         <Box sx={{ padding: 2 }}>
           <Typography variant="body1" color="textSecondary">
@@ -184,9 +176,13 @@ const TransactionHistory = ({ transactionHistory }) => {
             </TableHead>
             <TableBody>
               {paginatedTransactions.map((transaction) => {
-                const dueDateColor = getDueDateColor(transaction.dueDate);
-                const dueDateFormatted = extractDatePart(transaction.dueDate); // Format due date
-                const dateFormatted = extractDatePart(transaction.date); // Format date
+                const dueDateColor = getDueDateColor(
+                  transaction.dueDate,
+                  transaction.status
+                );
+                const dueDateFormatted = extractDatePart(transaction.dueDate);
+                const dateFormatted = extractDatePart(transaction.orderedDate);
+
                 return (
                   <TableRow
                     key={transaction.transactionId}
@@ -219,11 +215,10 @@ const TransactionHistory = ({ transactionHistory }) => {
             </TableBody>
           </Table>
 
-          {/* Pagination */}
           <TablePagination
-            rowsPerPageOptions={[5, 10, 25]} // Options for rows per page
+            rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={filteredTransactions.length} // Total number of transactions
+            count={filteredTransactions.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

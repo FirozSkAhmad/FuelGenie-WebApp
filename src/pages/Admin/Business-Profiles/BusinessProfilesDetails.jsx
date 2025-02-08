@@ -138,7 +138,9 @@ const BusinessProfilesDetails = () => {
           {activeTab === 1 && (
             <TransactionHistory transactionHistory={transactionHistory} />
           )}
-          {activeTab === 2 && <CreditInfo creditInfo={creditInfo} />}
+          {activeTab === 2 && (
+            <CreditInfo creditInfo={creditInfo} fetchCredit={fetchCreditInfo} />
+          )}
         </>
       )}
     </div>
