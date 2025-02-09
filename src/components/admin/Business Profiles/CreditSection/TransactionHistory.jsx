@@ -9,17 +9,21 @@ import {
   TableCell,
   TablePagination,
   Box,
+  Paper,
+  useMediaQuery,
 } from "@mui/material";
 
-const TransactionHistory = ({ transactions, isSmallScreen }) => {
+const TransactionHistory = ({ transactions }) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const isSmallScreen = useMediaQuery("(max-width: 600px)");
 
   const handleChangePage = (_, newPage) => setPage(newPage);
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0); // Reset to the first page after change
   };
 
   // Slice transactions for pagination
@@ -35,124 +39,108 @@ const TransactionHistory = ({ transactions, isSmallScreen }) => {
   };
 
   return (
-    <>
-      <Typography variant="h6" gutterBottom sx={{ marginTop: 4 }}>
+    <Box sx={{ marginTop: 4, paddingX: isSmallScreen ? 1 : 4 }}>
+      <Typography
+        variant="h6"
+        gutterBottom
+        sx={{
+          fontWeight: 600,
+          color: "text.primary",
+          mb: 3,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
         Transaction History
       </Typography>
+
       {transactions.length === 0 ? (
         <Box sx={{ padding: 2, textAlign: "center" }}>
           <Typography variant="body1" color="textSecondary">
             No data available
           </Typography>
         </Box>
-      ) : isSmallScreen ? (
-        <Box>
-          {paginatedTransactions.map((transaction) => {
-            const date = extractDatePart(transaction.date); // Safely extract date
-            return (
-              <Box
-                key={transaction.transactionId}
-                sx={{
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 1,
-                  padding: 2,
-                  marginBottom: 2,
-                }}
-              >
-                <Typography variant="subtitle1">
-                  {transaction.description || "No description"}
-                </Typography>
-                <Typography variant="body2">
-                  Amount: ₹
-                  {transaction.amount?.toLocaleString("en-IN") || "N/A"}
-                </Typography>
-                <Typography variant="body2">Date: {date}</Typography>
-                <Typography variant="body2">
-                  Previous Credit Amount:{" "}
-                  {transaction.previousCreditAmount
-                    ? `₹${transaction.previousCreditAmount.toLocaleString(
-                        "en-IN"
-                      )}`
-                    : "Initial"}
-                </Typography>
-                <Typography variant="body2">
-                  Upgraded Credit Amount:{" "}
-                  {transaction.upgradedCreditAmount
-                    ? `₹${transaction.upgradedCreditAmount.toLocaleString(
-                        "en-IN"
-                      )}`
-                    : "Initial"}
-                </Typography>
-                <Typography variant="body2">
-                  Previous Interest Rate:{" "}
-                  {transaction.previousInterestRate ?? "Initial"}
-                </Typography>
-                <Typography variant="body2">
-                  Upgraded Interest Rate:{" "}
-                  {transaction.upgradedInterestRate ?? "Initial"}
-                </Typography>
-                <Typography variant="body2">
-                  Previous Credit Period:{" "}
-                  {transaction.previousCreditPeriod ?? "Initial"}
-                </Typography>
-                <Typography variant="body2">
-                  Upgraded Credit Period:{" "}
-                  {transaction.upgradedCreditPeriod ?? "Initial"}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
       ) : (
-        <TableContainer>
-          <Table>
-            <TableHead>
+        <TableContainer
+          component={Paper}
+          sx={{
+            borderRadius: 2,
+            overflowX: isSmallScreen ? "auto" : "hidden",
+            boxShadow: 3,
+          }}
+        >
+          <Table sx={{ minWidth: 800 }}>
+            <TableHead sx={{ backgroundColor: "action.hover" }}>
               <TableRow>
-                <TableCell>Description</TableCell>
-                <TableCell>Amount (₹)</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Previous Credit Amount</TableCell>
-                <TableCell>Upgraded Credit Amount</TableCell>
-                <TableCell>Previous Interest Rate</TableCell>
-                <TableCell>Upgraded Interest Rate</TableCell>
-                <TableCell>Previous Credit Period</TableCell>
-                <TableCell>Upgraded Credit Period</TableCell>
+                {[
+                  "Description",
+                  "Amount (₹)",
+                  "Date",
+                  "Previous Credit Amount",
+                  "Upgraded Credit Amount",
+                  "Previous Interest Rate",
+                  "Upgraded Interest Rate",
+                  "Previous Credit Period",
+                  "Upgraded Credit Period",
+                ].map((header) => (
+                  <TableCell
+                    key={header}
+                    sx={{
+                      fontSize: isSmallScreen ? "12px" : "14px",
+                      padding: isSmallScreen ? "6px" : "12px",
+                      whiteSpace: isSmallScreen ? "nowrap" : "normal",
+                    }}
+                  >
+                    {header}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedTransactions.map((transaction) => (
-                <TableRow key={transaction.transactionId}>
-                  <TableCell>
+              {paginatedTransactions.map((transaction, index) => (
+                <TableRow
+                  key={transaction.transactionId}
+                  sx={{
+                    backgroundColor:
+                      index % 2 === 0
+                        ? "background.default"
+                        : "background.default",
+                    "&:hover": { backgroundColor: "action.hover" },
+                  }}
+                >
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.description || "No description"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     ₹{transaction.amount?.toLocaleString("en-IN") || "N/A"}
                   </TableCell>
-                  <TableCell>{extractDatePart(transaction.date)}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
+                    {extractDatePart(transaction.date)}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.previousCreditAmount
                       ? `₹${transaction.previousCreditAmount.toLocaleString(
                           "en-IN"
                         )}`
                       : "Initial"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.upgradedCreditAmount
                       ? `₹${transaction.upgradedCreditAmount.toLocaleString(
                           "en-IN"
                         )}`
                       : "Initial"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.previousInterestRate ?? "Initial"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.upgradedInterestRate ?? "Initial"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.previousCreditPeriod ?? "Initial"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.upgradedCreditPeriod ?? "Initial"}
                   </TableCell>
                 </TableRow>
@@ -161,6 +149,7 @@ const TransactionHistory = ({ transactions, isSmallScreen }) => {
           </Table>
         </TableContainer>
       )}
+
       <TablePagination
         component="div"
         count={transactions.length}
@@ -168,8 +157,10 @@ const TransactionHistory = ({ transactions, isSmallScreen }) => {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25]} // Ensure 5 is included
+        sx={{ marginTop: 2 }}
       />
-    </>
+    </Box>
   );
 };
 
