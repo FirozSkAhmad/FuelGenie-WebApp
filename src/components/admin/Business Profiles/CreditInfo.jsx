@@ -10,6 +10,7 @@ import {
   ListItemText,
   useMediaQuery,
   useTheme,
+  Box,
 } from "@mui/material";
 import api from "../../../utils/api";
 import { useParams } from "react-router-dom";
@@ -34,8 +35,12 @@ import {
   Add as AddIcon,
   Upgrade as UpgradeIcon,
 } from "@mui/icons-material";
+import PartialPaymentHistory from "./CreditSection/PartialPaymentHistory";
+import CreditPaymentModals from "./CreditSection/CreditPaymentModals";
 const CreditInfo = ({ creditInfo, fetchCredit }) => {
   const [openUpgradeModal, setOpenUpgradeModal] = useState(false);
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
+  const [paymentType, setPaymentType] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -43,6 +48,7 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [settlementHistory, setSettlementHistory] = useState([]);
+  const [partialPaymentHistory, setPartialPaymentHistory] = useState([]);
   const { cid } = useParams();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -78,7 +84,21 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
         });
       }
     };
-
+    const fetchPartialPaymentHistory = async () => {
+      try {
+        const response = await api.get(
+          `/admin/business-profiles/get-partical-payment-history/${cid}`
+        );
+        setPartialPaymentHistory(response.data);
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: "Failed to fetch partial payment history",
+          severity: "error",
+        });
+      }
+    };
+    fetchPartialPaymentHistory();
     fetchPaymentHistory();
     fetchSettlementHistory();
   }, [cid]);
@@ -88,6 +108,10 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
   const handleOpenUpgradeModal = () => setOpenUpgradeModal(true);
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+  const handlePaymentModal = (type) => {
+    setPaymentType(type);
+    setOpenPaymentModal(true);
+  };
   return (
     <>
       {/* Credit Information Section */}
@@ -147,14 +171,48 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
           <ListItemText primary="Status" secondary={creditInfo?.status} />
         </ListItem>
       </List>
-      <Button
-        variant="contained"
-        onClick={handleOpenUpgradeModal}
-        sx={{ mb: isSmallScreen ? 1 : 0 }}
-        disabled={!permissions.update}
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 2,
+          justifyContent: { xs: "center", sm: "flex-start" },
+        }}
       >
-        Upgrade/Downgrade Credit
-      </Button>
+        <Button
+          variant="contained"
+          onClick={handleOpenUpgradeModal}
+          sx={{ minWidth: 180 }}
+          disabled={!permissions.update}
+        >
+          Upgrade/Downgrade Credit
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ minWidth: 180 }}
+          disabled={!permissions.update}
+          onClick={() => handlePaymentModal("Settle Credit")}
+        >
+          Settle Credit
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ minWidth: 180 }}
+          disabled={!permissions.update}
+          onClick={() => handlePaymentModal("Partial Payment")}
+        >
+          Partial Payments
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          sx={{ minWidth: 180 }}
+          disabled={!permissions.update}
+          onClick={() => handlePaymentModal("Pay Total Amount")}
+        >
+          Pay Total Amount
+        </Button>
+      </Box>
       {/* Upgrade Credit Modal */}
       <UpgradeCreditModal
         open={openUpgradeModal}
@@ -163,11 +221,23 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
         fetchCredit={fetchCredit}
         setSnackbar={setSnackbar}
       />
+      {/* Payment Modal for all the modes in one  */}
+      <CreditPaymentModals
+        open={openPaymentModal}
+        onClose={() => setOpenPaymentModal(false)}
+        creditInfo={creditInfo}
+        type={paymentType}
+        fetchCredit={fetchCredit}
+        setSnackbar={setSnackbar}
+        cid={cid}
+      />
       {/* Transaction History Section */}
       <TransactionHistory
         transactions={creditInfo.transactions || []}
         isSmallScreen={isSmallScreen}
       />
+      {/* Partial  Payment History Section */}
+      <PartialPaymentHistory partialPaymentHistory={partialPaymentHistory} />
       {/* Payment History Section */}
       <PaymentHistory
         paymentHistory={paymentHistory}

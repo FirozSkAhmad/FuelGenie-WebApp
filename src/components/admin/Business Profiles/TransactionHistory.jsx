@@ -14,8 +14,11 @@ import {
   FormControl,
   InputLabel,
   TablePagination,
+  Button,
+  Modal,
+  TextField,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   AccountBalanceWallet as WalletIcon,
   Payment as PaymentIcon,
@@ -24,14 +27,20 @@ import {
   Cancel as FailedIcon,
   CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
+import api from "../../../utils/api";
 
-const TransactionHistory = ({ transactionHistory }) => {
+const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentDetails, setPaymentDetails] = useState("");
+  const [chequeImage, setChequeImage] = useState(null);
   const navigate = useNavigate();
-
+  const { cid } = useParams();
   const getStatusIcon = (status) => {
     switch (status) {
       case "PENDING":
@@ -46,7 +55,18 @@ const TransactionHistory = ({ transactionHistory }) => {
         return null;
     }
   };
+  const handleOpenModal = (transaction) => {
+    setSelectedTransaction(transaction);
+    setOpenModal(true);
+  };
 
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedTransaction(null);
+    setPaymentMethod("");
+    setPaymentDetails("");
+    setChequeImage(null);
+  };
   const handleOrderDetailpageRedirect = (orderId) => () => {
     navigate(`/operations/orders/${orderId}`);
   };
@@ -92,7 +112,46 @@ const TransactionHistory = ({ transactionHistory }) => {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
+  const handlePayment = async () => {
+    if (!selectedTransaction) return;
 
+    const formData = new FormData();
+    formData.append("cid", cid);
+    formData.append("transactionId", selectedTransaction.transactionId);
+    formData.append("paymentMethod", paymentMethod);
+    formData.append("paymentDetails", paymentDetails);
+    if (chequeImage) {
+      formData.append("chequeImage", chequeImage);
+    }
+
+    try {
+      const response = await api.put(
+        "/admin/business-profiles/pay-a-creditTransactionAmount",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // Required for file uploads
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Update the transaction status in the UI
+        const updatedTransactions = transactionHistory.map((t) =>
+          t.transactionId === selectedTransaction.transactionId
+            ? { ...t, status: "PAID" }
+            : t
+        );
+        transactionHistory = updatedTransactions;
+        fetchTransaction();
+        handleCloseModal();
+      } else {
+        console.error("Payment failed");
+      }
+    } catch (error) {
+      console.error("Error making payment:", error);
+    }
+  };
   return (
     <TableContainer component={Paper} sx={{ marginTop: 2 }}>
       <Typography variant="h6" sx={{ padding: 2 }}>
@@ -172,6 +231,8 @@ const TransactionHistory = ({ transactionHistory }) => {
                     Due Date
                   </Box>
                 </TableCell>
+
+                <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -209,6 +270,20 @@ const TransactionHistory = ({ transactionHistory }) => {
                         {dueDateFormatted}
                       </Typography>
                     </TableCell>
+                    <TableCell>
+                      {transaction.status !== "PAID" && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(transaction);
+                          }}
+                        >
+                          Pay
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -226,6 +301,58 @@ const TransactionHistory = ({ transactionHistory }) => {
           />
         </>
       )}
+      {/* Modal Code below  */}
+      <Modal open={openModal} onClose={handleCloseModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography variant="h6" component="h2">
+            Pay Credit Transaction Amount
+          </Typography>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Payment Method</InputLabel>
+            <Select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              label="Payment Method"
+            >
+              <MenuItem value="CASH">Cash</MenuItem>
+              <MenuItem value="CHEQUE">Cheque</MenuItem>
+              <MenuItem value="ONLINE">Online</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            label="Payment Details"
+            value={paymentDetails}
+            onChange={(e) => setPaymentDetails(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setChequeImage(e.target.files[0])}
+            style={{ marginTop: 16 }}
+          />
+          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+            <Button onClick={handleCloseModal} sx={{ mr: 2 }}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={handlePayment}>
+              Pay
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </TableContainer>
   );
 };
