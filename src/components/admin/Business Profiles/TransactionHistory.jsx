@@ -15,8 +15,9 @@ import {
   InputLabel,
   TablePagination,
   Button,
+  Collapse,
+  IconButton,
   Modal,
-  TextField,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -26,7 +27,10 @@ import {
   CheckCircle as SuccessIcon,
   Cancel as FailedIcon,
   CalendarToday as CalendarIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from "@mui/icons-material";
+import PaymentModal from "./TransactionSection/PaymentModal";
 import api from "../../../utils/api";
 
 const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
@@ -34,13 +38,13 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [openModal, setOpenModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [paymentDetails, setPaymentDetails] = useState("");
-  const [chequeImage, setChequeImage] = useState(null);
+  const [expandedRows, setExpandedRows] = useState([]);
+  const [chequeImageModalOpen, setChequeImageModalOpen] = useState(false);
+  const [selectedChequeImage, setSelectedChequeImage] = useState("");
   const navigate = useNavigate();
   const { cid } = useParams();
+
   const getStatusIcon = (status) => {
     switch (status) {
       case "PENDING":
@@ -55,18 +59,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
         return null;
     }
   };
-  const handleOpenModal = (transaction) => {
-    setSelectedTransaction(transaction);
-    setOpenModal(true);
-  };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelectedTransaction(null);
-    setPaymentMethod("");
-    setPaymentDetails("");
-    setChequeImage(null);
-  };
   const handleOrderDetailpageRedirect = (orderId) => () => {
     navigate(`/operations/orders/${orderId}`);
   };
@@ -98,7 +91,8 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
   const filteredTransactions = transactionHistory.filter((transaction) => {
     const statusMatch =
       statusFilter === "ALL" || transaction.status === statusFilter;
-    const typeMatch = typeFilter === "ALL" || transaction.type === typeFilter;
+    const typeMatch =
+      typeFilter === "ALL" || transaction.paymentType === typeFilter;
     return statusMatch && typeMatch;
   });
 
@@ -112,46 +106,38 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
-  const handlePayment = async () => {
-    if (!selectedTransaction) return;
 
-    const formData = new FormData();
-    formData.append("cid", cid);
-    formData.append("transactionId", selectedTransaction.transactionId);
-    formData.append("paymentMethod", paymentMethod);
-    formData.append("paymentDetails", paymentDetails);
-    if (chequeImage) {
-      formData.append("chequeImage", chequeImage);
-    }
+  const handleRowExpand = (transactionId) => {
+    setExpandedRows((prev) =>
+      prev.includes(transactionId)
+        ? prev.filter((id) => id !== transactionId)
+        : [...prev, transactionId]
+    );
+  };
 
+  const handleChequeImageClick = (imageUrl) => {
+    setSelectedChequeImage(imageUrl);
+    setChequeImageModalOpen(true);
+  };
+
+  const handleChequeVerify = async (transactionId, status) => {
     try {
       const response = await api.put(
-        "/admin/business-profiles/pay-a-creditTransactionAmount",
-        formData,
+        "/admin/business-profiles/update-cheque-status-of-a-transaction",
         {
-          headers: {
-            "Content-Type": "multipart/form-data", // Required for file uploads
-          },
+          cid,
+          transactionId,
+          status,
         }
       );
-
       if (response.status === 200) {
-        // Update the transaction status in the UI
-        const updatedTransactions = transactionHistory.map((t) =>
-          t.transactionId === selectedTransaction.transactionId
-            ? { ...t, status: "PAID" }
-            : t
-        );
-        transactionHistory = updatedTransactions;
-        fetchTransaction();
-        handleCloseModal();
-      } else {
-        console.error("Payment failed");
+        fetchTransaction(); // Refresh the transaction list
       }
     } catch (error) {
-      console.error("Error making payment:", error);
+      console.error("Error verifying cheque:", error);
     }
   };
+
   return (
     <TableContainer component={Paper} sx={{ marginTop: 2 }}>
       <Typography variant="h6" sx={{ padding: 2 }}>
@@ -175,15 +161,15 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
         </FormControl>
 
         <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-          <InputLabel>Type</InputLabel>
+          <InputLabel>Payment Type</InputLabel>
           <Select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            label="Type"
+            label="Payment Type"
           >
             <MenuItem value="ALL">All</MenuItem>
-            <MenuItem value="DEBIT">Debit</MenuItem>
-            <MenuItem value="CREDIT">Credit</MenuItem>
+            <MenuItem value="SETTLEMENT">SETTLEMENT</MenuItem>
+            <MenuItem value="INDIVIDUAL">INDIVIDUAL</MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -208,7 +194,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                 <TableCell>
                   <Box display="flex" alignItems="center">
                     <PaymentIcon sx={{ marginRight: 1 }} />
-                    Type
+                    Paymen Type
                   </Box>
                 </TableCell>
                 <TableCell>Amount (INR)</TableCell>
@@ -231,7 +217,6 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                     Due Date
                   </Box>
                 </TableCell>
-
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -243,48 +228,128 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                 );
                 const dueDateFormatted = extractDatePart(transaction.dueDate);
                 const dateFormatted = extractDatePart(transaction.orderedDate);
+                const isExpanded = expandedRows.includes(
+                  transaction.transactionId
+                );
 
                 return (
-                  <TableRow
-                    key={transaction.transactionId}
-                    onClick={handleOrderDetailpageRedirect(transaction.orderId)}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell>{transaction.transactionId}</TableCell>
-                    <TableCell>{transaction.type}</TableCell>
-                    <TableCell>
-                      ₹{transaction.amount.toLocaleString("en-IN")}
-                    </TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        {getStatusIcon(transaction.status)}
-                        <Typography sx={{ marginLeft: 1 }}>
-                          {transaction.status}
+                  <React.Fragment key={transaction.transactionId}>
+                    <TableRow
+                      onClick={handleOrderDetailpageRedirect(
+                        transaction.orderId
+                      )}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <TableCell>{transaction.transactionId}</TableCell>
+                      <TableCell>{transaction.paymentType}</TableCell>
+                      <TableCell>
+                        ₹{transaction.amount.toLocaleString("en-IN")}
+                      </TableCell>
+                      <TableCell>{transaction.description}</TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          {getStatusIcon(transaction.status)}
+                          <Typography sx={{ marginLeft: 1 }}>
+                            {transaction.status}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{dateFormatted}</TableCell>
+                      <TableCell>
+                        <Typography sx={{ color: dueDateColor }}>
+                          {dueDateFormatted}
                         </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{dateFormatted}</TableCell>
-                    <TableCell>
-                      <Typography sx={{ color: dueDateColor }}>
-                        {dueDateFormatted}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      {transaction.status !== "PAID" && (
-                        <Button
-                          variant="contained"
-                          color="primary"
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleOpenModal(transaction);
+                            handleRowExpand(transaction.transactionId);
                           }}
+                          disabled={
+                            transaction.paymentMethod === "CASH" ||
+                            transaction.paymentType === "SETTLEMENT"
+                          } // Disable expand for cash transactions
                         >
-                          Pay
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell
+                        style={{ paddingBottom: 0, paddingTop: 0 }}
+                        colSpan={8}
+                      >
+                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                          <Box sx={{ margin: 1 }}>
+                            <Typography
+                              variant="h6"
+                              gutterBottom
+                              component="div"
+                            >
+                              Payment Details
+                            </Typography>
+                            {transaction.paymentDetails && (
+                              <Box>
+                                <Typography>
+                                  Cheque Number:{" "}
+                                  {transaction.paymentDetails.chequeNumber}
+                                </Typography>
+                                <Typography>
+                                  Bank Name:{" "}
+                                  {transaction.paymentDetails.bankName}
+                                </Typography>
+                                <Typography>
+                                  Cheque Issued Date:{" "}
+                                  {transaction.paymentDetails.chequeIssuedDate}
+                                </Typography>
+                                <Typography>
+                                  Cheque Received Date:{" "}
+                                  {
+                                    transaction.paymentDetails
+                                      .chequeReceivedDate
+                                  }
+                                </Typography>
+                                <Typography>
+                                  Cheque Amount: ₹
+                                  {transaction.paymentDetails.chequeAmount.toLocaleString(
+                                    "en-IN"
+                                  )}
+                                </Typography>
+                                <Button
+                                  variant="contained"
+                                  color="primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChequeImageClick(
+                                      transaction.paymentDetails.chequeImageUrl
+                                    );
+                                  }}
+                                >
+                                  View Cheque
+                                </Button>
+                                {transaction.status === "PROCESSING" && (
+                                  <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleChequeVerify(
+                                        transaction.transactionId,
+                                        "PAID"
+                                      );
+                                    }}
+                                  >
+                                    Verify Cheque
+                                  </Button>
+                                )}
+                              </Box>
+                            )}
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
                 );
               })}
             </TableBody>
@@ -301,8 +366,19 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
           />
         </>
       )}
-      {/* Modal Code below  */}
-      <Modal open={openModal} onClose={handleCloseModal}>
+
+      <PaymentModal
+        open={!!selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+        transaction={selectedTransaction}
+        cid={cid}
+        onPaymentSuccess={fetchTransaction}
+      />
+
+      <Modal
+        open={chequeImageModalOpen}
+        onClose={() => setChequeImageModalOpen(false)}
+      >
         <Box
           sx={{
             position: "absolute",
@@ -315,42 +391,11 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
             p: 4,
           }}
         >
-          <Typography variant="h6" component="h2">
-            Pay Credit Transaction Amount
-          </Typography>
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Payment Method</InputLabel>
-            <Select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              label="Payment Method"
-            >
-              <MenuItem value="CASH">Cash</MenuItem>
-              <MenuItem value="CHEQUE">Cheque</MenuItem>
-              <MenuItem value="ONLINE">Online</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            label="Payment Details"
-            value={paymentDetails}
-            onChange={(e) => setPaymentDetails(e.target.value)}
-            sx={{ mt: 2 }}
+          <img
+            src={selectedChequeImage}
+            alt="Cheque"
+            style={{ width: "100%", height: "auto" }}
           />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setChequeImage(e.target.files[0])}
-            style={{ marginTop: 16 }}
-          />
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-            <Button onClick={handleCloseModal} sx={{ mr: 2 }}>
-              Cancel
-            </Button>
-            <Button variant="contained" onClick={handlePayment}>
-              Pay
-            </Button>
-          </Box>
         </Box>
       </Modal>
     </TableContainer>

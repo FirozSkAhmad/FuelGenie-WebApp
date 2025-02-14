@@ -8,9 +8,12 @@ import {
   Button,
   MenuItem,
   Typography,
+  Grid,
+  Paper,
 } from "@mui/material";
 import api from "../../../../utils/api";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+
 const paymentMethods = ["CASH", "CHEQUE", "ACCOUNT_TRANSFER"];
 
 const PaymentModal = ({
@@ -24,14 +27,28 @@ const PaymentModal = ({
 }) => {
   const [formData, setFormData] = useState({
     paymentMethod: "",
-    paymentDetails: "",
-    amount: creditInfo.creditAmount - creditInfo.currentCreditAmount,
+    amount: "",
     description: "",
     chequeImage: null,
     transferReceipt: null,
     creditAmount: creditInfo.creditAmount,
     creditPeriod: creditInfo.creditPeriod,
     interestRate: creditInfo.interestRate,
+    // Fields for CHEQUE
+    chequeNumber: "",
+    bankName: "",
+    chequeIssuedDate: "",
+    chequeReceivedDate: "",
+    // Fields for ACCOUNT_TRANSFER
+    UTR: "",
+    ReferenceID: "",
+    ToAccount: "",
+    FromAccount: "",
+    PaymentDate: "",
+    Remarks: "",
+    Network: "NEFT", // Default value
+    ManualReleaseRequired: "No", // Default value
+    TransactionStatus: "Success", // Default value
   });
 
   const isSettleCredit = type === "Settle Credit";
@@ -58,7 +75,34 @@ const PaymentModal = ({
     const data = new FormData();
     data.append("cid", cid);
     data.append("paymentMethod", formData.paymentMethod);
-    data.append("paymentDetails", formData.paymentDetails);
+
+    // Prepare paymentDetails based on payment method
+    let paymentDetails = {};
+    if (formData.paymentMethod === "CHEQUE") {
+      paymentDetails = {
+        chequeNumber: formData.chequeNumber,
+        bankName: formData.bankName,
+        chequeIssuedDate: formData.chequeIssuedDate,
+        chequeReceivedDate: formData.chequeReceivedDate,
+        chequeAmount: formData.amount,
+      };
+    } else if (formData.paymentMethod === "ACCOUNT_TRANSFER") {
+      paymentDetails = {
+        UTR: formData.UTR,
+        ReferenceID: formData.ReferenceID,
+        ToAccount: formData.ToAccount,
+        FromAccount: formData.FromAccount,
+        Amount: formData.amount,
+        PaymentDate: formData.PaymentDate,
+        Remarks: formData.Remarks,
+        Network: formData.Network,
+        ManualReleaseRequired: formData.ManualReleaseRequired,
+        TransactionStatus: formData.TransactionStatus,
+      };
+    }
+
+    // Append paymentDetails as a JSON string
+    data.append("paymentDetails", JSON.stringify(paymentDetails));
 
     if (isSettleCredit) {
       data.append("settledAmount", formData.amount);
@@ -102,9 +146,63 @@ const PaymentModal = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>{type}</DialogTitle>
       <DialogContent>
+        {/* Credit Information Section */}
+        <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Credit Information
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Credit ID:</strong> {creditInfo.creditId}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Credit Amount:</strong> {creditInfo.creditAmount}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Current Credit Amount:</strong>{" "}
+                {creditInfo.currentCreditAmount}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Credit Period:</strong> {creditInfo.creditPeriod} months
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Interest Rate:</strong> {creditInfo.interestRate}%
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Outstanding Amount:</strong>{" "}
+                {creditInfo.outstandingAmount}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Total Interest Amount:</strong>{" "}
+                {creditInfo.totalInterestAmount}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body1">
+                <strong>Total Amount to Pay:</strong>{" "}
+                {creditInfo.totalAmountNeedToPay}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Payment Method Selection */}
         <TextField
           select
           fullWidth
@@ -120,14 +218,8 @@ const PaymentModal = ({
             </MenuItem>
           ))}
         </TextField>
-        <TextField
-          fullWidth
-          margin="dense"
-          label="Payment Details"
-          name="paymentDetails"
-          value={formData.paymentDetails}
-          onChange={handleChange}
-        />
+
+        {/* Amount Field */}
         {!isTotalPayment && (
           <TextField
             fullWidth
@@ -139,6 +231,201 @@ const PaymentModal = ({
             onChange={handleChange}
           />
         )}
+
+        {/* CHEQUE Fields */}
+        {formData.paymentMethod === "CHEQUE" && (
+          <>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Cheque Number"
+              name="chequeNumber"
+              value={formData.chequeNumber}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Bank Name"
+              name="bankName"
+              value={formData.bankName}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Cheque Issued Date"
+              name="chequeIssuedDate"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={formData.chequeIssuedDate}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Cheque Received Date"
+              name="chequeReceivedDate"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={formData.chequeReceivedDate}
+              onChange={handleChange}
+            />
+            <div style={{ marginTop: "10px" }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                Upload Cheque Image
+              </Typography>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<UploadFileIcon />}
+                sx={{ mt: 1 }}
+              >
+                Choose File
+                <input
+                  type="file"
+                  name="chequeImage"
+                  accept="image/*"
+                  hidden
+                  onChange={handleFileChange}
+                />
+              </Button>
+              {formData.chequeImage && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Selected: {formData.chequeImage.name}
+                </Typography>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ACCOUNT_TRANSFER Fields */}
+        {formData.paymentMethod === "ACCOUNT_TRANSFER" && (
+          <>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="UTR"
+              name="UTR"
+              value={formData.UTR}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Reference ID"
+              name="ReferenceID"
+              value={formData.ReferenceID}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="To Account"
+              name="ToAccount"
+              value={formData.ToAccount}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="From Account"
+              name="FromAccount"
+              value={formData.FromAccount}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Payment Date"
+              name="PaymentDate"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={formData.PaymentDate}
+              onChange={handleChange}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Remarks"
+              name="Remarks"
+              value={formData.Remarks}
+              onChange={handleChange}
+            />
+            <TextField
+              select
+              fullWidth
+              margin="dense"
+              label="Network"
+              name="Network"
+              value={formData.Network}
+              onChange={handleChange}
+            >
+              {["NEFT", "RTGS", "IMPS", "UPI"].map((network) => (
+                <MenuItem key={network} value={network}>
+                  {network}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              fullWidth
+              margin="dense"
+              label="Manual Release Required"
+              name="ManualReleaseRequired"
+              value={formData.ManualReleaseRequired}
+              onChange={handleChange}
+            >
+              {["Yes", "No"].map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              fullWidth
+              margin="dense"
+              label="Transaction Status"
+              name="TransactionStatus"
+              value={formData.TransactionStatus}
+              onChange={handleChange}
+            >
+              {["Success", "Failed", "Pending"].map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </TextField>
+            <div style={{ marginTop: "10px" }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                Upload Transfer Receipt
+              </Typography>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<UploadFileIcon />}
+                sx={{ mt: 1 }}
+              >
+                Choose File
+                <input
+                  type="file"
+                  name="transferReceipt"
+                  accept="image/*"
+                  hidden
+                  onChange={handleFileChange}
+                />
+              </Button>
+              {formData.transferReceipt && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Selected: {formData.transferReceipt.name}
+                </Typography>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Settle Credit Fields */}
         {isSettleCredit && (
           <>
             <TextField
@@ -177,62 +464,6 @@ const PaymentModal = ({
               onChange={handleChange}
             />
           </>
-        )}
-
-        {formData.paymentMethod === "CHEQUE" && (
-          <div style={{ marginTop: "10px" }}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              Upload Cheque Image
-            </Typography>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<UploadFileIcon />}
-              sx={{ mt: 1 }}
-            >
-              Choose File
-              <input
-                type="file"
-                name="chequeImage"
-                accept="image/*"
-                hidden
-                onChange={handleFileChange}
-              />
-            </Button>
-            {formData.chequeImage && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                Selected: {formData.chequeImage.name}
-              </Typography>
-            )}
-          </div>
-        )}
-
-        {formData.paymentMethod === "ACCOUNT_TRANSFER" && (
-          <div style={{ marginTop: "10px" }}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              Upload Transfer Receipt
-            </Typography>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<UploadFileIcon />}
-              sx={{ mt: 1 }}
-            >
-              Choose File
-              <input
-                type="file"
-                name="transferReceipt"
-                accept="image/*"
-                hidden
-                onChange={handleFileChange}
-              />
-            </Button>
-            {formData.transferReceipt && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                Selected: {formData.transferReceipt.name}
-              </Typography>
-            )}
-          </div>
         )}
       </DialogContent>
       <DialogActions>
