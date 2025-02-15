@@ -89,7 +89,7 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
         const response = await api.get(
           `/admin/business-profiles/get-partical-payment-history/${cid}`
         );
-        setPartialPaymentHistory(response.data);
+        setPartialPaymentHistory(response.data.data);
       } catch (error) {
         setSnackbar({
           open: true,

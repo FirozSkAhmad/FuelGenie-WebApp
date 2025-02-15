@@ -65,10 +65,13 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "SUCCESS":
+      case "VERIFIED":
         return "success";
       case "FAILED":
+      case "FAILED_VERIFICATION":
         return "error";
       case "PENDING":
+      case "PENDING_VERIFICATION":
         return "warning";
       default:
         return "info";
@@ -171,7 +174,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                   }}
                 >
                   <Typography variant="subtitle2" color="text.secondary">
-                    {extractDatePart(payment.paymentDate)}
+                    {extractDatePart(payment.timestamp)}
                   </Typography>
                   <Chip
                     label={payment.status}
@@ -201,6 +204,48 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                     </Typography>
                   </Grid>
                 </Grid>
+
+                {/* Cleared Transactions */}
+                <Box
+                  sx={{
+                    mt: 1.5,
+                    borderTop: "1px solid",
+                    borderColor: "divider",
+                    pt: 1.5,
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Cleared Transactions
+                  </Typography>
+                  {payment.clearedTransactions?.length > 0 ? (
+                    payment.clearedTransactions.map((transaction, index) => (
+                      <Box key={index} sx={{ mb: 1 }}>
+                        <Typography variant="body2">
+                          Transaction ID: {transaction.transactionId}
+                        </Typography>
+                        <Typography variant="body2">
+                          Amount Cleared: ₹
+                          {transaction.amountCleared.toLocaleString("en-IN")}
+                        </Typography>
+                        <Typography variant="body2">
+                          Remaining: ₹
+                          {transaction.remainingAmount.toLocaleString("en-IN")}
+                        </Typography>
+                        <Typography variant="body2">
+                          Provisional: {transaction.provisional ? "Yes" : "No"}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No cleared transactions
+                    </Typography>
+                  )}
+                </Box>
 
                 {payment.paymentMethod === "CHEQUE" && (
                   <Box
@@ -319,7 +364,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                         ₹{payment.amountPaid.toLocaleString("en-IN")}
                       </TableCell>
                       <TableCell>
-                        {extractDatePart(payment.paymentDate)}
+                        {extractDatePart(payment.timestamp)}
                       </TableCell>
                       <TableCell>
                         {payment.paymentMethod.replace("_", " ")}
@@ -433,6 +478,68 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                                 </Grid>
                               </Grid>
                             )}
+                            {/* Cleared Transactions Table */}
+                            {payment.clearedTransactions?.length > 0 ? (
+                              <Box sx={{ mt: 4 }}>
+                                <Typography variant="subtitle1" gutterBottom>
+                                  Cleared Transactions
+                                </Typography>
+                                <TableContainer>
+                                  <Table size="small">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>Transaction ID</TableCell>
+                                        <TableCell align="right">
+                                          Amount Cleared
+                                        </TableCell>
+                                        <TableCell align="right">
+                                          Remaining Amount
+                                        </TableCell>
+                                        <TableCell>Provisional</TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {payment.clearedTransactions.map(
+                                        (transaction) => (
+                                          <TableRow
+                                            key={transaction.transactionId}
+                                          >
+                                            <TableCell>
+                                              {transaction.transactionId}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                              ₹
+                                              {transaction.amountCleared.toLocaleString(
+                                                "en-IN"
+                                              )}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                              ₹
+                                              {transaction.remainingAmount.toLocaleString(
+                                                "en-IN"
+                                              )}
+                                            </TableCell>
+                                            <TableCell>
+                                              {transaction.provisional
+                                                ? "Yes"
+                                                : "No"}
+                                            </TableCell>
+                                          </TableRow>
+                                        )
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Box>
+                            ) : (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 2 }}
+                              >
+                                No cleared transactions
+                              </Typography>
+                            )}
                           </Box>
                         </TableCell>
                       </TableRow>
@@ -534,7 +641,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                 </Typography>
                 <Typography>
                   <strong>Payment Date:</strong>{" "}
-                  {new Date(payment.paymentDate).toLocaleDateString()}
+                  {new Date(payment.timestamp).toLocaleDateString()}
                 </Typography>
                 <Typography>
                   <strong>Payment Method:</strong>{" "}
@@ -557,36 +664,37 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                   >
                     <Typography>
                       <strong>Cheque Number:</strong>{" "}
-                      {payment.paymentDetails.chequeNumber}
+                      {payment.paymentDetails?.chequeNumber}
                     </Typography>
                     <Typography>
                       <strong>Bank Name:</strong>{" "}
-                      {payment.paymentDetails.bankName}
+                      {payment.paymentDetails?.bankName}
                     </Typography>
                     <Typography>
                       <strong>Issued Date:</strong>{" "}
-                      {payment.paymentDetails.chequeIssuedDate}
+                      {payment.paymentDetails?.chequeIssuedDate}
                     </Typography>
                     <Typography>
                       <strong>Received Date:</strong>{" "}
-                      {payment.paymentDetails.chequeReceivedDate}
+                      {payment.paymentDetails?.chequeReceivedDate}
                     </Typography>
                     <Typography>
                       <strong>Cheque Amount:</strong> ₹
-                      {payment.paymentDetails.chequeAmount}
+                      {payment.paymentDetails?.chequeAmount}
                     </Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography>
                         <strong>Verification Status:</strong>
                       </Typography>
                       <Chip
-                        label={
-                          payment.chequeVerificationStatus || verificationStatus
-                        }
+                        label={payment.verificationStatus || verificationStatus}
                         color={
-                          (payment.chequeVerificationStatus ||
-                            verificationStatus) === "SUCCESS"
+                          (payment.verificationStatus || verificationStatus) ===
+                          "SUCCESS"
                             ? "success"
+                            : (payment.verificationStatus ||
+                                verificationStatus) === "PENDING_VERIFICATION"
+                            ? "warning"
                             : "error"
                         }
                         size="small"

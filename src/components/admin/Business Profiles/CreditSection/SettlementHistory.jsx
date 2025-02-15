@@ -152,7 +152,7 @@ const SettlementHistory = ({ settlementHistory, isSmallScreen }) => {
                       />
                     </TableCell>
                     <TableCell>
-                      {settlement.settlementDate.split("T")[0]}
+                      {settlement.settlementDate?.split("T")[0]}
                     </TableCell>
                     <TableCell align="right">
                       <IconButton
@@ -381,7 +381,7 @@ const SettlementHistory = ({ settlementHistory, isSmallScreen }) => {
       </TableContainer>
       <TablePagination
         component="div"
-        count={settlementHistory.length}
+        count={settlementHistory?.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
