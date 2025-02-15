@@ -11,6 +11,7 @@ import {
   useMediaQuery,
   useTheme,
   Box,
+  Grid,
 } from "@mui/material";
 import api from "../../../utils/api";
 import { useParams } from "react-router-dom";
@@ -34,6 +35,11 @@ import {
   TrendingDown as PreviousIcon,
   Add as AddIcon,
   Upgrade as UpgradeIcon,
+  Payment as PaymentIcon,
+  CreditCard as CreditCardIcon,
+  MoneyOff as OutstandingAmountIcon,
+  TrendingUp as TotalInterestIcon,
+  AttachMoney as TotalAmountIcon,
 } from "@mui/icons-material";
 import PartialPaymentHistory from "./CreditSection/PartialPaymentHistory";
 import CreditPaymentModals from "./CreditSection/CreditPaymentModals";
@@ -120,56 +126,115 @@ const CreditInfo = ({ creditInfo, fetchCredit }) => {
       </Typography>
       {/* Upgrade/Downgrade Credit Button */}{" "}
       <List>
-        <ListItem>
-          <ListItemIcon>
-            <CreditAmountIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Credit Amount"
-            secondary={`₹${creditInfo?.creditAmount.toLocaleString("en-IN")}`}
-          />
-        </ListItem>
+        <Grid container spacing={2}>
+          {/* First Row */}
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <CreditAmountIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Credit Amount"
+                secondary={`₹${creditInfo?.creditAmount.toLocaleString(
+                  "en-IN"
+                )}`}
+              />
+            </ListItem>
+          </Grid>
 
-        <ListItem>
-          <ListItemIcon>
-            <CurrentCreditAmountIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Current Credit Amount"
-            secondary={`₹${creditInfo?.currentCreditAmount.toLocaleString(
-              "en-IN"
-            )}`}
-          />
-        </ListItem>
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <CurrentCreditAmountIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Current Credit Amount"
+                secondary={`₹${creditInfo?.currentCreditAmount.toLocaleString(
+                  "en-IN"
+                )}`}
+              />
+            </ListItem>
+          </Grid>
 
-        <ListItem>
-          <ListItemIcon>
-            <CreditPeriodIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Credit Period"
-            secondary={`${creditInfo?.creditPeriod} days`}
-          />
-        </ListItem>
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <CreditPeriodIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Credit Period"
+                secondary={`${creditInfo?.creditPeriod} days`}
+              />
+            </ListItem>
+          </Grid>
 
-        <ListItem>
-          <ListItemIcon>
-            <InterestRateIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Interest Rate"
-            secondary={`${creditInfo?.interestRate}%`}
-          />
-        </ListItem>
+          {/* Second Row */}
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <InterestRateIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Interest Rate"
+                secondary={`${creditInfo?.interestRate}%`}
+              />
+            </ListItem>
+          </Grid>
 
-        <ListItem>
-          <ListItemIcon>
-            <StatusActiveIcon
-              color={creditInfo?.status === "ACTIVE" ? "success" : "error"}
-            />
-          </ListItemIcon>
-          <ListItemText primary="Status" secondary={creditInfo?.status} />
-        </ListItem>
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <StatusActiveIcon
+                  color={creditInfo?.status === "ACTIVE" ? "success" : "error"}
+                />
+              </ListItemIcon>
+              <ListItemText primary="Status" secondary={creditInfo?.status} />
+            </ListItem>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <OutstandingAmountIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Outstanding Amount"
+                secondary={`₹ ${creditInfo?.outstandingAmount.toLocaleString(
+                  "en-IN"
+                )}`}
+              />
+            </ListItem>
+          </Grid>
+
+          {/* Third Row */}
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <TotalInterestIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Total Interest Amount"
+                secondary={`₹ ${creditInfo?.totalInterestAmount.toLocaleString(
+                  "en-IN"
+                )}`}
+              />
+            </ListItem>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <ListItem>
+              <ListItemIcon>
+                <TotalAmountIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Total Amount to Pay"
+                secondary={`₹ ${creditInfo?.totalAmountNeedToPay.toLocaleString(
+                  "en-IN"
+                )}`}
+              />
+            </ListItem>
+          </Grid>
+        </Grid>
       </List>
       <Box
         sx={{
