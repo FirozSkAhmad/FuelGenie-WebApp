@@ -15,9 +15,7 @@ import {
   InputLabel,
   TablePagination,
   Button,
-  Collapse,
   IconButton,
-  Modal,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -29,9 +27,12 @@ import {
   CalendarToday as CalendarIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  Info as InfoIcon,
 } from "@mui/icons-material";
 import PaymentModal from "./TransactionSection/PaymentModal";
 import api from "../../../utils/api";
+import PaymentDetailsCollapse from "./TransactionSection/PaymentDetailsCollapse";
+import PaymentImageModal from "./TransactionSection/PaymentImageModal";
 
 const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -42,6 +43,8 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
   const [expandedRows, setExpandedRows] = useState([]);
   const [chequeImageModalOpen, setChequeImageModalOpen] = useState(false);
   const [selectedChequeImage, setSelectedChequeImage] = useState("");
+  const [selectedTransactionForImage, setSelectedTransactionForImage] =
+    useState(null);
   const navigate = useNavigate();
   const { cid } = useParams();
 
@@ -115,12 +118,13 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
     );
   };
 
-  const handleChequeImageClick = (imageUrl) => {
+  const handleChequeImageClick = (imageUrl, transaction) => {
     setSelectedChequeImage(imageUrl);
+    setSelectedTransactionForImage(transaction);
     setChequeImageModalOpen(true);
   };
 
-  const handleChequeVerify = async (transactionId, status) => {
+  const handleChequeVerify = async (transactionId, status, reason) => {
     try {
       const response = await api.put(
         "/admin/business-profiles/update-cheque-status-of-a-transaction",
@@ -128,6 +132,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
           cid,
           transactionId,
           status,
+          reason,
         }
       );
       if (response.status === 200) {
@@ -194,7 +199,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                 <TableCell>
                   <Box display="flex" alignItems="center">
                     <PaymentIcon sx={{ marginRight: 1 }} />
-                    Paymen Type
+                    Payment Type
                   </Box>
                 </TableCell>
                 <TableCell>Amount (INR)</TableCell>
@@ -261,6 +266,70 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                         </Typography>
                       </TableCell>
                       <TableCell>
+                        {/* Pay Button for PENDING or OVERDUE transactions */}
+                        {["PENDING", "OVERDUE"].includes(
+                          transaction.status
+                        ) && (
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTransaction(transaction);
+                            }}
+                            sx={{ mr: 1 }}
+                          >
+                            Pay
+                          </Button>
+                        )}
+                        {transaction.chequeVerificationFailedHistory &&
+                          transaction.chequeVerificationFailedHistory.length >
+                            0 && (
+                            <IconButton
+                              color="info"
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Open a modal or display the info as needed.
+                                // For example, you might set state to show an info modal.
+                                handleRowExpand(transaction.transactionId);
+                              }}
+                            >
+                              <InfoIcon />
+                            </IconButton>
+                          )}
+
+                        {/* View Details Button for PAID transactions */}
+                        {transaction.status === "PAID" && (
+                          <Button
+                            variant="outlined"
+                            color="success"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle view details or receipt logic here
+                              handleRowExpand(transaction.transactionId);
+                            }}
+                            sx={{ mr: 1 }}
+                          >
+                            View Receipt
+                          </Button>
+                        )}
+                        {transaction.status === "PROCESSING" && (
+                          <Button
+                            variant="contained"
+                            color="info"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRowExpand(transaction.transactionId);
+                            }}
+                          >
+                            Processing{" "}
+                          </Button>
+                        )}
+                        {/* Expand/Collapse Icon */}
                         <IconButton
                           onClick={(e) => {
                             e.stopPropagation();
@@ -268,8 +337,11 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                           }}
                           disabled={
                             transaction.paymentMethod === "CASH" ||
-                            transaction.paymentType === "SETTLEMENT"
-                          } // Disable expand for cash transactions
+                            transaction.paymentType === "SETTLEMENT" ||
+                            transaction.status === "PENDING" ||
+                            transaction.chequeVerificationFailedHistory
+                              .length === null
+                          }
                         >
                           {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                         </IconButton>
@@ -280,73 +352,15 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                         style={{ paddingBottom: 0, paddingTop: 0 }}
                         colSpan={8}
                       >
-                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                          <Box sx={{ margin: 1 }}>
-                            <Typography
-                              variant="h6"
-                              gutterBottom
-                              component="div"
-                            >
-                              Payment Details
-                            </Typography>
-                            {transaction.paymentDetails && (
-                              <Box>
-                                <Typography>
-                                  Cheque Number:{" "}
-                                  {transaction.paymentDetails.chequeNumber}
-                                </Typography>
-                                <Typography>
-                                  Bank Name:{" "}
-                                  {transaction.paymentDetails.bankName}
-                                </Typography>
-                                <Typography>
-                                  Cheque Issued Date:{" "}
-                                  {transaction.paymentDetails.chequeIssuedDate}
-                                </Typography>
-                                <Typography>
-                                  Cheque Received Date:{" "}
-                                  {
-                                    transaction.paymentDetails
-                                      .chequeReceivedDate
-                                  }
-                                </Typography>
-                                <Typography>
-                                  Cheque Amount: ₹
-                                  {transaction.paymentDetails.chequeAmount.toLocaleString(
-                                    "en-IN"
-                                  )}
-                                </Typography>
-                                <Button
-                                  variant="contained"
-                                  color="primary"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleChequeImageClick(
-                                      transaction.paymentDetails.chequeImageUrl
-                                    );
-                                  }}
-                                >
-                                  View Cheque
-                                </Button>
-                                {transaction.status === "PROCESSING" && (
-                                  <Button
-                                    variant="contained"
-                                    color="secondary"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleChequeVerify(
-                                        transaction.transactionId,
-                                        "PAID"
-                                      );
-                                    }}
-                                  >
-                                    Verify Cheque
-                                  </Button>
-                                )}
-                              </Box>
-                            )}
-                          </Box>
-                        </Collapse>
+                        <PaymentDetailsCollapse
+                          transaction={transaction}
+                          isExpanded={isExpanded}
+                          onChequeImageClick={(imageUrl) =>
+                            handleChequeImageClick(imageUrl, transaction)
+                          }
+                          onChequeVerify={handleChequeVerify}
+                          onExpand={handleRowExpand}
+                        />
                       </TableCell>
                     </TableRow>
                   </React.Fragment>
@@ -367,6 +381,13 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
         </>
       )}
 
+      <PaymentImageModal
+        open={chequeImageModalOpen}
+        onClose={() => setChequeImageModalOpen(false)}
+        imageUrl={selectedChequeImage}
+        transaction={selectedTransactionForImage}
+        onChequeVerify={handleChequeVerify}
+      />
       <PaymentModal
         open={!!selectedTransaction}
         onClose={() => setSelectedTransaction(null)}
@@ -374,30 +395,6 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
         cid={cid}
         onPaymentSuccess={fetchTransaction}
       />
-
-      <Modal
-        open={chequeImageModalOpen}
-        onClose={() => setChequeImageModalOpen(false)}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <img
-            src={selectedChequeImage}
-            alt="Cheque"
-            style={{ width: "100%", height: "auto" }}
-          />
-        </Box>
-      </Modal>
     </TableContainer>
   );
 };
