@@ -25,6 +25,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import SearchIcon from "@mui/icons-material/Search";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
+import Quotes from "./Quote-Requests/Quotes";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -272,6 +273,7 @@ const Orders = () => {
           color="primary"
         />
       </Box>
+      <Quotes />
     </Box>
   );
 };
