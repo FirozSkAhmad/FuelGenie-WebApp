@@ -6,7 +6,13 @@ import {
   Collapse,
   TableRow,
   TableCell,
+  Grid,
+  Chip,
+  Divider,
 } from "@mui/material";
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import PaidIcon from "@mui/icons-material/Paid";
+import PaymentIcon from "@mui/icons-material/Payment";
 import FailedChequeViewModal from "./FailedChequeViewModal";
 
 const formatDateTime = (isoString) => {
@@ -34,10 +40,14 @@ const PaymentDetailsCollapse = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
   const hasPaymentDetails = transaction.paymentDetails !== null;
+  const PaymentDetails = transaction.paymentDetails;
   const isCheque = transaction.paymentMethod === "CHEQUE";
   const isAccountTransfer = transaction.paymentMethod === "ACCOUNT_TRANSFER";
   const chequeVerificationFailedHistory =
     transaction.chequeVerificationFailedHistory;
+  const isStatus = transaction.status;
+  const isPartiallyPaid = isStatus === "PARTIALLY_PAID";
+  const paymentHistory = transaction.paymentHistory || [];
 
   const handleChequeImageClick = (imageUrl) => {
     setSelectedImageUrl(imageUrl);
@@ -48,6 +58,7 @@ const PaymentDetailsCollapse = ({
     setModalOpen(false);
     setSelectedImageUrl("");
   };
+
   return (
     <>
       <TableRow>
@@ -209,6 +220,173 @@ const PaymentDetailsCollapse = ({
                   </Box>
                 )
               )}
+              {(isPartiallyPaid && paymentHistory.length > 0) ||
+              PaymentDetails === null ? (
+                <Box sx={{ mt: 4, mb: 4 }}>
+                  {/* Header Section */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                      p: 2,
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                      boxShadow: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      component="h2"
+                      sx={{ fontWeight: 600 }}
+                    >
+                      Payment History
+                    </Typography>
+                    {paymentHistory.length > 0 && (
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        Total Payments: {paymentHistory.length}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Content Area */}
+                  {paymentHistory.length === 0 ? (
+                    <Box
+                      sx={{
+                        p: 3,
+                        textAlign: "center",
+                        backgroundColor: "action.hover",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        No payment history available
+                      </Typography>
+                    </Box>
+                  ) : (
+                    paymentHistory.map((payment, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          mb: 2,
+                          p: 3,
+                          borderLeft: "4px solid",
+                          borderColor: "primary.main",
+                          backgroundColor: "background.paper",
+                          borderRadius: 1,
+                          boxShadow: 1,
+                          transition: "transform 0.2s",
+                          "&:hover": {
+                            transform: "translateX(4px)",
+                          },
+                        }}
+                      >
+                        {/* Main Content Grid */}
+                        <Grid container spacing={2} alignItems="center">
+                          {/* Date */}
+                          <Grid item xs={12} md={4}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.5,
+                              }}
+                            >
+                              <EventNoteIcon fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                {formatDateTime(payment.date)}
+                              </Typography>
+                            </Box>
+                          </Grid>
+
+                          {/* Amount Paid */}
+                          <Grid item xs={6} md={2}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.5,
+                              }}
+                            >
+                              <PaidIcon fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                ₹{payment.amountPaid?.toLocaleString("en-IN")}
+                              </Typography>
+                            </Box>
+                          </Grid>
+
+                          {/* Payment Method */}
+                          <Grid item xs={6} md={3}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.5,
+                              }}
+                            >
+                              <PaymentIcon fontSize="small" color="action" />
+                              <Typography variant="body2" noWrap>
+                                {payment.paymentMethod}
+                              </Typography>
+                            </Box>
+                          </Grid>
+
+                          {/* Verification Status */}
+                          <Grid item xs={12} md={3}>
+                            <Chip
+                              label={payment.verificationStatus.toLowerCase()}
+                              size="small"
+                              color={
+                                payment.verificationStatus === "VERIFIED"
+                                  ? "success"
+                                  : payment.verificationStatus === "PENDING"
+                                  ? "warning"
+                                  : "error"
+                              }
+                              sx={{
+                                fontWeight: 500,
+                                textTransform: "capitalize",
+                                width: "fit-content",
+                                "& .MuiChip-label": {
+                                  px: 1.2,
+                                  fontSize: "0.8rem",
+                                },
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
+
+                        {/* Divider and Footer */}
+                        <Divider sx={{ my: 2 }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: 2,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            noWrap
+                          >
+                            Transaction ID: #{payment._id || index + 1}
+                          </Typography>
+                          <Typography variant="body2">
+                            Remaining: ₹
+                            {payment.remainingAmount?.toLocaleString("en-IN")}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))
+                  )}
+                </Box>
+              ) : null}
             </Box>
           </Collapse>
         </TableCell>

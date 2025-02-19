@@ -119,7 +119,7 @@ const TransactionHistory = ({ transactions }) => {
                   </TableCell>
                   <TableCell sx={{ fontSize: isSmallScreen ? "12px" : "14px" }}>
                     {transaction.previousCreditAmount
-                      ? `₹${transaction.previousCreditAmount.toLocaleString(
+                      ? `₹${transaction.previousCreditAmount?.toLocaleString(
                           "en-IN"
                         )}`
                       : "Initial"}

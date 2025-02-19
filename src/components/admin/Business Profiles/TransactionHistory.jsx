@@ -232,7 +232,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                   transaction.status
                 );
                 const dueDateFormatted = extractDatePart(transaction.dueDate);
-                const dateFormatted = extractDatePart(transaction.orderedDate);
+                const dateFormatted = extractDatePart(transaction?.orderedDate);
                 const isExpanded = expandedRows.includes(
                   transaction.transactionId
                 );
@@ -248,7 +248,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                       <TableCell>{transaction.transactionId}</TableCell>
                       <TableCell>{transaction.paymentType}</TableCell>
                       <TableCell>
-                        ₹{transaction.amount.toLocaleString("en-IN")}
+                        ₹{transaction.amount?.toLocaleString("en-IN")}
                       </TableCell>
                       <TableCell>{transaction.description}</TableCell>
                       <TableCell>
@@ -267,7 +267,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                       </TableCell>
                       <TableCell>
                         {/* Pay Button for PENDING or OVERDUE transactions */}
-                        {["PENDING", "OVERDUE"].includes(
+                        {["PENDING", "OVERDUE", "PARTIALLY_PAID"].includes(
                           transaction.status
                         ) && (
                           <Button
@@ -339,6 +339,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                             transaction.paymentMethod === "CASH" ||
                             transaction.paymentType === "SETTLEMENT" ||
                             transaction.status === "PENDING" ||
+                            transaction.paymentType === "BULK_PAYMENT" ||
                             transaction.chequeVerificationFailedHistory
                               .length === null
                           }

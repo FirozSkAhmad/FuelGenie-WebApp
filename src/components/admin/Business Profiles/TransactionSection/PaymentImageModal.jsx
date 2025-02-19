@@ -86,7 +86,7 @@ const PaymentImageModal = ({ open, onClose, transaction, onChequeVerify }) => {
                 {isCheque && (
                   <>
                     <Typography variant="h6" gutterBottom align="center">
-                      Settlement Cheque Details
+                      Transaction Cheque Details
                     </Typography>
                     {details.chequeImageUrl && (
                       <Box sx={{ mb: 3, textAlign: "center" }}>
@@ -162,6 +162,38 @@ const PaymentImageModal = ({ open, onClose, transaction, onChequeVerify }) => {
                         onClick={handleVerifyButtonClick}
                       >
                         Verify Cheque
+                      </Button>
+                    )}
+                    {transaction.status === "PAID" && (
+                      <Button
+                        variant="contained"
+                        sx={{
+                          mt: 2,
+                          textTransform: "none",
+                          borderRadius: 3,
+                          width: "100%",
+                          background:
+                            "linear-gradient(135deg, #1B5E20, #4CAF50)", // Gradient effect
+                          color: "#fff",
+                          fontWeight: "bold",
+                          fontSize: "1rem",
+                          boxShadow: "0px 6px 12px rgba(0, 128, 0, 0.3)", // Stronger shadow
+                          transition: "all 0.3s ease-in-out",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(135deg, #166534, #43A047)", // Darker hover effect
+                            transform: "scale(1.05)", // Slight zoom on hover
+                          },
+                          "&:disabled": {
+                            background: "#66BB6A", // More vibrant disabled state
+                            color: "#fff",
+                            opacity: 0.9,
+                            boxShadow: "none",
+                          },
+                        }}
+                        disabled
+                      >
+                        ✅ Verified
                       </Button>
                     )}
                   </>
