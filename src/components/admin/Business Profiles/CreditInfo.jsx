@@ -43,6 +43,7 @@ import {
 } from "@mui/icons-material";
 import PartialPaymentHistory from "./CreditSection/PartialPaymentHistory";
 import CreditPaymentModals from "./CreditSection/CreditPaymentModals";
+
 const CreditInfo = ({ creditInfo, fetchCredit }) => {
   const [openUpgradeModal, setOpenUpgradeModal] = useState(false);
   const [openPaymentModal, setOpenPaymentModal] = useState(false);

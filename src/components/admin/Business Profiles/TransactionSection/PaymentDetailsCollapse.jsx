@@ -14,6 +14,7 @@ import EventNoteIcon from "@mui/icons-material/EventNote";
 import PaidIcon from "@mui/icons-material/Paid";
 import PaymentIcon from "@mui/icons-material/Payment";
 import FailedChequeViewModal from "./FailedChequeViewModal";
+import { usePermissions } from "../../../../utils/permissionssHelper";
 
 const formatDateTime = (isoString) => {
   const date = new Date(isoString);
@@ -48,7 +49,7 @@ const PaymentDetailsCollapse = ({
   const isStatus = transaction.status;
   const isPartiallyPaid = isStatus === "PARTIALLY_PAID";
   const paymentHistory = transaction.paymentHistory || [];
-
+  const permissions = usePermissions();
   const handleChequeImageClick = (imageUrl) => {
     setSelectedImageUrl(imageUrl);
     setModalOpen(true);

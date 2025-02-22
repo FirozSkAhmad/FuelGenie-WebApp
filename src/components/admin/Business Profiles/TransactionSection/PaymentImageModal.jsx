@@ -19,6 +19,7 @@ import {
   Radio,
   TextField,
 } from "@mui/material";
+import { usePermissions } from "../../../../utils/permissionssHelper";
 
 const PaymentImageModal = ({ open, onClose, transaction, onChequeVerify }) => {
   const theme = useTheme();
@@ -27,7 +28,7 @@ const PaymentImageModal = ({ open, onClose, transaction, onChequeVerify }) => {
   const isCheque = transaction?.paymentMethod === "CHEQUE";
   const isAccountTransfer = transaction?.paymentMethod === "ACCOUNT_TRANSFER";
   const details = transaction?.paymentDetails;
-
+  const permissions = usePermissions();
   // State for verification dialog popup
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -160,6 +161,7 @@ const PaymentImageModal = ({ open, onClose, transaction, onChequeVerify }) => {
                           width: "100%",
                         }}
                         onClick={handleVerifyButtonClick}
+                        disabled={!permissions.update}
                       >
                         Verify Cheque
                       </Button>

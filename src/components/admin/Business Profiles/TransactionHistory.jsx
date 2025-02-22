@@ -33,7 +33,7 @@ import PaymentModal from "./TransactionSection/PaymentModal";
 import api from "../../../utils/api";
 import PaymentDetailsCollapse from "./TransactionSection/PaymentDetailsCollapse";
 import PaymentImageModal from "./TransactionSection/PaymentImageModal";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
@@ -47,7 +47,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
     useState(null);
   const navigate = useNavigate();
   const { cid } = useParams();
-
+  const permissions = usePermissions();
   const getStatusIcon = (status) => {
     switch (status) {
       case "PENDING":
@@ -279,6 +279,7 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
                               setSelectedTransaction(transaction);
                             }}
                             sx={{ mr: 1 }}
+                            disabled={!permissions?.update}
                           >
                             Pay
                           </Button>

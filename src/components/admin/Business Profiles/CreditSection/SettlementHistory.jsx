@@ -29,7 +29,7 @@ import {
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import api from "../../../../utils/api";
-
+import { usePermissions } from "../../../../utils/permissionssHelper";
 const SettlementHistory = ({ settlementHistory, isSmallScreen }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -49,7 +49,7 @@ const SettlementHistory = ({ settlementHistory, isSmallScreen }) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
+  const permissions = usePermissions();
   const toggleRow = (index) => {
     setOpenRow(openRow === index ? null : index);
   };
@@ -608,7 +608,9 @@ const SettlementHistory = ({ settlementHistory, isSmallScreen }) => {
                   borderRadius: 2,
                   width: "48%",
                 }}
-                disabled={chequeDetails?.chequeStatus !== null}
+                disabled={
+                  chequeDetails?.chequeStatus !== null || !permissions.update
+                }
               >
                 {chequeDetails?.chequeStatus === "SUCCESS"
                   ? "Verified"

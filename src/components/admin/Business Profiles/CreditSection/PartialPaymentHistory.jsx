@@ -33,7 +33,7 @@ import {
   CheckCircle,
 } from "@mui/icons-material";
 import api from "../../../../utils/api";
-
+import { usePermissions } from "../../../../utils/permissionssHelper";
 const PartialPaymentHistory = ({ partialPaymentHistory }) => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -46,7 +46,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
   const [loading, setLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [reason, setReason] = useState("");
-
+  const permissions = usePermissions();
   const handleChangePage = (_, newPage) => setPage(newPage);
 
   const handleChangeRowsPerPage = (event) => {
@@ -357,7 +357,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                 const isExpanded = expandedRow === payment._id;
 
                 return (
-                  <React.Fragment key={payment._id}>
+                  <React.Fragment key={payment.paymentId}>
                     <TableRow hover>
                       <TableCell>{payment.paymentId}</TableCell>
                       <TableCell align="right">
@@ -708,7 +708,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
 
           {/* Verification Dropdown */}
           {payment?.paymentMethod === "CHEQUE" &&
-            payment?.chequeVerificationStatus !== "SUCCESS" && (
+            payment?.verificationStatus !== "SUCCESS" && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   Verify Cheque
@@ -762,7 +762,7 @@ const PartialPaymentHistory = ({ partialPaymentHistory }) => {
                 color="primary"
                 startIcon={<CheckCircle />}
                 onClick={handleVerifyPartialPayment}
-                disabled={!verificationStatus}
+                disabled={!verificationStatus || !permissions?.update}
               >
                 Verify
               </Button>
