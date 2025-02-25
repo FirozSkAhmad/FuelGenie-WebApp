@@ -78,14 +78,18 @@ const Quotes = () => {
 
   // Filter quotes based on filters
   const filteredQuotes = quotes.filter((quote) => {
-    const customerName = `${quote.cid.fName} ${quote.cid.lName}`.toLowerCase();
-    const productName = quote.productName.toLowerCase();
-    const createdAt = new Date(quote.createdAt);
-    const createdAtDateOnly = new Date(
-      createdAt.getFullYear(),
-      createdAt.getMonth(),
-      createdAt.getDate()
-    );
+    const customerName = `${quote?.cid?.fName || ""} ${
+      quote?.cid?.lName || ""
+    }`.toLowerCase();
+    const productName = (quote.productName || "").toLowerCase();
+    const createdAt = quote?.createdAt ? new Date(quote.createdAt) : null;
+    const createdAtDateOnly = createdAt
+      ? new Date(
+          createdAt.getFullYear(),
+          createdAt.getMonth(),
+          createdAt.getDate()
+        )
+      : null;
 
     const startDate = startDateFilter
       ? new Date(
@@ -105,8 +109,8 @@ const Quotes = () => {
     return (
       customerName.includes(customerNameFilter.toLowerCase()) &&
       productName.includes(productNameFilter.toLowerCase()) &&
-      (!startDate || createdAtDateOnly >= startDate) &&
-      (!endDate || createdAtDateOnly <= endDate)
+      (!startDate || (createdAtDateOnly && createdAtDateOnly >= startDate)) &&
+      (!endDate || (createdAtDateOnly && createdAtDateOnly <= endDate))
     );
   });
 
@@ -121,6 +125,8 @@ const Quotes = () => {
 
   // Get icon based on product type
   const getProductIcon = (productName) => {
+    if (!productName) return <OtherIcon fontSize="small" />;
+
     switch (productName.toLowerCase()) {
       case "jerry cane":
       case "genie can":
@@ -264,33 +270,45 @@ const Quotes = () => {
                 }}
               >
                 <TableCell>
-                  <Tooltip title={`${quote.cid.fName} ${quote.cid.lName}`}>
+                  <Tooltip
+                    title={`${quote?.cid?.fName || ""} ${
+                      quote?.cid?.lName || "N/A"
+                    }`}
+                  >
                     <Avatar
-                      alt={`${quote.cid.fName} ${quote.cid.lName}`}
-                      src={quote.cid.profileImage}
+                      alt={`${quote?.cid?.fName || ""} ${
+                        quote?.cid?.lName || ""
+                      }`}
+                      src={quote?.cid?.profileImage}
                     >
-                      {!quote.cid.profileImage &&
-                        `${quote.cid.fName[0]}${quote.cid.lName[0]}`}
+                      {!quote?.cid?.profileImage &&
+                        `${quote?.cid?.fName?.[0] || ""}${
+                          quote?.cid?.lName?.[0] || ""
+                        }`}
                     </Avatar>
                   </Tooltip>
                 </TableCell>
                 <TableCell>{getProductIcon(quote.productName)}</TableCell>
-                <TableCell>{quote.productName}</TableCell>
+                <TableCell>{quote.productName || "N/A"}</TableCell>
                 <TableCell>
-                  {quote.cid.fName} {quote.cid.lName}
+                  {quote.cid?.fName || "N/A"} {quote.cid?.lName || ""}
                 </TableCell>
-                <TableCell>{quote.cid.businessName}</TableCell>
-                <TableCell>{quote.cid.phoneNumber}</TableCell>
-                <TableCell>{quote.cid.email}</TableCell>
+                <TableCell>{quote.cid?.businessName || "N/A"}</TableCell>
+                <TableCell>{quote.cid?.phoneNumber || "N/A"}</TableCell>
+                <TableCell>{quote.cid?.email || "N/A"}</TableCell>
                 <TableCell>
-                  {quote.cid.businessAddress.addressLine},{" "}
-                  {quote.cid.businessAddress.city},{" "}
-                  {quote.cid.businessAddress.state},{" "}
-                  {quote.cid.businessAddress.pincode},{" "}
-                  {quote.cid.businessAddress.country}
+                  {quote.cid?.businessAddress
+                    ? `${quote.cid.businessAddress.addressLine || ""}, ${
+                        quote.cid.businessAddress.city || ""
+                      }, ${quote.cid.businessAddress.state || ""}, ${
+                        quote.cid.businessAddress.pincode || ""
+                      }, ${quote.cid.businessAddress.country || ""}`
+                    : "N/A"}
                 </TableCell>
                 <TableCell>
-                  {new Date(quote.createdAt).toLocaleDateString()}
+                  {quote?.createdAt
+                    ? new Date(quote.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </TableCell>
               </TableRow>
             ))}

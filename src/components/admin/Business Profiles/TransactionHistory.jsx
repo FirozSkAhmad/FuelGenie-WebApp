@@ -54,6 +54,8 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
         return <PendingIcon color="warning" />;
       case "PROCESSING":
         return <PendingIcon color="info" />;
+      case "PARTIALLY_PAID":
+        return <PendingIcon color="warning" />;
       case "PAID":
         return <SuccessIcon color="success" />;
       case "OVERDUE":
@@ -160,6 +162,8 @@ const TransactionHistory = ({ transactionHistory, fetchTransaction }) => {
             <MenuItem value="ALL">All</MenuItem>
             <MenuItem value="PENDING">Pending</MenuItem>
             <MenuItem value="PROCESSING">Processing</MenuItem>
+            <MenuItem value="PARTIALLY_PAID">PARTIALLY_PAID</MenuItem>
+
             <MenuItem value="PAID">Paid</MenuItem>
             <MenuItem value="OVERDUE">Overdue</MenuItem>
           </Select>

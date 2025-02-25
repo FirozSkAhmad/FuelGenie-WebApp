@@ -471,7 +471,10 @@ const PaymentModal = ({
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!formData.paymentMethod || !formData.amount}
+          disabled={
+            !formData.paymentMethod ||
+            (formData.paymentMethod !== "ACCOUNT_TRANSFER" && !formData.amount)
+          }
         >
           Submit
         </Button>

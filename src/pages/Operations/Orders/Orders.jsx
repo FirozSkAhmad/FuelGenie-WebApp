@@ -26,6 +26,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import SearchIcon from "@mui/icons-material/Search";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import Quotes from "./Quote-Requests/Quotes";
+import CreateOrder from "../../../components/Operations/CreateOrder";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -39,19 +40,18 @@ const Orders = () => {
   const [endDate, setEndDate] = useState(null);
   const navigate = useNavigate();
 
+  // Fetch orders from the API
+  const fetchOrders = async () => {
+    try {
+      const response = await api.get("/operations/orders/get-orders");
+      setOrders(response.data.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    // Fetch orders from the API
-    const fetchOrders = async () => {
-      try {
-        const response = await api.get("/operations/orders/get-orders");
-        setOrders(response.data.data);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
   }, []);
 
@@ -153,9 +153,12 @@ const Orders = () => {
   return (
     <Box sx={{ padding: 3 }}>
       <BreadcrumbNavigation />
-      <Typography variant="h4" gutterBottom>
-        Orders
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography variant="h4" gutterBottom>
+          Orders
+        </Typography>
+        <CreateOrder fetchOrder={fetchOrders} />
+      </Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
         {/* Search Filter */}
         <TextField
