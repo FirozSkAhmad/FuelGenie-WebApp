@@ -15,6 +15,7 @@ import {
   Paper,
   FormControl,
   FormLabel,
+  Checkbox,
 } from "@mui/material";
 import api from "../../utils/api";
 
@@ -28,6 +29,12 @@ const DeliveryDetails = ({
   customerId,
   customerDetails,
   fetchShippingAddresses,
+  billingAddresses,
+  selectedBillingAddress,
+  setSelectedBillingAddress,
+  sameBillingAddress,
+  setSameBillingAddress,
+  fetchBillingAddresses,
 }) => {
   const [selectedDate, setSelectedDate] = useState("");
   const [openAddAddressDialog, setOpenAddAddressDialog] = useState(false);
@@ -43,6 +50,16 @@ const DeliveryDetails = ({
     completeAddress: "",
     state: "",
     city: "",
+    pincode: "",
+    country: "India",
+  });
+  const [openAddBillingDialog, setOpenAddBillingDialog] = useState(false);
+  const [newBillingAddress, setNewBillingAddress] = useState({
+    flatOrHouseNo: "",
+    area: "",
+    landmark: "",
+    city: "",
+    state: "",
     pincode: "",
     country: "India",
   });
@@ -70,13 +87,25 @@ const DeliveryDetails = ({
       console.error("Error adding address:", error);
     }
   };
-
+  const handleAddBillingAddress = async () => {
+    try {
+      await api.post(
+        `/operations/orders/add-billing-address/${cid}`,
+        newBillingAddress
+      );
+      fetchBillingAddresses(cid);
+      setOpenAddBillingDialog(false);
+    } catch (error) {
+      console.error("Error adding billing address:", error);
+    }
+  };
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
         Delivery Details
       </Typography>
 
+      {/* Shipping Address Section */}
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
         <FormControl component="fieldset" fullWidth>
           <FormLabel component="legend">Shipping Address</FormLabel>
@@ -94,7 +123,6 @@ const DeliveryDetails = ({
             ))}
           </RadioGroup>
         </FormControl>
-
         <Button
           variant="contained"
           color="primary"
@@ -105,6 +133,54 @@ const DeliveryDetails = ({
         </Button>
       </Paper>
 
+      {/* Billing Address Section */}
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={sameBillingAddress}
+              onChange={(e) => {
+                setSameBillingAddress(e.target.checked);
+                if (e.target.checked) {
+                  setSelectedBillingAddress(selectedShippingAddress);
+                }
+              }}
+            />
+          }
+          label="Use same address for billing"
+        />
+
+        {!sameBillingAddress && (
+          <>
+            <FormControl component="fieldset" fullWidth>
+              <FormLabel component="legend">Billing Address</FormLabel>
+              <RadioGroup
+                value={selectedBillingAddress}
+                onChange={(e) => setSelectedBillingAddress(e.target.value)}
+              >
+                {billingAddresses.map((address) => (
+                  <FormControlLabel
+                    key={address.bid} // Use bid as the unique key
+                    value={address.bid} // Use bid as the value
+                    control={<Radio />}
+                    label={`${address.flatOrHouseNo}, ${address.area}, ${address.city}, ${address.state}, ${address.pincode}, ${address.country}`}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenAddBillingDialog(true)}
+              sx={{ mt: 2 }}
+            >
+              Add New Billing Address
+            </Button>
+          </>
+        )}
+      </Paper>
+
+      {/* Delivery Time Section */}
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
         <TextField
           fullWidth
@@ -115,7 +191,6 @@ const DeliveryDetails = ({
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
         />
-
         {selectedDate && (
           <FormControl component="fieldset" fullWidth>
             <FormLabel component="legend">Time Slot</FormLabel>
@@ -279,9 +354,173 @@ const DeliveryDetails = ({
             </Grid>
           </Grid>
         </DialogContent>
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={sameBillingAddress}
+                onChange={(e) => {
+                  setSameBillingAddress(e.target.checked);
+                  if (e.target.checked) {
+                    setSelectedBillingAddress(selectedShippingAddress);
+                  }
+                }}
+              />
+            }
+            label="Use same address for billing"
+          />
+
+          {!sameBillingAddress && (
+            <>
+              <FormControl component="fieldset" fullWidth>
+                <FormLabel component="legend">Billing Address</FormLabel>
+                <RadioGroup
+                  value={selectedBillingAddress}
+                  onChange={(e) => setSelectedBillingAddress(e.target.value)}
+                >
+                  {billingAddresses.map((address) => (
+                    <FormControlLabel
+                      key={address.addressId}
+                      value={address.addressId}
+                      control={<Radio />}
+                      label={address.completeAddress}
+                    />
+                  ))}
+                </RadioGroup>
+              </FormControl>
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setOpenAddBillingDialog(true)}
+                sx={{ mt: 2 }}
+              >
+                Add New Billing Address
+              </Button>
+            </>
+          )}
+        </Paper>
+
         <DialogActions>
           <Button onClick={() => setOpenAddAddressDialog(false)}>Cancel</Button>
           <Button onClick={handleAddAddress} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Billing Address Dialog */}
+      <Dialog
+        open={openAddBillingDialog}
+        onClose={() => setOpenAddBillingDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Add Billing Address</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Flat/House No"
+                value={newBillingAddress.flatOrHouseNo}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    flatOrHouseNo: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Area"
+                value={newBillingAddress.area}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    area: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Landmark"
+                value={newBillingAddress.landmark}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    landmark: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="City"
+                value={newBillingAddress.city}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    city: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="State"
+                value={newBillingAddress.state}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    state: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Pincode"
+                value={newBillingAddress.pincode}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    pincode: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Country"
+                value={newBillingAddress.country}
+                onChange={(e) =>
+                  setNewBillingAddress({
+                    ...newBillingAddress,
+                    country: e.target.value,
+                  })
+                }
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddBillingDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddBillingAddress} color="primary">
             Save
           </Button>
         </DialogActions>

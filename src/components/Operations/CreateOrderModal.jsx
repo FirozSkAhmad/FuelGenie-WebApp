@@ -33,10 +33,12 @@ const CreateOrderModal = ({ open, handleClose, fetchOrders }) => {
   });
   const [products, setProducts] = useState([]);
   const [shippingAddresses, setShippingAddresses] = useState([]);
-  const [billingAddress, setBillingAddress] = useState([]);
+  const [billingAddresses, setBillingAddresses] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedShippingAddress, setSelectedShippingAddress] = useState("");
+  const [selectedBillingAddress, setSelectedBillingAddress] = useState("");
+  const [sameBillingAddress, setSameBillingAddress] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [selectedAssets, setSelectedAssets] = useState([]);
@@ -82,6 +84,7 @@ const CreateOrderModal = ({ open, handleClose, fetchOrders }) => {
     if (selectedCustomer) {
       fetchProducts(selectedCustomer);
       fetchShippingAddresses(selectedCustomer);
+      fetchBillingAddresses(selectedCustomer);
       fetchTimeSlots();
     }
   }, [selectedCustomer]);
@@ -117,14 +120,15 @@ const CreateOrderModal = ({ open, handleClose, fetchOrders }) => {
     }
   };
 
-  const fetchBillingAddress = async (cid) => {
+  // Add billing address fetch function
+  const fetchBillingAddresses = async (cid) => {
     try {
       const response = await api.get(
         `/operations/orders/get-billing-address/${cid}`
       );
-      setBillingAddress(response.data.data);
+      setBillingAddresses(response.data.data);
     } catch (error) {
-      console.error("Error fetching billing address:", error);
+      console.error("Error fetching billing addresses:", error);
     }
   };
 
@@ -135,6 +139,9 @@ const CreateOrderModal = ({ open, handleClose, fetchOrders }) => {
       productId: selectedProducts[0]?.productId,
       quantity: selectedProducts[0]?.quantity,
       shippingAddressId: selectedShippingAddress,
+      billingAddressId: sameBillingAddress
+        ? selectedShippingAddress
+        : selectedBillingAddress,
       slotId: selectedTimeSlot,
     };
 
@@ -207,6 +214,12 @@ const CreateOrderModal = ({ open, handleClose, fetchOrders }) => {
             customerId={selectedCustomer.cid}
             customerDetails={customerDetails}
             fetchShippingAddresses={fetchShippingAddresses}
+            billingAddresses={billingAddresses}
+            selectedBillingAddress={selectedBillingAddress}
+            setSelectedBillingAddress={setSelectedBillingAddress}
+            sameBillingAddress={sameBillingAddress}
+            setSameBillingAddress={setSameBillingAddress}
+            fetchBillingAddresses={fetchBillingAddresses}
           />
         )}
         {activeTab === 2 && (
