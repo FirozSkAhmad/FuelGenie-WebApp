@@ -29,6 +29,7 @@ import CopyIcon from "@mui/icons-material/ContentCopy";
 import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import { usePermissions } from "../../../utils/permissionssHelper";
+import FooterBanners from "../../../components/addProduct/banner/FooterBanners";
 const Banner = () => {
   const [banners, setBanners] = useState([]);
   const [openUpload, setOpenUpload] = useState(false);
@@ -173,27 +174,35 @@ const Banner = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3 }}>
       <BreadcrumbNavigation />
-      <Typography variant="h4" gutterBottom>
-        Banners
-      </Typography>
-      <Typography variant="h6" gutterBottom>
-        Banner's Uploader
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexDirection: "column",
+          gap: 3,
+        }}
+      >
+        <Typography variant="h4" gutterBottom>
+          Banners
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          Banner's Uploader
+        </Typography>
 
-      {banners.length > 0 && (
-        <Button
-          variant="outlined"
-          startIcon={<CloudUploadIcon />}
-          sx={{ mb: 3 }}
-          onClick={() => setOpenUpload(true)}
-          disabled={!permissions.create}
-        >
-          Create Banners
-        </Button>
-      )}
-
+        {banners.length > 0 && (
+          <Button
+            variant="contained"
+            startIcon={<CloudUploadIcon />}
+            onClick={() => setOpenUpload(true)}
+            disabled={!permissions.create}
+            sx={{ width: "fit-content" }}
+          >
+            Create Banners
+          </Button>
+        )}
+      </Box>
       <Grid container spacing={3}>
         {banners.length > 0 ? (
           banners.map((banner) => (
@@ -469,6 +478,9 @@ const Banner = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/*  For Footer Banner  */}
+      <FooterBanners />
     </Box>
   );
 };
