@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@mui/material";
 import CreateOrderModal from "./CreateOrderModal";
 
@@ -20,6 +20,13 @@ const CreateOrder = ({ fetchOrder }) => {
     }
   };
 
+  const fetchData = async () => {
+    await fetchOrder();
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <div>
       <Button variant="contained" onClick={handleModalOpen}>
@@ -28,7 +35,7 @@ const CreateOrder = ({ fetchOrder }) => {
       <CreateOrderModal
         open={isModalOpen}
         handleClose={handleModalClose}
-        fetchOrder={fetchOrder} // Pass fetchOrder to the modal
+        fetchOrder={fetchData} // Pass fetchOrder to the modal
       />
     </div>
   );

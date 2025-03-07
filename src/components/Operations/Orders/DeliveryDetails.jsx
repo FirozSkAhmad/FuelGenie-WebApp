@@ -17,7 +17,7 @@ import {
   FormLabel,
   Checkbox,
 } from "@mui/material";
-import api from "../../utils/api";
+import api from "../../../utils/api";
 
 const DeliveryDetails = ({
   shippingAddresses,

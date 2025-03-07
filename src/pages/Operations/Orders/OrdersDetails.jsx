@@ -26,7 +26,7 @@ import {
   Inventory as AssetIcon,
 } from "@mui/icons-material";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
-
+import InvoiceDownload from "../../../components/Operations/Orders/InvoicePDF";
 const OrdersDetails = () => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -100,7 +100,7 @@ const OrdersDetails = () => {
       <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", mb: 4 }}>
         Order Details
       </Typography>
-
+      <InvoiceDownload data={orderDetails} />
       {/* Customer Details */}
       <Card sx={{ mb: 4 }}>
         <CardHeader

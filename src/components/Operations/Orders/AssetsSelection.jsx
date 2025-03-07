@@ -12,7 +12,7 @@ import {
   InputAdornment,
   Collapse,
 } from "@mui/material";
-import api from "../../utils/api";
+import api from "../../../utils/api";
 
 const AssetsSelection = ({ customerId, selectedAssets, setSelectedAssets }) => {
   const [assets, setAssets] = useState([]); // State for available assets

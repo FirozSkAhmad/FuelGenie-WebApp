@@ -26,7 +26,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import SearchIcon from "@mui/icons-material/Search";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import Quotes from "./Quote-Requests/Quotes";
-import CreateOrder from "../../../components/Operations/CreateOrder";
+import CreateOrder from "../../../components/Operations/Orders/CreateOrder";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
