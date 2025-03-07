@@ -8,6 +8,8 @@ import {
   Font,
   Image,
 } from "@react-pdf/renderer";
+import { Download as DownloadIcon } from "@mui/icons-material"; // Import the Download icon
+import { Button, CircularProgress, Box } from "@mui/material";
 import Logo from "/Fuel.png";
 
 Font.register({
@@ -323,7 +325,21 @@ const InvoiceDownload = ({ data }) => (
     document={<InvoiceDocument data={data} />}
     fileName={`INVOICE_${data.orderDetails.orderId}.pdf`}
   >
-    {({ loading }) => (loading ? "Generating..." : "Download Invoice")}
+    {({ loading }) => (
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        {loading ? (
+          <CircularProgress size={24} sx={{ mr: 2 }} />
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<DownloadIcon />}
+          >
+            Download Invoice
+          </Button>
+        )}
+      </Box>
+    )}
   </PDFDownloadLink>
 );
 

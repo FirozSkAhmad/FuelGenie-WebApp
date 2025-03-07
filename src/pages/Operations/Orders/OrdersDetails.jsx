@@ -16,6 +16,7 @@ import {
   Divider,
   Alert,
   Chip,
+  Box,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -97,10 +98,16 @@ const OrdersDetails = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <BreadcrumbNavigation />
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", mb: 4 }}>
-        Order Details
-      </Typography>
-      <InvoiceDownload data={orderDetails} />
+      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{ fontWeight: "bold", mb: 4 }}
+        >
+          Order Details
+        </Typography>
+        <InvoiceDownload data={orderDetails} />
+      </Box>
       {/* Customer Details */}
       <Card sx={{ mb: 4 }}>
         <CardHeader
