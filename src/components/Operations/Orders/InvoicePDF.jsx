@@ -128,17 +128,34 @@ const styles = StyleSheet.create({
 });
 
 const formatCurrency = (amount) => {
-  if (isNaN(amount) || amount === null || amount === undefined) return "₹0.00";
+  // Check for invalid values and return ₹0.00 as a fallback
+  if (isNaN(amount) || amount == null) return "₹0.00";
 
   try {
+    // Ensure the amount is a number
     const value = typeof amount === "number" ? amount : parseFloat(amount);
-    return new Intl.NumberFormat("en-IN", {
+
+    // Format the currency using Indian locale with ₹ symbol
+    let formattedAmount = new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
+
+    // Remove superscript digits and any unwanted superscript characters
+    formattedAmount = formattedAmount.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
+
+    // Remove superscript "1" (U+00B9) specifically
+    formattedAmount = formattedAmount.replace("\u00B9", "");
+
+    // // Add ₹ symbol explicitly to ensure it’s always at the start
+    // formattedAmount = "₹" + formattedAmount.replace("₹", ""); // Ensure only one ₹ symbol
+
+    return formattedAmount;
   } catch (error) {
+    // In case of an error, return ₹0.00
+    console.error("Currency formatting error:", error);
     return "₹0.00";
   }
 };
@@ -229,10 +246,10 @@ const InvoiceDocument = ({ data }) => {
                 {data.productDetails.quantity} L
               </Text>
               <Text style={[styles.tableCol, { width: "20%" }]}>
-                {formatCurrency(data.productDetails.priceAtOrder)}
+                INR {formatCurrency(data.productDetails.priceAtOrder)}
               </Text>
               <Text style={[styles.tableCol, { width: "20%" }]}>
-                {formatCurrency(data.productDetails.totalQuantityPrice)}
+                INR {formatCurrency(data.productDetails.totalQuantityPrice)}
               </Text>
             </View>
           </View>
@@ -242,19 +259,19 @@ const InvoiceDocument = ({ data }) => {
           <View style={styles.amountRow}>
             <Text>Subtotal:</Text>
             <Text style={styles.currency}>
-              {formatCurrency(data.paymentDetails.totalAmount)}
+              INR {formatCurrency(data.paymentDetails.totalAmount)}
             </Text>
           </View>
           <View style={styles.amountRow}>
             <Text>Delivery Fee:</Text>
             <Text style={styles.currency}>
-              {formatCurrency(data.paymentDetails.deliveryFee)}
+              INR {formatCurrency(data.paymentDetails.deliveryFee)}
             </Text>
           </View>
           <View style={styles.amountRow}>
             <Text>Discount:</Text>
             <Text style={styles.currency}>
-              {formatCurrency(-data.paymentDetails.discountApplied)}
+              INR {formatCurrency(-data.paymentDetails.discountApplied)}
             </Text>
           </View>
           <View style={[styles.amountRow, { marginTop: 12 }]}>
@@ -262,7 +279,7 @@ const InvoiceDocument = ({ data }) => {
               Total Amount:
             </Text>
             <Text style={{ ...styles.currency, fontSize: 14 }}>
-              {formatCurrency(data.paymentDetails.finalAmount)}
+              INR {formatCurrency(data.paymentDetails.finalAmount)}
             </Text>
           </View>
         </View>
