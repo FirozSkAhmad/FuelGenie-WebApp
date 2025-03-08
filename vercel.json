@@ -1,12 +1,3 @@
 {
-  "redirects": [
-    {
-      "source": "http://:path*",
-      "destination": "https://dashboard.fuelgenieoffice.com/:path*",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
+   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+ }
