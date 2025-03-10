@@ -22,6 +22,11 @@ const VerifyPaymentModal = ({
   OrderData,
   onVerificationSuccess,
 }) => {
+  // // Guard clause to handle undefined orderData
+  // if (!OrderData) {
+  //   return null; // or return a loading spinner or placeholder
+  // }
+
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [verified, setVerified] = useState(false);

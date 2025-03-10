@@ -19,6 +19,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Button,
+  Chip,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -27,7 +29,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import Quotes from "./Quote-Requests/Quotes";
 import CreateOrder from "../../../components/Operations/Orders/CreateOrder";
-
+import VerifyPaymentModal from "../../../components/Operations/Orders/VerificationModal";
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,11 @@ const Orders = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState("ALL");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState({
+    orderId: "",
+    phoneNumber: "",
+  });
   const navigate = useNavigate();
 
   // Fetch orders from the API
@@ -87,6 +94,20 @@ const Orders = () => {
   const handleEndDateChange = (date) => {
     setEndDate(date);
     setPage(1); // Reset to the first page when filtering
+  };
+
+  const handleVerifyClick = (order) => {
+    console.log("Verify button clicked", order);
+    setSelectedOrder({
+      orderId: order.orderId,
+      phoneNumber: order.customerNumber,
+    });
+    setModalOpen(true);
+    console.log("modalOpen state:", modalOpen);
+  };
+
+  const handleVerificationSuccess = () => {
+    fetchOrders(); // Refresh the orders list after successful verification
   };
 
   // Filter orders based on search term, payment status, order status, and date range
@@ -149,6 +170,10 @@ const Orders = () => {
       </Typography>
     );
   }
+  // Determine if the Action column should be visible
+  const showActionColumn = filteredOrders.some(
+    (order) => order.paymentStatus === "OTP_PENDING"
+  );
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -188,6 +213,7 @@ const Orders = () => {
             <MenuItem value="ALL">All</MenuItem>
             <MenuItem value="PAID">Paid</MenuItem>
             <MenuItem value="PENDING">Pending</MenuItem>
+            <MenuItem value="OTP_PENDING">OTP Pending</MenuItem>
           </Select>
         </FormControl>
 
@@ -201,6 +227,7 @@ const Orders = () => {
           >
             <MenuItem value="ALL">All</MenuItem>
             <MenuItem value="PENDING">Pending</MenuItem>
+            {/* <MenuItem value="OTP_PENDING">OTP Pending</MenuItem> */}
             <MenuItem value="COMPLETED">Completed</MenuItem>
             <MenuItem value="CANCELLED">Cancelled</MenuItem>
           </Select>
@@ -239,6 +266,7 @@ const Orders = () => {
               <TableCell>Order Status</TableCell>
               <TableCell>Delivery Slot</TableCell>
               <TableCell>Payment Status</TableCell>
+              {showActionColumn && <TableCell>Action</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -261,6 +289,27 @@ const Orders = () => {
                 <TableCell>{order.orderStatus}</TableCell>
                 <TableCell>{order.deliverySlot}</TableCell>
                 <TableCell>{order.paymentStatus}</TableCell>
+                {showActionColumn && (
+                  <TableCell>
+                    {order.paymentStatus === "OTP_PENDING" ? (
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Stop event propagation
+                          handleVerifyClick(order);
+                        }}
+                      >
+                        Verify
+                      </Button>
+                    ) : (
+                      <Chip
+                        label="Paid"
+                        color="success" // Green color
+                        size="small"
+                        variant="outlined" // or "filled" for a solid background
+                      />
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -276,6 +325,12 @@ const Orders = () => {
           color="primary"
         />
       </Box>
+      <VerifyPaymentModal
+        open={modalOpen}
+        handleClose={() => setModalOpen(false)}
+        OrderData={selectedOrder}
+        onVerificationSuccess={handleVerificationSuccess}
+      />
       <Quotes />
     </Box>
   );
