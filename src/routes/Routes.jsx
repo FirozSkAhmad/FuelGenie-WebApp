@@ -33,7 +33,7 @@ import ModuleAccessWrapper from "./ModuleAccessWrapper";
 import Wallets from "../pages/Admin/wallets/Wallets";
 import WalletDetails from "../pages/Admin/wallets/WalletDetails";
 import AuthContext from "../context/AuthContext";
-import Coupons from "../pages/Management/Coupons";
+import Coupons from "../pages/Management/Coupons/Coupons";
 import BowserCreation from "../pages/Admin/BowserCreation/Bowser-Creation";
 import BowserCreationDetail from "../pages/Admin/BowserCreation/Bowser-Creation-Detail";
 import DriverCreation from "../pages/Admin/DriverCreation/Driver-Creation";
@@ -46,6 +46,7 @@ import B2BApprovals from "../pages/Management/b2b-approvals/B2b-Approvals";
 import B2BApprovalsDetails from "../pages/Management/b2b-approvals/B2b-approvals-details";
 import BusinessProfiles from "../pages/Admin/Business-Profiles/BusinessProfiles";
 import BusinessProfilesDetails from "../pages/Admin/Business-Profiles/BusinessProfilesDetails";
+import QuoteProdMgr from "../pages/Products/QuoteProdMgr/QuoteProdMgr";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -160,6 +161,16 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<Banner />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/products/quote-prod-mgr"
+        element={
+          <ModuleAccessWrapper
+            element={<QuoteProdMgr />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogActions,
@@ -22,20 +22,52 @@ const VerifyPaymentModal = ({
   OrderData,
   onVerificationSuccess,
 }) => {
-  // // Guard clause to handle undefined orderData
-  // if (!OrderData) {
-  //   return null; // or return a loading spinner or placeholder
-  // }
-
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const resendIntervalRef = useRef();
   const { orderId, phoneNumber } = OrderData;
+
+  useEffect(() => {
+    if (open && resendCooldown > 0) {
+      resendIntervalRef.current = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(resendIntervalRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (resendIntervalRef.current) {
+        clearInterval(resendIntervalRef.current);
+      }
+    };
+  }, [open]);
+
+  const handleCloseAndReset = () => {
+    // Reset all states
+    setOtp("");
+    setIsVerifying(false);
+    setVerified(false);
+    setMessage({ text: "", type: "" });
+    // Clear the cooldown and interval when closing
+    setResendCooldown(0);
+    if (resendIntervalRef.current) {
+      clearInterval(resendIntervalRef.current);
+    }
+    // Call parent's close handler
+    handleClose();
+  };
 
   const handleVerify = async () => {
     if (!otp || otp.length !== 4) {
-      setError("Please enter a valid 4-digit OTP");
+      setMessage({ text: "Please enter a valid 4-digit OTP", type: "error" });
       return;
     }
 
@@ -46,7 +78,6 @@ const VerifyPaymentModal = ({
         placementOtp: otp,
       });
 
-      // Success Animation
       setVerified(true);
       setTimeout(() => {
         onVerificationSuccess();
@@ -55,16 +86,53 @@ const VerifyPaymentModal = ({
         setOtp("");
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Verification failed");
+      setMessage({
+        text: err.response?.data?.message || "Verification failed",
+        type: "error",
+      });
     } finally {
       setIsVerifying(false);
     }
   };
 
+  const handleResendOtp = async () => {
+    try {
+      await api.post("/operations/orders/resend-placement-otp", { orderId });
+      setMessage({ text: "OTP resent successfully!", type: "success" });
+
+      // Start cooldown timer
+      setResendCooldown(30);
+      if (resendIntervalRef.current) {
+        clearInterval(resendIntervalRef.current);
+      }
+
+      resendIntervalRef.current = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(resendIntervalRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      setMessage({
+        text: err.response?.data?.message || "Failed to resend OTP",
+        type: "error",
+      });
+    }
+  };
+  // Update the display format to show minutes:seconds
+  const formatCooldown = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={!isVerifying && !verified ? handleClose : null}
+      onClose={!isVerifying && !verified ? handleCloseAndReset : null}
       maxWidth="xs"
       fullWidth
     >
@@ -79,7 +147,7 @@ const VerifyPaymentModal = ({
       >
         Verify Payment OTP
         {!isVerifying && !verified && (
-          <IconButton onClick={handleClose} disabled={isVerifying}>
+          <IconButton onClick={handleCloseAndReset} disabled={isVerifying}>
             <Close />
           </IconButton>
         )}
@@ -137,10 +205,27 @@ const VerifyPaymentModal = ({
                 startAdornment: <Lock sx={{ color: "gray", mr: 1 }} />,
               }}
             />
-
-            {error && (
-              <Alert severity="error" sx={{ mt: 2, textAlign: "center" }}>
-                {error}
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Didn't receive OTP?{" "}
+                <Button
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0 || isVerifying}
+                  color="primary"
+                  size="small"
+                >
+                  {resendCooldown > 0
+                    ? `Resend in ${formatCooldown(resendCooldown)}`
+                    : "Resend OTP"}
+                </Button>
+              </Typography>
+            </Box>
+            {message.text && (
+              <Alert
+                severity={message.type}
+                sx={{ mt: 2, textAlign: "center" }}
+              >
+                {message.text}
               </Alert>
             )}
           </>
@@ -150,7 +235,7 @@ const VerifyPaymentModal = ({
       {!verified && (
         <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
           <Button
-            onClick={handleClose}
+            onClick={handleCloseAndReset}
             disabled={isVerifying}
             variant="outlined"
           >

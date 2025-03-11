@@ -54,6 +54,7 @@ import {
 import { styled, useTheme } from "@mui/material/styles";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
+import { path } from "framer-motion/client";
 
 // Constants for drawer width and styles
 const drawerWidth = 280;
@@ -171,6 +172,11 @@ function Sidebar({ open, toggleDrawer }) {
           label: "TimeSlots",
           icon: <AccessTime />,
           path: "/products/time-slots",
+        },
+        {
+          label: "Quote Prod Mgr",
+          icon: <Category />,
+          path: "/products/quote-prod-mgr",
         },
       ],
       toggle: "products",

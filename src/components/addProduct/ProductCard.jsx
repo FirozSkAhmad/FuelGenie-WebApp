@@ -33,14 +33,16 @@ const ProductCard = ({ product, onUpdate }) => {
   const navigate = useNavigate();
   const settings = {
     dots: true,
-    infinite: false,
+    infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
-    adaptiveHeight: false,
-    centerMode: false,
+    adaptiveHeight: true,
+    centerMode: true,
     fade: true,
+    autoplay: true, // Autoplay the carousel
+    autoplaySpeed: 3000, // Autoplay interval
   };
 
   const handleDelete = async () => {

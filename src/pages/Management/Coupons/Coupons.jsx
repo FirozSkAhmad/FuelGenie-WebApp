@@ -17,9 +17,9 @@ import {
   Tab,
   TablePagination,
 } from "@mui/material";
-import api from "../../utils/api";
-import { usePermissions } from "../../utils/permissionssHelper";
-import BreadcrumbNavigation from "../../components/addProduct/utils/BreadcrumbNavigation";
+import api from "../../../utils/api";
+import { usePermissions } from "../../../utils/permissionssHelper";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 const Coupons = () => {
   const [open, setOpen] = useState(false);
   const [coupons, setCoupons] = useState([]);
