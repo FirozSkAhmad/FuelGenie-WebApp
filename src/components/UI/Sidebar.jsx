@@ -317,6 +317,11 @@ function Sidebar({ open, toggleDrawer }) {
           icon: <AssignmentTurnedIn />,
           path: "/management/b2b-approvals",
         },
+        {
+          label: "Pumps",
+          icon: <LocalGasStation />,
+          path: "/management/pumps",
+        },
       ],
       toggle: "management",
     },

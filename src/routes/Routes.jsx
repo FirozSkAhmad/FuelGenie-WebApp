@@ -47,6 +47,8 @@ import B2BApprovalsDetails from "../pages/Management/b2b-approvals/B2b-approvals
 import BusinessProfiles from "../pages/Admin/Business-Profiles/BusinessProfiles";
 import BusinessProfilesDetails from "../pages/Admin/Business-Profiles/BusinessProfilesDetails";
 import QuoteProdMgr from "../pages/Products/QuoteProdMgr/QuoteProdMgr";
+import Pumps from "../pages/Management/Pumps/Pumps";
+import PumpDetails from "../pages/Management/Pumps/PumpDetails";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -451,6 +453,26 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<B2BApprovalsDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/management/pumps"
+        element={
+          <ModuleAccessWrapper
+            element={<Pumps />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/management/pumps/:pumpId"
+        element={
+          <ModuleAccessWrapper
+            element={<PumpDetails />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />
