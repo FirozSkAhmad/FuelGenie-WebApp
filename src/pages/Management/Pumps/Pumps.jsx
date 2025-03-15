@@ -22,7 +22,7 @@ import {
 import OnboardPumpModal from "../../../components/management/Pumps/OnboardPumpModal";
 import { styled } from "@mui/material/styles";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
     backgroundColor: theme.palette.action.hover,
@@ -34,6 +34,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const Pumps = () => {
   const theme = useTheme();
+  const permissions = usePermissions();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [pumps, setPumps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -128,6 +129,7 @@ const Pumps = () => {
           color="primary"
           onClick={handleOpenModal}
           sx={{ minWidth: 180 }}
+          disabled={!permissions?.create}
         >
           + New Pump
         </Button>
@@ -174,7 +176,7 @@ const Pumps = () => {
             }}
           >
             <Table sx={{ minWidth: 800 }}>
-              <TableHead sx={{ bgcolor: theme.palette.grey[100] }}>
+              <TableHead sx={{ bgcolor: theme.palette.background.default }}>
                 <TableRow>
                   {tableHeaders.map((header) => (
                     <TableCell key={header} sx={{ fontWeight: 600 }}>

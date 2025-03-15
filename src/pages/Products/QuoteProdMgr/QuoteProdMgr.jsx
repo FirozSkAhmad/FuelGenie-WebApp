@@ -27,7 +27,8 @@ import CreateQuoteProductModal from "../../../components/addProduct/quoteprodmgr
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
+import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 const QuoteProdMgr = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +36,7 @@ const QuoteProdMgr = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false); // State for modal visibility
-
+  const permissions = usePermissions();
   // Fetch products using Axios
   const fetchProducts = async () => {
     try {
@@ -100,12 +101,14 @@ const QuoteProdMgr = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      <BreadcrumbNavigation />
       <Box display="flex" justifyContent="flex-end" mb={3}>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddProductIcon />}
           onClick={handleModalOpen}
+          disabled={!permissions?.create}
         >
           Create Product
         </Button>

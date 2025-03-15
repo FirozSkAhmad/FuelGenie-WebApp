@@ -18,7 +18,7 @@ import BreadcrumbNavigation from "../../../components/addProduct/utils/Breadcrum
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import UploadDocumentModal from "../../../components/management/Pumps/UploadDocumentModal";
-
+import { usePermissions } from "../../../utils/permissionssHelper";
 const PumpDetails = () => {
   const { pumpId } = useParams();
   const [pump, setPump] = useState(null);
@@ -30,7 +30,7 @@ const PumpDetails = () => {
     message: "",
     severity: "info",
   });
-
+  const permissions = usePermissions();
   // Fetch pump details
   const fetchPumpDetails = async () => {
     try {
@@ -55,8 +55,8 @@ const PumpDetails = () => {
     console.log("Document Name:", documentName);
     console.log("File Name:", documentFile.name);
     const formData = new FormData();
-    formData.append("documentName", documentName);
-    formData.append("documentFile", documentFile);
+
+    formData.append(`${documentName}`, documentFile);
 
     try {
       const response = await api.post(
@@ -193,6 +193,7 @@ const PumpDetails = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setUploadModalOpen(true)}
+            disabled={!permissions?.create}
           >
             Add Document
           </Button>
@@ -206,6 +207,7 @@ const PumpDetails = () => {
                   edge="end"
                   aria-label="delete"
                   onClick={() => handleDeleteDocument(doc.documentId)}
+                  disabled={!permissions?.delete}
                 >
                   <DeleteIcon />
                 </IconButton>

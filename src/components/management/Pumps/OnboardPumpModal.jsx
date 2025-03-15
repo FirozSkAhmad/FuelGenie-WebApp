@@ -221,7 +221,7 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
       fullWidth
       fullScreen={isMobile}
     >
-      <DialogTitle sx={{ bgcolor: theme.palette.grey[100], py: 2 }}>
+      <DialogTitle sx={{ py: 2 }}>
         <Typography variant="h6">Onboard New Pump</Typography>
       </DialogTitle>
 
@@ -509,7 +509,7 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
               <Grid container spacing={2}>
                 {products.map((product, index) => (
                   <Grid item xs={12} key={product.instantProductId}>
-                    <Card variant="outlined">
+                    <Card>
                       <CardContent>
                         <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
                           {product.name} ({product.productType})
@@ -591,7 +591,7 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2, bgcolor: theme.palette.grey[100] }}>
+      <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose} color="inherit">
           Cancel
         </Button>
