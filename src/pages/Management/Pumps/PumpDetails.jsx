@@ -13,6 +13,9 @@ import {
   ListItemText,
   IconButton,
   Snackbar,
+  Grid,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -119,6 +122,35 @@ const PumpDetails = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
+  // Handle status change
+  const handleStatusChange = async () => {
+    const newIsBlocked = !pump.isBlocked;
+    const action = newIsBlocked ? "block" : "activate";
+
+    try {
+      // Optimistic update
+      setPump((prev) => ({ ...prev, isBlocked: newIsBlocked }));
+
+      await api.put(`/management/pumps/pump-status/${pumpId}`, {
+        action: action,
+      });
+
+      setSnackbar({
+        open: true,
+        message: `Status updated to ${newIsBlocked ? "Blocked" : "Active"}!`,
+        severity: "success",
+      });
+    } catch (err) {
+      // Revert on error
+      setPump((prev) => ({ ...prev, isBlocked: !newIsBlocked }));
+      setSnackbar({
+        open: true,
+        message: "Failed to update status. Please try again.",
+        severity: "error",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -160,22 +192,80 @@ const PumpDetails = () => {
       </Typography>
 
       {/* Pump Details Section */}
+
       <Paper sx={{ p: 3, mt: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Owner: {pump.ownerName}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Contact: {pump.contactNo}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Email: {pump.emailId}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Address: {pump.addressLine}, {pump.city}, {pump.state}, {pump.pincode}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Country: {pump.country}
-        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              Owner: {pump.ownerName}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              Contact: {pump.contactNo}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              Email: {pump.emailId}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              Address: {pump.addressLine}, {pump.city}, {pump.state},{" "}
+              {pump.pincode}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              Country: {pump.country}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={!pump.isBlocked}
+                    onChange={handleStatusChange}
+                    disabled={!permissions?.update}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Typography variant="body1">
+                    Status:{" "}
+                    <span
+                      style={{
+                        color: pump.isBlocked ? "error.main" : "success.main",
+                      }}
+                    >
+                      {pump.isBlocked ? "Blocked" : "Active"}
+                    </span>
+                  </Typography>
+                }
+              />
+            </Box>
+
+            <Grid container spacing={1}>
+              <Grid item xs={6}>
+                <Typography variant="body2">
+                  Total Orders: {pump.totalOrders}
+                </Typography>
+                <Typography variant="body2">
+                  Delivered: {pump.deliveredOrders}
+                </Typography>
+                <Typography variant="body2">
+                  Cancelled: {pump.cancelledOrders}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="body2">
+                  Rejected: {pump.rejectedOrders}
+                </Typography>
+                <Typography variant="body2">
+                  Pending Commission: ₹{pump.pendingCommission}
+                </Typography>
+                <Typography variant="body2">
+                  Total Commission: ₹{pump.totalCommission}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
       </Paper>
 
       {/* Documents Section */}
