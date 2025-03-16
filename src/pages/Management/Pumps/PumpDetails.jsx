@@ -16,12 +16,18 @@ import {
   Grid,
   FormControlLabel,
   Switch,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import UploadDocumentModal from "../../../components/management/Pumps/UploadDocumentModal";
 import { usePermissions } from "../../../utils/permissionssHelper";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import BlockIcon from "@mui/icons-material/Block";
+import WarningIcon from "@mui/icons-material/Warning";
+
 const PumpDetails = () => {
   const { pumpId } = useParams();
   const [pump, setPump] = useState(null);
@@ -215,29 +221,99 @@ const PumpDetails = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Box sx={{ mb: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={!pump.isBlocked}
-                    onChange={handleStatusChange}
-                    disabled={!permissions?.update}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Typography variant="body1">
-                    Status:{" "}
-                    <span
-                      style={{
-                        color: pump.isBlocked ? "error.main" : "success.main",
-                      }}
-                    >
-                      {pump.isBlocked ? "Blocked" : "Active"}
-                    </span>
+            <Box
+              sx={{
+                mb: 2,
+                // p: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <Typography variant="subtitle1" component="div">
+                    Account Status:
                   </Typography>
-                }
-              />
+                  <Chip
+                    label={pump.isBlocked ? "Blocked" : "Active"}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      fontWeight: 600,
+                      borderWidth: 2,
+                      borderColor: pump.isBlocked
+                        ? "error.main"
+                        : "success.main",
+                      color: pump.isBlocked ? "error.main" : "success.main",
+                      bgcolor: "background.paper",
+                    }}
+                    icon={
+                      pump.isBlocked ? (
+                        <BlockIcon
+                          fontSize="small"
+                          sx={{ color: "error.main" }}
+                        />
+                      ) : (
+                        <CheckCircleIcon
+                          fontSize="small"
+                          sx={{ color: "success.main" }}
+                        />
+                      )
+                    }
+                  />
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Tooltip
+                    title={`Toggle to ${
+                      pump.isBlocked ? "activate" : "block"
+                    } this pump`}
+                  >
+                    <Switch
+                      checked={!pump.isBlocked}
+                      onChange={handleStatusChange}
+                      disabled={!permissions?.update}
+                      color={pump.isBlocked ? "error" : "success"}
+                      sx={{
+                        "& .MuiSwitch-track": {
+                          bgcolor: pump.isBlocked
+                            ? "error.main"
+                            : "success.main",
+                          opacity: 0.5,
+                        },
+                        "& .MuiSwitch-thumb": {
+                          bgcolor: pump.isBlocked
+                            ? "error.main"
+                            : "success.main",
+                        },
+                      }}
+                    />
+                  </Tooltip>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "text.secondary" }}
+                  >
+                    {pump.isBlocked ? "Blocked" : "Active"}
+                  </Typography>
+                </Box>
+              </Box>
+              {pump.isBlocked && (
+                <Typography
+                  variant="caption"
+                  sx={{ color: "error.main", display: "block", mt: 1 }}
+                >
+                  <WarningIcon
+                    fontSize="small"
+                    sx={{ verticalAlign: "middle", mr: 0.5 }}
+                  />
+                  This pump account is currently blocked from performing
+                  transactions
+                </Typography>
+              )}
             </Box>
 
             <Grid container spacing={1}>
