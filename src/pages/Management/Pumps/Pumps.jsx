@@ -18,8 +18,10 @@ import {
   Box,
   useMediaQuery,
   useTheme,
+  Grid,
 } from "@mui/material";
 import OnboardPumpModal from "../../../components/management/Pumps/OnboardPumpModal";
+import UpdatePriceModal from "../../../components/management/Pumps/UpdatePriceModal";
 import { styled } from "@mui/material/styles";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import { usePermissions } from "../../../utils/permissionssHelper";
@@ -37,7 +39,9 @@ const Pumps = () => {
   const permissions = usePermissions();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [pumps, setPumps] = useState([]);
+  const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [overviewLoading, setOverviewLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -48,7 +52,25 @@ const Pumps = () => {
     severity: "info",
   });
   const [modalOpen, setModalOpen] = useState(false);
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const fetchOverview = async () => {
+    try {
+      setOverviewLoading(true);
+      const response = await api.get("/management/pumps/pumps-overview");
+      setOverview(response.data.data);
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Failed to load overview",
+        severity: "error",
+      });
+    } finally {
+      setOverviewLoading(false);
+    }
+  };
+
   const fetchPumps = async (page) => {
     try {
       setLoading(true);
@@ -72,8 +94,16 @@ const Pumps = () => {
   };
 
   useEffect(() => {
+    fetchOverview();
     fetchPumps(page);
   }, [page]);
+  const handlePriceUpdateSuccess = () => {
+    setSnackbar({
+      open: true,
+      message: "Prices updated successfully!",
+      severity: "success",
+    });
+  };
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -109,10 +139,54 @@ const Pumps = () => {
     "City",
     "Pincode",
   ];
+  const OverviewCard = ({ label, value }) => (
+    <Paper sx={{ p: 3, textAlign: "center", height: "100%" }}>
+      <Typography variant="h6" color="textSecondary" gutterBottom>
+        {label}
+      </Typography>
+      <Typography variant="h4" fontWeight="bold">
+        {value}
+      </Typography>
+    </Paper>
+  );
 
   return (
     <Box sx={{ p: isMobile ? 1 : 3 }}>
       <BreadcrumbNavigation />
+      {/* Overview Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+          Pump Overview
+        </Typography>
+        {overviewLoading ? (
+          <CircularProgress />
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard label="Total Pumps" value={overview?.totalPumps} />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Active Pumps"
+                value={overview?.activePumps}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Blocked Pumps"
+                value={overview?.blockedPumps}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Total Orders"
+                value={overview?.totalOrders}
+              />
+            </Grid>
+          </Grid>
+        )}
+      </Box>
+
       <Box
         sx={{
           display: "flex",
@@ -124,6 +198,14 @@ const Pumps = () => {
         <Typography variant="h4" component="h1">
           Pumps Management
         </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setPriceModalOpen(true)}
+          disabled={!permissions?.create}
+        >
+          Update Fuel Prices
+        </Button>
         <Button
           variant="contained"
           color="primary"
@@ -238,6 +320,18 @@ const Pumps = () => {
         open={modalOpen}
         onClose={handleCloseModal}
         onSuccess={handleOnboardSuccess}
+        onError={(message) =>
+          setSnackbar({
+            open: true,
+            message,
+            severity: "error",
+          })
+        }
+      />
+      <UpdatePriceModal
+        open={priceModalOpen}
+        onClose={() => setPriceModalOpen(false)}
+        onSuccess={handlePriceUpdateSuccess}
         onError={(message) =>
           setSnackbar({
             open: true,
