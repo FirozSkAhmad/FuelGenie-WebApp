@@ -49,6 +49,8 @@ import BusinessProfilesDetails from "../pages/Admin/Business-Profiles/BusinessPr
 import QuoteProdMgr from "../pages/Products/QuoteProdMgr/QuoteProdMgr";
 import Pumps from "../pages/Management/Pumps/Pumps";
 import PumpDetails from "../pages/Management/Pumps/PumpDetails";
+import InstantProducts from "../pages/Management/Instant-Products/InstantProducts";
+import InstantOrderDetails from "../pages/Management/Instant-Products/InstantOrderDetails";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -478,6 +480,27 @@ function AppRoutes() {
           />
         }
       />
+      <Route
+        path="/management/instant-products"
+        element={
+          <ModuleAccessWrapper
+            element={<InstantProducts />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/management/instant-products/get-instant-orderDetails/:instantOrderId"
+        element={
+          <ModuleAccessWrapper
+            element={<InstantOrderDetails />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/restricted" element={<Restricted />} />
     </Routes>

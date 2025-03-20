@@ -16,6 +16,7 @@ import {
   Divider,
   IconButton,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { ArrowUpward, ArrowDownward, Close } from "@mui/icons-material";
 import api from "../../../utils/api";
 
@@ -23,7 +24,7 @@ const UpdatePriceModal = ({ open, onClose, onSuccess, onError }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const theme = useTheme();
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -103,62 +104,101 @@ const UpdatePriceModal = ({ open, onClose, onSuccess, onError }) => {
     setProducts(newProducts);
   };
 
-  const PriceInput = ({ label, value, onChange, isActive, variant }) => (
-    <TextField
-      fullWidth
-      label={label}
-      type="number"
-      value={value}
-      onChange={onChange}
-      disabled={!isActive}
-      inputProps={{
-        min: 0,
-        step: 0.5,
-      }}
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            {variant === "inc" ? (
-              <ArrowUpward color="success" />
-            ) : (
-              <ArrowDownward color="error" />
-            )}
-          </InputAdornment>
-        ),
-      }}
-      sx={{
-        "& .MuiInputBase-root": {
-          backgroundColor: isActive
-            ? variant === "inc"
-              ? "#e8f5e9"
-              : "#ffebee"
-            : "inherit",
-          borderColor: isActive
-            ? variant === "inc"
-              ? "#4caf50"
-              : "#f44336"
-            : "inherit",
-        },
-      }}
-    />
-  );
+  const PriceInput = ({ label, value, onChange, isActive, variant }) => {
+    const backgroundColor = isActive
+      ? variant === "inc"
+        ? theme.palette.success.main +
+          (theme.palette.mode === "dark" ? "22" : "11")
+        : theme.palette.error.main +
+          (theme.palette.mode === "dark" ? "22" : "11")
+      : "inherit";
+
+    return (
+      <TextField
+        fullWidth
+        label={label}
+        type="number"
+        value={value}
+        onChange={onChange}
+        disabled={!isActive}
+        inputProps={{
+          min: 0,
+          step: 0.5,
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              {variant === "inc" ? (
+                <ArrowUpward color="success" />
+              ) : (
+                <ArrowDownward color="error" />
+              )}
+            </InputAdornment>
+          ),
+          sx: {
+            color: theme.palette.text.primary,
+            backgroundColor,
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: isActive
+                ? variant === "inc"
+                  ? theme.palette.success.main
+                  : theme.palette.error.main
+                : theme.palette.divider,
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: isActive
+                ? variant === "inc"
+                  ? theme.palette.success.main
+                  : theme.palette.error.main
+                : theme.palette.divider,
+            },
+          },
+        }}
+      />
+    );
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle sx={{ bgcolor: "#f5f5f5", borderBottom: 1 }}>
+      <DialogTitle
+        sx={{
+          bgcolor: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          color: theme.palette.text.primary,
+        }}
+      >
         <Box display="flex" alignItems="center">
           <Typography variant="h6">Update Fuel Prices</Typography>
-          <Chip label="₹ Per Liter" color="info" sx={{ ml: 2 }} />
+          <Chip
+            label="₹ Per Liter"
+            sx={{
+              ml: 2,
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.info.dark
+                  : theme.palette.info.light,
+              color: theme.palette.getContrastText(
+                theme.palette.mode === "dark"
+                  ? theme.palette.info.dark
+                  : theme.palette.info.light
+              ),
+            }}
+          />
         </Box>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ bgcolor: theme.palette.background.default }}>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Alert severity="error">{error}</Alert>
+          <Alert
+            severity="error"
+            sx={{ bgcolor: theme.palette.error.dark + "22" }}
+          >
+            {error}
+          </Alert>
         ) : (
           <Grid container spacing={3} sx={{ mt: 1 }}>
             {products.map((product, index) => (
@@ -166,10 +206,9 @@ const UpdatePriceModal = ({ open, onClose, onSuccess, onError }) => {
                 <Box
                   sx={{
                     p: 2,
-                    border: 1,
-                    borderColor: "divider",
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: 2,
-                    bgcolor: "#fafafa",
+                    bgcolor: theme.palette.background.paper,
                     position: "relative",
                   }}
                 >
@@ -181,33 +220,46 @@ const UpdatePriceModal = ({ open, onClose, onSuccess, onError }) => {
                       mb: 1,
                     }}
                   >
-                    <Typography variant="subtitle1" gutterBottom>
+                    <Typography
+                      variant="subtitle1"
+                      gutterBottom
+                      sx={{ color: theme.palette.text.primary }}
+                    >
                       {product.name}
-                      <Typography
+                      {/* <Typography
                         variant="caption"
                         color="textSecondary"
                         sx={{ ml: 1 }}
                       >
                         (Current Price:{" "}
                         {product.price ? `₹${product.price}` : "N/A"})
-                      </Typography>
+                      </Typography> */}
                     </Typography>
                     <IconButton
                       size="small"
                       onClick={() => handleReset(index)}
                       disabled={!products[index].inc && !products[index].dec}
                       sx={{
+                        color: theme.palette.text.secondary,
                         visibility:
                           products[index].inc || products[index].dec
                             ? "visible"
                             : "hidden",
+                        "&:hover": {
+                          backgroundColor: theme.palette.action.hover,
+                        },
                       }}
                     >
                       <Close fontSize="small" />
                     </IconButton>
                   </Box>
 
-                  <Divider sx={{ my: 2 }} />
+                  <Divider
+                    sx={{
+                      my: 2,
+                      borderColor: theme.palette.divider,
+                    }}
+                  />
 
                   <Grid container spacing={2} alignItems="center">
                     <Grid item xs={5}>
@@ -238,7 +290,14 @@ const UpdatePriceModal = ({ open, onClose, onSuccess, onError }) => {
                         color="inherit"
                         onClick={() => handleReset(index)}
                         fullWidth
-                        sx={{ height: 56 }}
+                        sx={{
+                          height: 56,
+                          color: theme.palette.text.secondary,
+                          borderColor: theme.palette.divider,
+                          "&:hover": {
+                            borderColor: theme.palette.action.active,
+                          },
+                        }}
                       >
                         Reset
                       </Button>
@@ -251,8 +310,25 @@ const UpdatePriceModal = ({ open, onClose, onSuccess, onError }) => {
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, borderTop: 1, borderColor: "divider" }}>
-        <Button onClick={onClose} variant="outlined" sx={{ minWidth: 120 }}>
+      <DialogActions
+        sx={{
+          p: 3,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          bgcolor: theme.palette.background.paper,
+        }}
+      >
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{
+            minWidth: 120,
+            borderColor: theme.palette.divider,
+            color: theme.palette.text.primary,
+            "&:hover": {
+              borderColor: theme.palette.action.active,
+            },
+          }}
+        >
           Cancel
         </Button>
         <Button

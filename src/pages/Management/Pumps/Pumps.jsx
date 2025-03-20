@@ -179,8 +179,44 @@ const Pumps = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <OverviewCard
+                label="Total Commission"
+                value={overview?.totalCommission}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label=" Settled Commission"
+                value={overview?.settledCommission}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Pending Commission"
+                value={overview?.pendingCommission}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
                 label="Total Orders"
                 value={overview?.totalOrders}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Delivered Orders"
+                value={overview?.deliveredOrders}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Cancelled Orders"
+                value={overview?.cancelledOrders}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <OverviewCard
+                label="Rejected Orders"
+                value={overview?.rejectedOrders}
               />
             </Grid>
           </Grid>

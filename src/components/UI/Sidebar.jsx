@@ -322,6 +322,11 @@ function Sidebar({ open, toggleDrawer }) {
           icon: <LocalGasStation />,
           path: "/management/pumps",
         },
+        {
+          label: "Instant Products",
+          icon: <Inventory />,
+          path: "/management/instant-products",
+        },
       ],
       toggle: "management",
     },
