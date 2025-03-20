@@ -42,6 +42,7 @@ import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import CreateProductModal from "../../../components/management/InstantProducts/CreateProductModal";
 import UpdatePriceModal from "../../../components/management/InstantProducts/UpdatePriceModal";
+import { usePermissions } from "../../../utils/permissionssHelper";
 const InstantProducts = () => {
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
@@ -50,7 +51,7 @@ const InstantProducts = () => {
   const [priceHistory, setPriceHistory] = useState([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
-
+  const permissions = usePermissions();
   const [loading, setLoading] = useState({
     products: true,
     orders: true,
@@ -265,6 +266,7 @@ const InstantProducts = () => {
                   variant="contained"
                   startIcon={<Inventory />}
                   onClick={() => setCreateModalOpen(true)}
+                  disabled={!permissions.create}
                 >
                   Create Product
                 </Button>
@@ -272,6 +274,7 @@ const InstantProducts = () => {
                   variant="outlined"
                   startIcon={<AttachMoney />}
                   onClick={() => setUpdateModalOpen(true)}
+                  disabled={!permissions.update}
                 >
                   Update Prices
                 </Button>
