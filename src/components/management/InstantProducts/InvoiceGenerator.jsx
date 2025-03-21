@@ -177,7 +177,7 @@ const InvoiceDocument = ({ orderDetails, instantOrderId }) => {
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Order #:</Text>
-                <Text style={styles.detailValue}>{orderDetails.orderId}</Text>
+                <Text style={styles.detailValue}>{instantOrderId}</Text>
               </View>
             </View>
           </View>
