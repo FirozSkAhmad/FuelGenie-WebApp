@@ -25,6 +25,8 @@ import UpdatePriceModal from "../../../components/management/Pumps/UpdatePriceMo
 import { styled } from "@mui/material/styles";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 import { usePermissions } from "../../../utils/permissionssHelper";
+import BlockIcon from "@mui/icons-material/Block";
+import Chip from "@mui/material/Chip";
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
     backgroundColor: theme.palette.action.hover,
@@ -138,6 +140,7 @@ const Pumps = () => {
     "State",
     "City",
     "Pincode",
+    "Status",
   ];
   const OverviewCard = ({ label, value }) => (
     <Paper sx={{ p: 3, textAlign: "center", height: "100%" }}>
@@ -309,16 +312,39 @@ const Pumps = () => {
                     key={pump.pumpId}
                     hover
                     onClick={() => handleRowClick(pump.pumpId)}
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor: pump.isBlocked
+                        ? theme.palette.error.light + "33"
+                        : "inherit",
+                      opacity: pump.isBlocked ? 0.7 : 1,
+                    }}
                   >
                     <TableCell>{pump.pumpId}</TableCell>
-                    <TableCell>{pump.pumpName}</TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        {pump.pumpName}
+                        {pump.isBlocked && (
+                          <BlockIcon fontSize="small" color="error" />
+                        )}
+                      </Box>
+                    </TableCell>
                     <TableCell>{pump.ownerName}</TableCell>
                     <TableCell>{pump.contactNo}</TableCell>
                     <TableCell>{pump.emailId}</TableCell>
                     <TableCell>{pump.state}</TableCell>
                     <TableCell>{pump.city}</TableCell>
                     <TableCell>{pump.pincode}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={pump.isBlocked ? "Blocked" : "Active"}
+                        size="small"
+                        color={pump.isBlocked ? "error" : "success"}
+                        variant="outlined"
+                      />
+                    </TableCell>
                   </StyledTableRow>
                 ))}
               </TableBody>

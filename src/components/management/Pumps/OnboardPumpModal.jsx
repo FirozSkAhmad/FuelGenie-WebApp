@@ -19,7 +19,7 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-
+import AddIcon from "@mui/icons-material/Add";
 const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -35,13 +35,17 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
     pincode: "",
     latitude: "",
     longitude: "",
-    license: "",
-    ITC: "",
-    licenseFileName: "",
-    licenseFile: null,
-    ITCFileName: "",
-    ITCFile: null,
+    // license: "",
+    // ITC: "",
+    // licenseFileName: "",
+    // licenseFile: null,
+    // ITCFileName: "",
+    // ITCFile: null,
     productDetails: [],
+    documents: [
+      { name: "License", file: null },
+      { name: "ITC", file: null },
+    ],
   });
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -74,6 +78,20 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
     if (open) fetchProducts();
   }, [open, onError]);
 
+  // Document management functions
+  const addDocument = () => {
+    setFormData((prev) => ({
+      ...prev,
+      documents: [...prev.documents, { name: "", file: null }],
+    }));
+  };
+
+  const removeDocument = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index),
+    }));
+  };
   const validateForm = () => {
     const errors = {};
     const requiredFields = [
@@ -114,14 +132,23 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
         errors[`product-${index}`] = "Max quantity is required";
       }
     });
-    // Validate license fields
-    if (!formData.licenseFileName) errors.licenseFileName = "Name required";
-    if (!formData.licenseFile) errors.licenseFile = "File required";
+    // // Validate license fields
+    // if (!formData.licenseFileName) errors.licenseFileName = "Name required";
+    // if (!formData.licenseFile) errors.licenseFile = "File required";
 
-    // Validate ITC fields
-    if (!formData.ITCFileName) errors.ITCFileName = "Name required";
-    if (!formData.ITCFile) errors.ITCFile = "File required";
+    // // Validate ITC fields
+    // if (!formData.ITCFileName) errors.ITCFileName = "Name required";
+    // if (!formData.ITCFile) errors.ITCFile = "File required";
 
+    // Validate documents
+    formData.documents.forEach((doc, index) => {
+      if (!doc.name.trim()) {
+        errors[`document-${index}-name`] = "Document name is required";
+      }
+      if (!doc.file) {
+        errors[`document-${index}-file`] = "Document file is required";
+      }
+    });
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -139,21 +166,20 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
     if (formErrors[`product-${index}`])
       setFormErrors((prev) => ({ ...prev, [`product-${index}`]: "" }));
   };
-  const handleFileUpload = (field, e) => {
-    const file = e.target.files[0];
-    if (file && file.type === "application/pdf") {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: file,
-      }));
-    }
-  };
+  // const handleFileUpload = (field, e) => {
+  //   const file = e.target.files[0];
+  //   if (file && file.type === "application/pdf") {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       [field]: file,
+  //     }));
+  //   }
+  // };
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
     setSubmitting(true);
     try {
-      // Format product details (existing logic)
       const formattedDetails = formData.productDetails.map((detail, index) => {
         const product = products[index];
         return {
@@ -168,38 +194,29 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
         };
       });
 
-      // Create FormData for file uploads
       const formPayload = new FormData();
 
-      // Append all non-file fields
-      const {
-        licenseFile,
-        licenseFileName,
-        ITCFile,
-        ITCFileName,
-        ...otherFields
-      } = formData;
+      // First append documents
+      formData.documents.forEach((doc) => {
+        if (doc.file && doc.name) {
+          formPayload.append(doc.name, doc.file, `${doc.name}.pdf`);
+        }
+      });
+
+      // Destructure documents out of the other fields
+      const { documents, ...otherFields } = formData;
+
+      // Then append other fields
       Object.entries(otherFields).forEach(([key, value]) => {
         if (key === "productDetails") {
-          formPayload.append(key, JSON.stringify(formattedDetails)); // Use formattedDetails
+          formPayload.append(key, JSON.stringify(formattedDetails));
         } else {
           formPayload.append(key, value);
         }
       });
 
-      // Append files with custom names
-      if (licenseFile) {
-        formPayload.append("license", licenseFile, `${licenseFileName}.pdf`);
-      }
-      if (ITCFile) {
-        formPayload.append("ITC", ITCFile, `${ITCFileName}.pdf`);
-      }
-
-      // Send the request with multipart/form-data headers
       await api.post("/management/pumps/onboard-pump", formPayload, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       onSuccess();
@@ -403,98 +420,101 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
                 gutterBottom
                 sx={{ color: "text.secondary" }}
               >
-                Legal Information
+                Legal Documents
               </Typography>
 
-              {/* License Section */}
-              <Box sx={{ mt: 2 }}>
-                <TextField
-                  fullWidth
-                  label="License Name"
-                  value={formData.licenseFileName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      licenseFileName: e.target.value,
-                    }))
-                  }
-                  error={!!formErrors.licenseFileName}
-                  helperText={formErrors.licenseFileName}
-                  required
-                />
-                <Button
-                  variant="outlined"
-                  component="label"
-                  fullWidth
-                  sx={{
-                    mt: 1,
-                    borderColor: formErrors.licenseFile ? "error.main" : "",
-                    textTransform: "none",
-                  }}
-                >
-                  Upload License PDF
-                  <input
-                    type="file"
-                    hidden
-                    accept="application/pdf"
-                    onChange={(e) => handleFileUpload("licenseFile", e)}
+              {formData.documents.map((doc, index) => (
+                <Box key={index} sx={{ mt: index > 0 ? 3 : 0 }}>
+                  <TextField
+                    fullWidth
+                    label={`Document Name`}
+                    value={doc.name}
+                    onChange={(e) => {
+                      const updatedDocs = [...formData.documents];
+                      updatedDocs[index].name = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        documents: updatedDocs,
+                      }));
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        [`document-${index}-name`]: undefined,
+                        [`document-${index}-file`]: undefined,
+                      }));
+                    }}
+                    error={!!formErrors[`document-${index}-name`]}
+                    helperText={formErrors[`document-${index}-name`]}
+                    required
                   />
-                </Button>
-                {formErrors.licenseFile && (
-                  <FormHelperText error>
-                    {formErrors.licenseFile}
-                  </FormHelperText>
-                )}
-                {formData.licenseFile && (
-                  <Typography variant="caption" sx={{ ml: 1 }}>
-                    Selected file: {formData.licenseFile.name}
-                  </Typography>
-                )}
-              </Box>
 
-              {/* ITC Section */}
-              <Box sx={{ mt: 3 }}>
-                <TextField
-                  fullWidth
-                  label="ITC Certificate Name"
-                  value={formData.ITCFileName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      ITCFileName: e.target.value,
-                    }))
-                  }
-                  error={!!formErrors.ITCFileName}
-                  helperText={formErrors.ITCFileName}
-                  required
-                />
-                <Button
-                  variant="outlined"
-                  component="label"
-                  fullWidth
-                  sx={{
-                    mt: 1,
-                    borderColor: formErrors.ITCFile ? "error.main" : "",
-                    textTransform: "none",
-                  }}
-                >
-                  Upload ITC Certificate PDF
-                  <input
-                    type="file"
-                    hidden
-                    accept="application/pdf"
-                    onChange={(e) => handleFileUpload("ITCFile", e)}
-                  />
-                </Button>
-                {formErrors.ITCFile && (
-                  <FormHelperText error>{formErrors.ITCFile}</FormHelperText>
-                )}
-                {formData.ITCFile && (
-                  <Typography variant="caption" sx={{ ml: 1 }}>
-                    Selected file: {formData.ITCFile.name}
-                  </Typography>
-                )}
-              </Box>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    fullWidth
+                    sx={{
+                      mt: 1,
+                      borderColor: formErrors[`document-${index}-file`]
+                        ? "error.main"
+                        : "",
+                      textTransform: "none",
+                    }}
+                  >
+                    Upload PDF
+                    <input
+                      type="file"
+                      hidden
+                      accept="application/pdf"
+                      onChange={(e) => {
+                        const updatedDocs = [...formData.documents];
+                        updatedDocs[index].file = e.target.files[0];
+                        setFormData((prev) => ({
+                          ...prev,
+                          documents: updatedDocs,
+                        }));
+                        setFormErrors((prev) => ({
+                          ...prev,
+                          [`document-${index}-file`]: undefined,
+                        }));
+                      }}
+                    />
+                  </Button>
+
+                  {formErrors[`document-${index}-file`] && (
+                    <FormHelperText error>
+                      {formErrors[`document-${index}-file`]}
+                    </FormHelperText>
+                  )}
+
+                  {doc.file && (
+                    <Typography
+                      variant="caption"
+                      sx={{ display: "block", mt: 0.5 }}
+                    >
+                      Selected file: {doc.file.name}
+                    </Typography>
+                  )}
+
+                  {index >= 2 && ( // Only show remove for added documents beyond initial 2
+                    <Button
+                      onClick={() => removeDocument(index)}
+                      color="error"
+                      size="small"
+                      sx={{ mt: 1 }}
+                    >
+                      Remove Document
+                    </Button>
+                  )}
+                </Box>
+              ))}
+
+              <Button
+                onClick={addDocument}
+                variant="outlined"
+                sx={{ mt: 2 }}
+                startIcon={<AddIcon />}
+              >
+                Add Another Document
+              </Button>
             </Grid>
 
             {/* Product Details */}

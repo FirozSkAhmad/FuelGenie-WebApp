@@ -464,9 +464,9 @@ const PumpDetails = () => {
           Price Change History
         </Typography>
         <List sx={{ width: "100%", bgcolor: "background.paper" }}>
-          {priceHistory.map((history) => (
+          {priceHistory.map((history, i) => (
             <ListItem
-              key={`${history.instantProductId}-${history.uid}`}
+              key={`${history.instantProductId}-${history.uid}-${i}`}
               sx={{
                 py: 2,
                 px: 3,
