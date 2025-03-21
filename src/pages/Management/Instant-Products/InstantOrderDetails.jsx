@@ -19,6 +19,7 @@ import {
   TableRow,
   Paper,
   Link,
+  Button,
 } from "@mui/material";
 import {
   Person,
@@ -27,11 +28,13 @@ import {
   Payment,
   LocationOn,
   ConfirmationNumber,
+  Download,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import api from "../../../utils/api";
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
-
+import InvoiceGenerator from "../../../components/management/InstantProducts/InvoiceGenerator";
+import InvoiceDownload from "../../../components/management/InstantProducts/InvoiceGenerator";
 const InstantOrderDetails = () => {
   const theme = useTheme();
   const { instantOrderId } = useParams();
@@ -77,10 +80,34 @@ const InstantOrderDetails = () => {
   return (
     <Box sx={{ p: 3, bgcolor: theme.palette.background.default }}>
       <BreadcrumbNavigation />
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-        Order #{instantOrderId}
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          Order #{instantOrderId}
+        </Typography>
 
+        {orderDetails && (
+          <InvoiceDownload
+            orderDetails={orderDetails}
+            instantOrderId={instantOrderId}
+            sx={{
+              "&:hover": {
+                transform: "translateY(-1px)",
+                boxShadow: 2,
+              },
+              transition: "all 0.2s ease-in-out",
+            }}
+          />
+        )}
+      </Box>
       <Grid container spacing={3}>
         {/* Customer & Pump Details */}
         <Grid item xs={12} md={6}>
