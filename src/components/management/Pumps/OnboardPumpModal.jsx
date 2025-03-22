@@ -56,7 +56,7 @@ const OnboardPumpModal = ({ open, onClose, onSuccess, onError }) => {
     const fetchProducts = async () => {
       try {
         const response = await api.get(
-          "/management/pumps/get-instant-products"
+          "/management/pumps/get-all-instant-products"
         );
         setProducts(response.data.data);
         const initialProductDetails = response.data.data.map((product) => ({

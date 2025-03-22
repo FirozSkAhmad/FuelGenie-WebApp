@@ -31,6 +31,7 @@ import { usePermissions } from "../../../utils/permissionssHelper";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BlockIcon from "@mui/icons-material/Block";
 import WarningIcon from "@mui/icons-material/Warning";
+import SetPriceModal from "../../../components/management/Pumps/SetPriceModal";
 
 const PumpDetails = () => {
   const { pumpId } = useParams();
@@ -39,6 +40,7 @@ const PumpDetails = () => {
   const [error, setError] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -65,6 +67,16 @@ const PumpDetails = () => {
       setLoading(false);
     }
   };
+
+  // Filter products with null price and correct type
+
+  const nullPriceProducts = pump
+    ? pump.instantProducts.filter(
+        (product) =>
+          product.price === null &&
+          (product.productType === "petroleum" || product.productType === "gas")
+      )
+    : [];
   // Add this useEffect for fetching price history
   useEffect(() => {
     const fetchPriceHistory = async () => {
@@ -444,15 +456,36 @@ const PumpDetails = () => {
 
       {/* Instant Products Section */}
       <Paper sx={{ p: 3, mt: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Instant Products
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Instant Products
+          </Typography>
+
+          {nullPriceProducts.length > 0 && (
+            <Button
+              variant="contained"
+              onClick={() => setModalOpen(true)}
+              sx={{ mb: 2 }}
+              disabled={!permissions?.update}
+            >
+              Set Missing Prices
+            </Button>
+          )}
+        </Box>
         <List>
-          {pump.instantProducts.map((product) => (
+          {pump?.instantProducts?.map((product) => (
             <ListItem key={product.instantProductId}>
               <ListItemText
                 primary={product.name}
-                secondary={`Price: ${product.price} ${product.unit}`}
+                secondary={`Price: ${product.price ?? "Not set"} ${
+                  product.unit
+                }`}
               />
             </ListItem>
           ))}
@@ -630,7 +663,15 @@ const PumpDetails = () => {
         onClose={() => setUploadModalOpen(false)}
         onUpload={handleUploadDocument}
       />
-
+      <SetPriceModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+        }}
+        fetchPumpDetails={fetchPumpDetails}
+        products={nullPriceProducts}
+        pumpId={pump.pumpId}
+      />
       {/* Snackbar for Notifications */}
       <Snackbar
         open={snackbar.open}
