@@ -245,6 +245,11 @@ function Sidebar({ open, toggleDrawer }) {
           path: "/operations/bd-assignment-history",
         },
         {
+          label: "Totalizer Errors",
+          icon: <ErrorOutline />,
+          path: "/operations/totalizer-errors",
+        },
+        {
           label: "Bowser Deliveries",
           icon: <LocalShipping />,
           path: "/operations/bowser-deliveries",
@@ -254,11 +259,7 @@ function Sidebar({ open, toggleDrawer }) {
           icon: <VpnKey />,
           path: "/operations/driver-login",
         },
-        {
-          label: "Totalizer Errors",
-          icon: <ErrorOutline />,
-          path: "/operations/totalizer-error",
-        },
+
         {
           label: "Refill",
           icon: <LocalGasStation />,

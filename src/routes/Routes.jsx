@@ -51,6 +51,8 @@ import Pumps from "../pages/Management/Pumps/Pumps";
 import PumpDetails from "../pages/Management/Pumps/PumpDetails";
 import InstantProducts from "../pages/Management/Instant-Products/InstantProducts";
 import InstantOrderDetails from "../pages/Management/Instant-Products/InstantOrderDetails";
+import TotalizerError from "../pages/Operations/Totalizer-Errors/TotalizerError";
+import TotalizerErrorDetail from "../pages/Operations/Totalizer-Errors/TotalizerErrorDetail";
 
 function AppRoutes() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -275,6 +277,27 @@ function AppRoutes() {
         element={
           <ModuleAccessWrapper
             element={<BDAssignmentHistory />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      {/* Totalizer Errors Routes */}
+      <Route
+        path="/operations/totalizer-errors"
+        element={
+          <ModuleAccessWrapper
+            element={<TotalizerError />}
+            requiredModule={requiredModule}
+            requiredSubModule={requiredSubModule}
+          />
+        }
+      />
+      <Route
+        path="/operations/totalizer-errors/detail/:rcNumber/:loginHistoryId"
+        element={
+          <ModuleAccessWrapper
+            element={<TotalizerErrorDetail />}
             requiredModule={requiredModule}
             requiredSubModule={requiredSubModule}
           />
