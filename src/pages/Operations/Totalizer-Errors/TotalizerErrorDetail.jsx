@@ -6,8 +6,6 @@ import {
   Grid,
   CircularProgress,
   Card,
-  CardContent,
-  CardHeader,
   Divider,
   useTheme,
   styled,
@@ -23,10 +21,22 @@ import {
   TextField,
   Snackbar,
   Alert,
+  Tooltip,
 } from "@mui/material";
+
+import ChatIcon from "@mui/icons-material/Chat";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import AdjustIcon from "@mui/icons-material/Adjust";
+
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import { alpha } from "@mui/material";
+
 import api from "../../../utils/api";
 import { format } from "date-fns";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+
 import BreadcrumbNavigation from "../../../components/addProduct/utils/BreadcrumbNavigation";
 
 const ImageGrid = styled(Grid)(({ theme }) => ({
@@ -218,6 +228,26 @@ export default function TotalizerErrorDetail() {
                   value={`${bowserData.capacity} L`}
                 />
               </Grid>
+              <Grid item xs={6}>
+                <DetailItem
+                  label="Current Capacity"
+                  value={`${bowserData.currentCapacity} L`}
+                />
+                <DetailItem
+                  label="Available"
+                  value={`${bowserData.isAvailable} `}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem
+                  label="Current Driver ID"
+                  value={`${bowserData.currentDriverId} `}
+                />
+                <DetailItem
+                  label="BowserId"
+                  value={`${bowserData.bowserId} `}
+                />
+              </Grid>
             </Grid>
           </DetailSection>
         </Grid>
@@ -316,7 +346,70 @@ export default function TotalizerErrorDetail() {
             </Grid>
           </DetailSection>
         </Grid>
+        <Grid item xs={12}>
+          <DetailSection elevation={3}>
+            <Typography variant="h6" color="primary" gutterBottom>
+              <Box component="span" sx={{ mr: 1 }}>
+                📅
+              </Box>
+              Login History
+            </Typography>
 
+            {bowserData.loginHistory.data.length === 0 ? (
+              <Box sx={{ p: 3, textAlign: "center" }}>
+                <Typography variant="body1" color="text.secondary">
+                  No historical login records found
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ mb: 2 }}>
+                  {bowserData.loginHistory.data.map((entry) => (
+                    <LoginHistoryEntry
+                      key={entry.loginHistoryId}
+                      entry={entry}
+                      driverHistory={driverHistory}
+                      currentDriverId={bowserData.currentDriverId}
+                    />
+                  ))}
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 2,
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Showing {bowserData.loginHistory.data.length} of{" "}
+                    {bowserData.loginHistory.pagination.total} entries
+                  </Typography>
+
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      size="small"
+                      disabled={
+                        bowserData.loginHistory.pagination.currentPage === 1
+                      }
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={
+                        bowserData.loginHistory.pagination.currentPage ===
+                        bowserData.loginHistory.pagination.totalPages
+                      }
+                    >
+                      Next
+                    </Button>
+                  </Stack>
+                </Box>
+              </>
+            )}
+          </DetailSection>
+        </Grid>
         {/* Documentation Images */}
         <Grid item xs={12}>
           <DetailSection elevation={3}>
@@ -481,3 +574,157 @@ const ImageCard = ({ image }) => (
     </Box>
   </Card>
 );
+
+const LoginHistoryEntry = ({ entry, currentDriverId }) => {
+  const theme = useTheme();
+  const isActiveDriver = entry.driverId === currentDriverId;
+  const netError = entry.totalizerError - (entry.addedTotalizerError || 0);
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        p: 2,
+        mb: 1,
+        borderLeft: `4px solid ${
+          isActiveDriver ? theme.palette.success.main : "transparent"
+        }`,
+        backgroundColor: isActiveDriver
+          ? alpha(theme.palette.success.light, 0.05)
+          : "inherit",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          transform: "translateX(4px)",
+          boxShadow: theme.shadows[1],
+        },
+      }}
+    >
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} md={3}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+              {format(new Date(entry.loggedDate), "dd MMM yyyy HH:mm")}
+            </Typography>
+            {isActiveDriver && (
+              <Chip
+                label="Active"
+                size="small"
+                color="success"
+                variant="filled"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", mt: 1, gap: 1 }}>
+            <PersonOutlineIcon fontSize="small" color="action" />
+            <Typography variant="body2" color="text.secondary">
+              {entry.driverId}
+              {isActiveDriver && " (Current Driver)"}
+            </Typography>
+          </Box>
+
+          <Chip
+            label={entry.shift}
+            size="small"
+            sx={{ mt: 1 }}
+            color={entry.shift === "9-21" ? "primary" : "secondary"}
+            icon={<AccessTimeIcon fontSize="small" />}
+          />
+        </Grid>
+
+        <Grid item xs={12} md={3}>
+          <Stack spacing={0.5}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <ArrowUpwardIcon
+                fontSize="small"
+                sx={{ color: theme.palette.info.main }}
+              />
+              <Typography variant="body2">
+                Initial: <strong>{entry.initialTotalizer} L</strong>
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <ArrowDownwardIcon
+                fontSize="small"
+                sx={{ color: theme.palette.warning.main }}
+              />
+              <Typography variant="body2">
+                Final: <strong>{entry.finalTotalizer ?? "N/A"} L</strong>
+              </Typography>
+            </Box>
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={3}>
+          <Stack spacing={1}>
+            <Tooltip title="Original recorded discrepancy">
+              <Chip
+                label={`Recorded: ${entry.totalizerError ?? 0}L`}
+                size="small"
+                variant="outlined"
+                color="error"
+                icon={<ErrorOutlineIcon fontSize="small" />}
+              />
+            </Tooltip>
+            <Tooltip title="Manually adjusted error">
+              <Chip
+                label={`Adjusted: ${entry.addedTotalizerError ?? 0}L`}
+                size="small"
+                variant="outlined"
+                color="success"
+                icon={<AdjustIcon fontSize="small" />}
+              />
+            </Tooltip>
+            <Divider sx={{ my: 0.5 }} />
+            <Typography variant="body2">
+              Net Error:{" "}
+              <span
+                style={{
+                  color:
+                    netError > 0
+                      ? theme.palette.error.main
+                      : theme.palette.success.main,
+                  fontWeight: 500,
+                }}
+              >
+                {netError}L
+              </span>
+            </Typography>
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={3}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            <StatusChip
+              label={
+                entry.totalizerError
+                  ? `Error: ${entry.totalizerError}L`
+                  : "Clean Shift"
+              }
+              color={entry.totalizerError ? "error" : "success"}
+              variant="filled"
+              size="small"
+            />
+            {entry.remarks && (
+              <Tooltip title={entry.remarks}>
+                <ChatIcon
+                  fontSize="small"
+                  color="action"
+                  sx={{ cursor: "pointer" }}
+                />
+              </Tooltip>
+            )}
+          </Box>
+        </Grid>
+      </Grid>
+    </Card>
+  );
+};

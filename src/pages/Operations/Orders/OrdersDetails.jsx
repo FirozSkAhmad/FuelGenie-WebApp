@@ -17,6 +17,7 @@ import {
   Alert,
   Chip,
   Box,
+  Button,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -98,16 +99,34 @@ const OrdersDetails = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <BreadcrumbNavigation />
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{ fontWeight: "bold", mb: 4 }}
-        >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
           Order Details
         </Typography>
-        <InvoiceDownload data={orderDetails} />
+
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {orderInfo?.receiptImgs?.length > 0 && (
+            <Button
+              component="a"
+              href={orderInfo.receiptImgs[0]}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="contained"
+            >
+              Receipt Image
+            </Button>
+          )}
+          <InvoiceDownload data={orderDetails} />
+        </Box>
       </Box>
+
       {/* Customer Details */}
       <Card sx={{ mb: 4 }}>
         <CardHeader
